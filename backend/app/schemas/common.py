@@ -24,7 +24,7 @@ ArticleId = Annotated[
     Field(
         min_length=5,
         max_length=128,
-        pattern=r"^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+        pattern=r"^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$",
         description="`{doc_id}:{lang}:{unit_key}` (data_schema.md §2)",
         examples=[ARTICLE_ID_EXAMPLE],
     ),
