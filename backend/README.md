@@ -88,7 +88,16 @@ The relevant-results demo uses real law and a real embedder:
    docker compose exec backend python -m indexer --data-dir /data/processed
    ```
 
-The "AI answer" is still ML's extractive fallback (the first sentence of the top source). A generated answer needs an LLM (`ADILET_ML_GENERATOR_MODE=openai` with `LLM_BASE_URL`), which ML has not shipped yet.
+5. For a generated answer, point the ml-service at any OpenAI-compatible LLM in `.env`. Without this, the answer is ML's extractive fallback: the first sentence of the top source. For example, Groq:
+
+   ```
+   ADILET_ML_GENERATOR_MODE=openai
+   LLM_BASE_URL=https://api.groq.com/openai
+   LLM_MODEL=qwen/qwen3.8-27b
+   LLM_API_KEY=<your key>
+   ```
+
+   Then recreate the service (not during indexing): `docker compose --profile ml-e5 up -d ml-service-e5`.
 
 ## Index data and search
 

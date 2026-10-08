@@ -19,7 +19,8 @@ BE-01 to BE-03 and the audit fixes are merged (PRs #1–#4). **Integration of al
 - `SEARCH_RERANK_TOP_N` (env): overrides the manifest's rerank depth; `0` turns the rerank stage off. The demo uses 0 until ML ships a real cross-encoder.
 - `backend/README.md`: "Demo on the real corpus".
 
-**Still open:** the answer stays extractive until an LLM is configured (`ADILET_ML_GENERATOR_MODE=openai` + `LLM_BASE_URL`; the `llm` compose service is still an empty placeholder).
+- **Generated answers:** ML's `openai` generator mode works with a hosted OpenAI-compatible LLM. Groq was checked with `qwen/qwen3.8-27b`, a plain-text answer with `[1]` in RU and KK in about 1.3 s; `openai/gpt-oss-120b` also works but writes Markdown bold. Configure it in `.env` (README, step 5). The local `llm` compose service is still an empty placeholder (ML).
+- **Indexer recovery:** a Docker crash mid-index left the job `running` and blocked every later run. `python -m indexer … --abandon-stuck-job` fails such a job and deletes its partial collection (tests included).
 
 ## Integration 2026-10-08 (main @ 952d715)
 Run on the dev laptop (i7-13700HX, Docker Desktop/WSL2).
