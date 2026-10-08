@@ -100,6 +100,12 @@ uv run pytest -m integration
 Needs Postgres, Qdrant and the fake ML service (`docker compose --profile dev up -d postgres qdrant fake-ml`). It creates and resets the `adilet_test` and `adilet_test_search` databases and uses the Qdrant alias `test_legal_chunks`, so dev data is untouched. Override the locations with `TEST_DATABASE_URL`, `TEST_QDRANT_URL` and `TEST_ML_SERVICE_URL` (use `127.0.0.1`, not `localhost`, on Windows). It covers migrations, model-vs-migration drift (`alembic check`), the indexer (first run, same-version rebuild, `--no-switch`, failure keeps the alias, one job at a time, CLI), search (modes, filters, KK, logging), and documents/articles.
 
 ```bash
+TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml
+```
+
+Opt-in, against the **real** ml-service. It checks the service against `contracts/ml_service.md`, then indexes ML's `data/sample/` (into the alias `test_ml_chunks`) and checks that the TOR queries find Labor Code articles in the top 5. That part is skipped until `data/sample/` exists. Run it whenever ML ships a new service or manifest.
+
+```bash
 uv run ruff check . && uv run ruff format --check . && uv run mypy app dev
 ```
 
