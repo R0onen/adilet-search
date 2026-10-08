@@ -8,7 +8,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings
+from app.services.answer import AnswerService
 from app.services.background import BackgroundRunner
+from app.services.feedback import FeedbackService
 from app.services.health import HealthService
 from app.services.manifest import ManifestProvider
 from app.services.qdrant_store import QdrantStore
@@ -44,6 +46,14 @@ def get_search_service(resources: ResourcesDep) -> SearchService:
     return resources.search
 
 
+def get_answer_service(resources: ResourcesDep) -> AnswerService:
+    return resources.answer
+
+
+def get_feedback_service(resources: ResourcesDep) -> FeedbackService:
+    return resources.feedback
+
+
 def get_query_log_writer(resources: ResourcesDep) -> QueryLogWriter:
     return resources.query_log
 
@@ -59,6 +69,8 @@ async def get_session(resources: ResourcesDep) -> AsyncIterator[AsyncSession]:
 
 SettingsDep = Annotated[Settings, Depends(get_settings_dep)]
 SearchServiceDep = Annotated[SearchService, Depends(get_search_service)]
+AnswerServiceDep = Annotated[AnswerService, Depends(get_answer_service)]
+FeedbackServiceDep = Annotated[FeedbackService, Depends(get_feedback_service)]
 QueryLogDep = Annotated[QueryLogWriter, Depends(get_query_log_writer)]
 BackgroundDep = Annotated[BackgroundRunner, Depends(get_background)]
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
