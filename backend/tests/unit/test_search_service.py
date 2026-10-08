@@ -399,3 +399,18 @@ async def test_rerank_never_gets_more_than_100_candidates() -> None:
     )
     await service.search(SearchRequest(query=QUERY), SearchContext())
     assert len(ml.rerank_calls[0]) == 100
+
+
+async def test_rerank_can_be_disabled_by_config() -> None:
+    service, ml, _ = make_service(budgets=SearchBudgets(rerank_top_n=0))
+    outcome = await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert ml.rerank_calls == []
+    assert outcome.response.degraded == []  # a choice, not a failure
+    assert {r.score_type for r in outcome.response.results} == {"fusion"}
+    assert "rerank" not in outcome.response.timing_ms
+
+
+async def test_rerank_top_n_override_limits_candidates() -> None:
+    service, ml, _ = make_service(budgets=SearchBudgets(rerank_top_n=2))
+    await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert len(ml.rerank_calls[0]) == 2

@@ -75,6 +75,7 @@ class Resources:
                 embed_s=settings.search_embed_timeout_s,
                 retrieve_s=settings.search_retrieve_timeout_s,
                 rerank_s=settings.search_rerank_timeout_s,
+                rerank_top_n=settings.search_rerank_top_n,
             ),
         )
         background = BackgroundRunner()

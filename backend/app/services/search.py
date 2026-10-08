@@ -83,6 +83,8 @@ class SearchBudgets:
     embed_s: float = 2.0
     retrieve_s: float = 2.0
     rerank_s: float = 1.5
+    # None = use the manifest's retrieval.rerank_top_n; 0 = skip the rerank stage.
+    rerank_top_n: int | None = None
 
 
 @dataclass
@@ -305,9 +307,14 @@ class SearchService:
 
         # 4. rerank the head (not in keyword mode)
         degraded: list[Literal["rerank", "semantic", "generation"]] = []
-        if mode != "keyword" and candidates:
+        configured = (
+            self._budgets.rerank_top_n
+            if self._budgets.rerank_top_n is not None
+            else params.rerank_top_n
+        )
+        if mode != "keyword" and candidates and configured > 0:
             t = time.perf_counter()
-            top_n = min(params.rerank_top_n, MAX_RERANK_CANDIDATES)
+            top_n = min(configured, MAX_RERANK_CANDIDATES)
             head = candidates[:top_n]
             try:
                 reranked = await self._timed(
