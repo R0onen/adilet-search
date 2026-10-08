@@ -85,6 +85,13 @@ def test_indexer_batch_size_bounds(size: str, capsys: pytest.CaptureFixture[str]
     assert parse_args(["--data-dir", "x", "--batch-size", "128"]).batch_size == 128
 
 
+def test_indexer_abandon_stuck_job_is_opt_in() -> None:
+    from indexer.__main__ import parse_args
+
+    assert parse_args(["--data-dir", "x"]).abandon_stuck_job is False
+    assert parse_args(["--data-dir", "x", "--abandon-stuck-job"]).abandon_stuck_job is True
+
+
 def test_real_adilet_codes_with_underscore_are_valid_article_ids() -> None:
     query_id = "5f0c2a9e-3b1d-4c8e-9a47-2d6f8e1b0c3a"
     request = FeedbackRequest(

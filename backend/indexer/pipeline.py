@@ -155,6 +155,27 @@ class Indexer:
         except IntegrityError as exc:
             raise JobConflict("another index job is queued or running") from exc
 
+    async def abandon_stuck_jobs(self) -> list[uuid.UUID]:
+        """Fail queued/running jobs and delete their unfinished collections.
+
+        For a job whose process died (crash, killed container, Docker restart) and so never reached
+        its own failure handler; it would otherwise block every later run. The database cannot tell
+        a dead job from a live one, so call this only when no indexer is running.
+        """
+        async with self._sessions.begin() as session:
+            abandoned = await repo.abandon_active_jobs(
+                session, "abandoned: the indexer process stopped without finishing this job"
+            )
+        for job_id, collection in abandoned:
+            log.warning("index_job_abandoned", job_id=str(job_id), collection=collection)
+            if (
+                collection is not None
+                and await self._safe_is_unused(collection)
+                and await self._store.collection_exists(collection)
+            ):
+                await self._store.delete_collection(collection)
+        return [job_id for job_id, _ in abandoned]
+
     async def _job(self, job_id: uuid.UUID, **values: Any) -> None:
         async with self._sessions.begin() as session:
             await repo.update_job(session, job_id, **values)

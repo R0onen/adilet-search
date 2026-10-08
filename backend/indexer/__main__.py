@@ -2,7 +2,7 @@
 
     python -m indexer --data-dir data/sample [--manifest ml/models/model_manifest.json]
                       [--embeddings data/index/embeddings_0.1.0.parquet] [--batch-size 64]
-                      [--no-switch] [--no-prune]
+                      [--no-switch] [--no-prune] [--abandon-stuck-job]
 
 Without `--manifest`, the manifest comes from MANIFEST_SOURCE (default: ml-service /version).
 Connection settings (DATABASE_URL, QDRANT_URL, ML_SERVICE_URL, …) come from the environment.
@@ -47,6 +47,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--batch-size", type=_batch_size, default=64, help="1..128, default 64")
     parser.add_argument("--no-switch", action="store_true", help="build, but keep the alias")
     parser.add_argument("--no-prune", action="store_true", help="keep DB rows not in the data")
+    parser.add_argument(
+        "--abandon-stuck-job",
+        action="store_true",
+        help="first fail a queued/running job whose process died (only if no indexer is running)",
+    )
     return parser.parse_args(argv)
 
 
@@ -65,6 +70,8 @@ async def main(argv: list[str] | None = None) -> int:
                 return 1
             manifest = loaded
         indexer = Indexer(resources.sessionmaker, resources.qdrant, resources.ml, manifest)
+        if args.abandon_stuck_job:
+            await indexer.abandon_stuck_jobs()
         result = await indexer.run(
             IndexOptions(
                 data_dir=args.data_dir,

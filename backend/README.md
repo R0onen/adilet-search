@@ -110,7 +110,9 @@ Then:
 curl -X POST http://localhost:8000/api/v1/search -H 'Content-Type: application/json' -d '{"query": "Ответственность работодателя за задержку зарплаты"}'
 ```
 
-Indexer options: `--manifest PATH` (otherwise the manifest comes from `MANIFEST_SOURCE`), `--embeddings PATH` (precomputed `embeddings_{pipeline_version}.parquet`), `--batch-size 64`, `--no-switch` (build without moving the alias), and `--no-prune` (keep DB rows that are not in the data). Exit codes: 0 ok, 1 invalid data or indexing error, 2 another job is running.
+Indexer options: `--manifest PATH` (otherwise the manifest comes from `MANIFEST_SOURCE`), `--embeddings PATH` (precomputed `embeddings_{pipeline_version}.parquet`), `--batch-size 64`, `--no-switch` (build without moving the alias), `--no-prune` (keep DB rows that are not in the data), and `--abandon-stuck-job`. Exit codes: 0 ok, 1 invalid data or indexing error, 2 another job is running.
+
+If the indexer process dies mid-run (crash, killed container, Docker restart), its job stays `running` and every later run exits with 2. Rerun with `--abandon-stuck-job`: it marks that job failed and deletes its unfinished collection (never the one the alias serves). Use it only when no indexer is actually running.
 
 The indexer validates the Parquet files against `contracts/data_schema.md` and lists every problem. It then upserts Postgres (unchanged rows are skipped) and builds a **new** collection `legal_chunks__{pipeline_version}` (or a timestamped sibling if that name exists). It checks the point count, records `index_state`, switches the `legal_chunks` alias atomically, and prunes rows that left the corpus. Old collections are kept for rollback. Progress goes to `index_jobs`.
 

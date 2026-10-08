@@ -204,6 +204,57 @@ def test_only_one_job_at_a_time(first_index: IndexResult, corpus_dir: Path) -> N
         sql("DELETE FROM index_jobs WHERE job_id = $1", job_id)
 
 
+def test_abandon_stuck_job_unblocks_indexing(first_index: IndexResult, corpus_dir: Path) -> None:
+    """A job whose process died stays 'running'; --abandon-stuck-job fails it and drops its
+    unfinished collection, but never the collection that serves search."""
+    partial = f"{ALIAS}__stuck"
+    stuck, serving_job = uuid.uuid4(), uuid.uuid4()
+
+    async def prepare() -> str | None:
+        resources = Resources.create(settings())
+        try:
+            await resources.qdrant.create_collection(partial, 8)
+            return await resources.qdrant.alias_target()
+        finally:
+            await resources.aclose()
+
+    serving = asyncio.run(prepare())
+    insert_job = "INSERT INTO index_jobs (job_id, status, collection) VALUES ($1, $2, $3)"
+
+    async def abandon(index_after: bool) -> tuple[list[uuid.UUID], set[str], IndexResult | None]:
+        resources = Resources.create(settings())
+        try:
+            manifest = await resources.manifest.get()
+            assert manifest is not None
+            indexer = Indexer(resources.sessionmaker, resources.qdrant, resources.ml, manifest)
+            abandoned = await indexer.abandon_stuck_jobs()
+            names = {c.name for c in (await resources.qdrant.client.get_collections()).collections}
+            result = None
+            if index_after:
+                result = await indexer.run(IndexOptions(data_dir=corpus_dir, switch_alias=False))
+            return abandoned, names, result
+        finally:
+            await resources.aclose()
+
+    try:
+        sql(insert_job, stuck, "running", partial)
+        abandoned, names, result = asyncio.run(abandon(index_after=True))
+        assert abandoned == [stuck]
+        assert partial not in names
+        rows = sql("SELECT status, error FROM index_jobs WHERE job_id = $1", stuck)
+        assert rows[0]["status"] == "failed"
+        assert rows[0]["error"].startswith("abandoned")
+        assert result is not None
+        assert result.points > 0
+
+        sql(insert_job, serving_job, "queued", serving)
+        abandoned, names, _ = asyncio.run(abandon(index_after=False))
+        assert abandoned == [serving_job]
+        assert serving in names
+    finally:
+        sql("DELETE FROM index_jobs WHERE job_id = ANY($1::uuid[])", [stuck, serving_job])
+
+
 def test_cli(first_index: IndexResult, corpus_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     from app.core.config import get_settings
     from indexer.__main__ import main
@@ -220,6 +271,8 @@ def test_cli(first_index: IndexResult, corpus_dir: Path, monkeypatch: pytest.Mon
     get_settings.cache_clear()
     try:
         assert asyncio.run(main(["--data-dir", str(corpus_dir), "--no-switch"])) == 0
+        args = ["--data-dir", str(corpus_dir), "--no-switch", "--abandon-stuck-job"]
+        assert asyncio.run(main(args)) == 0
         assert asyncio.run(main(["--data-dir", str(corpus_dir / "missing")])) == 1
     finally:
         get_settings.cache_clear()
