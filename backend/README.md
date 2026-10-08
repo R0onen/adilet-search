@@ -55,6 +55,41 @@ cd frontend && npm ci && VITE_API_MODE=live npm run dev
 
 Then open `http://127.0.0.1:5173`. The real-ML checks are `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` (from `backend/`). CI runs the same chain in the `ml-stack` job.
 
+## Demo on the real corpus (AdiletCodex + E5)
+
+The relevant-results demo uses real law and a real embedder:
+
+1. Get AdiletCodex v1.0 (CC BY 4.0, 34 MB) into the git-ignored `data/raw/`:
+
+   ```bash
+   mkdir -p data/raw/adiletcodex && curl -L -o data/raw/adiletcodex/adiletcodex.csv.gz https://zenodo.org/api/records/22812626/files/adiletcodex.csv.gz/content
+   ```
+
+   Check its MD5: `bde74683987a1e52c16d339ba14953a6`.
+2. Convert the Tier-1 codes (RU + KK) to the `data_schema.md` files in `data/processed/`. This gives about 9,260 articles and 16,260 chunks; add `--all-acts` for all 343 acts.
+
+   ```bash
+   cd backend && uv run python -m dev.import_adiletcodex --csv ../data/raw/adiletcodex/adiletcodex.csv.gz --out ../data/processed
+   ```
+
+3. Start the stack with the E5 ml-service. `infra/ml-e5/` adds the real embedder on top of ML's image, and the model (~1.1 GB) downloads into a volume on first start. `SEARCH_RERANK_TOP_N=0` skips ML's bootstrap word-overlap reranker, which worsens semantic results.
+
+   ```bash
+   docker compose --profile ml build ml-service
+   ```
+
+   ```bash
+   ML_SERVICE_URL=http://ml-service-e5:8001 SEARCH_RERANK_TOP_N=0 docker compose --profile ml-e5 up -d --build
+   ```
+
+4. Index the corpus. On a CPU this takes about 40 minutes for 16k chunks.
+
+   ```bash
+   docker compose exec backend python -m indexer --data-dir /data/processed
+   ```
+
+The "AI answer" is still ML's extractive fallback (the first sentence of the top source). A generated answer needs an LLM (`ADILET_ML_GENERATOR_MODE=openai` with `LLM_BASE_URL`), which ML has not shipped yet.
+
 ## Index data and search
 
 Search needs an index. Until ML publishes `data/sample/`, index the **synthetic** test corpus (invented texts, clearly marked; not legislation):
