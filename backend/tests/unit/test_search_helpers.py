@@ -138,3 +138,27 @@ def test_session_hash_ignores_missing_or_oversized_ids(bad: str | None) -> None:
 
 def test_normalise_query() -> None:
     assert normalise_query("  Задержка\tЗАРПЛАТЫ \n  штраф ") == "задержка зарплаты штраф"
+
+
+# --- user-agent family ----------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("ua", "family"),
+    [
+        (None, None),
+        ("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 Chrome/141.0 Safari/537.36", "chrome"),
+        ("Mozilla/5.0 Chrome/141.0 Safari/537.36 Edg/141.0", "edge"),
+        ("Mozilla/5.0 (Macintosh) AppleWebKit/605.1.15 Version/18.0 Safari/605.1.15", "safari"),
+        ("Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0", "firefox"),
+        ("Mozilla/5.0 Chrome/138.0 YaBrowser/25.8 Safari/537.36", "yandex"),
+        ("curl/8.9.1", "curl"),
+        ("python-httpx/0.28.1", "python"),
+        ("GuzzleHttp/7 PHP/8.3", "php"),
+        ("SomethingElse/1.0", "other"),
+    ],
+)
+def test_ua_family(ua: str | None, family: str | None) -> None:
+    from app.api.context import ua_family
+
+    assert ua_family(ua) == family

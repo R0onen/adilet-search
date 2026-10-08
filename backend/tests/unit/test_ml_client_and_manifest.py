@@ -174,3 +174,52 @@ async def test_rerank_parses() -> None:
     ml = client_for(httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
     response = await ml.rerank("q", [RerankCandidate(id="x", text="t")])
     assert response.results[0].score == 2.5
+
+
+GENERATE = {
+    "question": "q",
+    "lang": "ru",
+    "sources": [{"ref": 1, "article_id": "K1:ru:a1", "title": "t", "text": "x"}],
+}
+
+
+async def test_generate_stream_parses_sse() -> None:
+    raw = (
+        ": ping\n\n"
+        'event: token\ndata: {"text": "Привет "}\n\n'
+        'event: token\ndata: {"text":\ndata: "мир"}\n\n'  # multi-line data
+        'event: done\ndata: {"text": "Привет мир", "finish_reason": "stop"}\n\n'
+    )
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert json.loads(request.content)["stream"] is True
+        return httpx.Response(
+            200, content=raw.encode(), headers={"content-type": "text/event-stream"}
+        )
+
+    from app.schemas.ml import GenerateRequest
+
+    ml = client_for(httpx.MockTransport(handler))
+    events = [
+        e async for e in ml.generate_stream(GenerateRequest.model_validate(GENERATE), timeout_s=5)
+    ]
+    assert [e.event for e in events] == ["token", "token", "done"]
+    assert events[1].data == {"text": "мир"}
+    assert events[2].data["text"] == "Привет мир"
+
+
+@pytest.mark.parametrize(
+    ("response", "kind"),
+    [
+        (httpx.Response(503, json={}), "status"),
+        (httpx.Response(200, content=b"event: token\ndata: {not json\n\n"), "invalid_json"),
+    ],
+)
+async def test_generate_stream_errors(response: httpx.Response, kind: str) -> None:
+    from app.schemas.ml import GenerateRequest
+
+    ml = client_for(httpx.MockTransport(lambda _: response))
+    with pytest.raises(MlUnavailable) as info:
+        async for _ in ml.generate_stream(GenerateRequest.model_validate(GENERATE), timeout_s=5):
+            pass
+    assert info.value.kind == kind
