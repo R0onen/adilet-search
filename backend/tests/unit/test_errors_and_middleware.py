@@ -85,11 +85,7 @@ def test_answer_context_top_k_range(client: TestClient) -> None:
 
 
 STUBS: list[tuple[str, str, dict[str, Any] | None]] = [
-    ("POST", "/api/v1/search", {"query": "Ответственность работодателя за задержку зарплаты"}),
     ("POST", "/api/v1/answer", {"query": "Еңбек шартын бұзу негіздері"}),
-    ("GET", "/api/v1/documents?lang=ru", None),
-    ("GET", "/api/v1/documents/K1500000414?lang=kk", None),
-    ("GET", f"/api/v1/articles/{ARTICLE_ID}", None),
     ("POST", "/api/v1/feedback", {"query_id": QUERY_ID, "target": "answer", "rating": -1}),
     ("POST", "/api/v1/admin/login", {"username": "admin", "password": "x"}),
     ("GET", "/api/v1/admin/stats", None),

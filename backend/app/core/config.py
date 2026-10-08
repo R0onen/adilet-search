@@ -33,6 +33,9 @@ class Settings(BaseSettings):
     qdrant_api_key: str | None = None
     qdrant_alias: str = "legal_chunks"
     qdrant_timeout_s: float = 5.0
+    # gRPC is ~30x faster than REST per query here (1.5 ms vs 44 ms, measured in BE-02).
+    qdrant_prefer_grpc: bool = True
+    qdrant_grpc_port: int = 6334
 
     # --- ML service ---
     ml_service_url: str = "http://localhost:8001"
@@ -41,6 +44,12 @@ class Settings(BaseSettings):
     manifest_source: Literal["file", "service"] = "service"
     model_manifest_path: str = "../ml/models/model_manifest.json"
     manifest_retry_s: float = 30.0
+
+    # --- search (per-stage time budgets; /search p95 target is 2 s) ---
+    search_embed_timeout_s: float = 2.0
+    search_retrieve_timeout_s: float = 2.0
+    search_rerank_timeout_s: float = 1.5
+    index_state_ttl_s: float = 30.0
 
     # --- health ---
     health_timeout_s: float = 2.0

@@ -31,6 +31,7 @@ COPY --from=builder --chown=app:app /app/.venv /app/.venv
 COPY --chown=app:app alembic.ini ./
 COPY --chown=app:app app ./app
 COPY --chown=app:app migrations ./migrations
+COPY --chown=app:app indexer ./indexer
 COPY --chown=app:app dev ./dev
 USER app
 EXPOSE 8000

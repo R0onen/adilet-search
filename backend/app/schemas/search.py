@@ -2,6 +2,7 @@
 
 import unicodedata
 from datetime import date
+from typing import TypedDict
 from uuid import UUID
 
 from pydantic import Field, field_validator, model_validator
@@ -59,14 +60,14 @@ class SearchRequest(ContractModel):
         return value
 
 
-class SearchTiming(ContractModel):
-    """Milliseconds per stage. A stage that did not run is null or missing."""
+class SearchTiming(TypedDict, total=False):
+    """Milliseconds per stage. A key is present only if its stage ran."""
 
-    embed: int | None = None
-    retrieve: int | None = None
-    fuse: int | None = None
-    rerank: int | None = None
-    total: int | None = None
+    embed: int
+    retrieve: int
+    fuse: int
+    rerank: int
+    total: int
 
 
 class SearchResponse(ContractModel):

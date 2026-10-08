@@ -7,11 +7,17 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
+from app.db import repositories as repo
+from app.db.models import Article, Document
 from app.db.session import create_engine, create_sessionmaker
+from app.services.background import BackgroundRunner
 from app.services.health import HealthService
+from app.services.index_info import IndexInfoProvider
 from app.services.manifest import ManifestProvider
 from app.services.ml_client import MlClient
 from app.services.qdrant_store import QdrantStore
+from app.services.query_log import QueryLogWriter
+from app.services.search import SearchBudgets, SearchService
 
 
 @dataclass
@@ -23,16 +29,23 @@ class Resources:
     ml: MlClient
     manifest: ManifestProvider
     health: HealthService
+    index_info: IndexInfoProvider
+    search: SearchService
+    query_log: QueryLogWriter
+    background: BackgroundRunner
     started_at: float = field(default_factory=time.monotonic)
 
     @classmethod
     def create(cls, settings: Settings) -> "Resources":
         engine = create_engine(settings)
+        sessionmaker = create_sessionmaker(engine)
         qdrant = QdrantStore.from_url(
             settings.qdrant_url,
             settings.qdrant_alias,
             settings.qdrant_timeout_s,
             settings.qdrant_api_key,
+            prefer_grpc=settings.qdrant_prefer_grpc,
+            grpc_port=settings.qdrant_grpc_port,
         )
         ml = MlClient(settings.ml_service_url, settings.ml_timeout_s, settings.ml_connect_timeout_s)
         manifest = ManifestProvider(
@@ -41,18 +54,40 @@ class Resources:
             ml,
             settings.manifest_retry_s,
         )
-        health = HealthService(engine, qdrant, ml, settings.health_timeout_s)
+        index_info = IndexInfoProvider(qdrant, sessionmaker, settings.index_state_ttl_s)
+
+        async def lookup(article_ids: list[str]) -> dict[str, tuple[Article, Document]]:
+            async with sessionmaker() as session:
+                return await repo.fetch_articles(session, article_ids)
+
+        search = SearchService(
+            ml=ml,
+            store=qdrant,
+            lookup=lookup,
+            manifest=manifest,
+            index=index_info,
+            budgets=SearchBudgets(
+                embed_s=settings.search_embed_timeout_s,
+                retrieve_s=settings.search_retrieve_timeout_s,
+                rerank_s=settings.search_rerank_timeout_s,
+            ),
+        )
         return cls(
             settings=settings,
             engine=engine,
-            sessionmaker=create_sessionmaker(engine),
+            sessionmaker=sessionmaker,
             qdrant=qdrant,
             ml=ml,
             manifest=manifest,
-            health=health,
+            health=HealthService(engine, qdrant, ml, settings.health_timeout_s),
+            index_info=index_info,
+            search=search,
+            query_log=QueryLogWriter(sessionmaker),
+            background=BackgroundRunner(),
         )
 
     async def aclose(self) -> None:
+        await self.background.drain()
         await self.ml.aclose()
         await self.qdrant.aclose()
         await self.engine.dispose()

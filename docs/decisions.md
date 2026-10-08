@@ -88,3 +88,17 @@ Format:
 - **Decision:** (1) `/health` is `down` only when Postgres is down (not even the full-text fallback can run), `degraded` when Qdrant or the ML search models fail, and `ok` otherwise. The LLM is reported but does not change the status. (2) Enumerated columns are `TEXT` with `CHECK` constraints instead of Postgres enum types. At most one active index job is enforced by a partial unique index.
 - **Why:** (1) the 2 s search SLA is the core function, and the answer feature degrades separately (`degraded: ["generation"]`); this also matches the contract example. (2) Adding a value becomes a one-line migration (Postgres enums cannot drop values), and the single-job rule holds even with several backend workers.
 - **Alternatives:** count the LLM in `status` (the dashboard would show "degraded" every time the CPU LLM is off); application-level locking for jobs (racy with several workers).
+
+## D-014: The backend talks to Qdrant over gRPC
+- 2026-10-08 · accepted · Backend
+- **Decision:** `AsyncQdrantClient(prefer_grpc=True)` on port 6334. REST stays available (`QDRANT_PREFER_GRPC=false`).
+- **Why (measured in BE-02, inside the backend container, 16-point collection, 20 queries):** a dense query took 44.5 ms over REST (both raw httpx and qdrant-client) and 1.5 ms over gRPC. The REST cost is a fixed per-request stall, not search work. With gRPC the `/search` retrieve stage fell from p50 46 ms to 2 ms, and the total from p95 56 ms to 9 ms (fake ML). The retrieve budget is 100 ms, so REST alone would have used half of it.
+- **Alternatives:** keep REST and tune the HTTP transport (more moving parts for the same result).
+- **Revisit if:** gRPC causes deployment trouble (one more internal port; nothing is exposed publicly).
+
+## D-015: Index builds never delete collections; rebuilds get a timestamped name
+- 2026-10-08 · accepted · Backend (affects data_schema.md §8; ML asked to confirm)
+- **Decision:** the indexer builds into `legal_chunks__{pipeline_version}`, or `…__{YYYYMMDDHHMMSS}` when that name exists, and moves the alias only after the point count checks out. It never deletes an existing collection (only its own half-built one when it fails). Postgres rows that left the corpus are pruned after the alias switch.
+- **Why:** zero-downtime reindexing and instant rollback (switch the alias back) also when the corpus changes and the models do not. Pruning after the switch keeps the old index's results resolvable while the new one is built.
+- **Alternatives:** rebuild in place (downtime and no rollback); delete the previous collection on success (no rollback).
+- **Cost:** old collections accumulate; the runbook (BE-06) lists the cleanup command.

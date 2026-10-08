@@ -12,6 +12,17 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-10-08 · openapi.json (api.md unchanged) · v1 · no · Frontend (regenerate types)
+
+Backend phase BE-02. `POST /search`, `GET /documents`, `GET /documents/{doc_id}` and `GET /articles/{article_id}` are now live. Their `501` responses are removed from `openapi.json`. `/search` documents `503 upstream_unavailable` (no index yet, ML or Qdrant down, or an incompatible index; the full-text fallback replaces this in BE-04).
+- **`SearchTiming`** (`timing_ms`): each key is now an optional integer instead of a nullable one. A stage that did not run is omitted (e.g. no `rerank` in `keyword` mode), exactly as `api.md` says ("a `timing_ms` key may be missing"). In TypeScript: `rerank?: number` instead of `rerank?: number | null`.
+
+**For ML (`data_schema.md` §8, owned jointly), implemented by Backend; please confirm or object:**
+- When `legal_chunks__{pipeline_version}` already exists (a corpus rebuild with the same models), the indexer builds `legal_chunks__{pipeline_version}__{YYYYMMDDHHMMSS}` next to it and then switches the alias. Existing collections are never deleted automatically; they stay for rollback.
+- `articles.parquet` has no `corpus_version` column (§4); the backend stores the document's `corpus_version` on each article row.
+
+---
+
 ## 2026-10-08 · api.md, openapi.json · v1 · no · Frontend (regenerate types), ML (FYI)
 
 Backend phase BE-01. `contracts/openapi.json` is generated for the first time and lists all 16 v1 endpoints with their real models. Every endpoint except `/health` and `/version` is a stub that returns `501`. All `api.md` changes are additive or clarifications:
