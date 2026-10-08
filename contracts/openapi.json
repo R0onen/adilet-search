@@ -3522,7 +3522,7 @@
                 }
               }
             },
-            "description": "Server-Sent Events stream. Event order: `sources` (once) → `token` (many) → `done` (once),\nor `error` instead of `done` if generation fails after the stream started.\nThe JSON in each event's `data:` line follows the schema named in `x-sse-events`\n(`SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`). A `: ping` comment is sent every 15 s.\n`done.text` is authoritative: replace the streamed text with it.\n",
+            "description": "Server-Sent Events stream. Event order: `sources` (once) → `token` (many) → `done` (once),\nor `error` instead of `done` if generation fails after the stream started.\nThe JSON in each event's `data:` line follows the schema named in `x-sse-events`\n(`SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`). A `: ping` comment is sent every 15 s.\n`done.text` is authoritative: replace the streamed text with it.\nErrors before the stream starts (validation, search unavailable) are normal JSON responses.\n",
             "x-sse-events": {
               "done": {
                 "$ref": "#/components/schemas/DoneEvent"
@@ -3567,16 +3567,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           },
           "503": {
             "content": {
@@ -3903,16 +3893,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "summary": "Rate a result or an answer (a repeat overwrites)",

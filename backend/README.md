@@ -51,6 +51,18 @@ Indexer options: `--manifest PATH` (otherwise the manifest comes from `MANIFEST_
 
 The indexer validates the Parquet files against `contracts/data_schema.md` and lists every problem. It then upserts Postgres (unchanged rows are skipped) and builds a **new** collection `legal_chunks__{pipeline_version}` (or a timestamped sibling if that name exists). It checks the point count, records `index_state`, switches the `legal_chunks` alias atomically, and prunes rows that left the corpus. Old collections are kept for rollback. Progress goes to `index_jobs`.
 
+Streamed answer (SSE) and feedback:
+
+```bash
+curl -N -X POST http://localhost:8000/api/v1/answer -H 'Content-Type: application/json' -d '{"query": "Ответственность работодателя за задержку зарплаты"}'
+```
+
+The stream is `sources` → `token`… → `done`, or `error` (`generation_unavailable`) after the sources if the LLM fails or times out (`ANSWER_TIMEOUT_S`). `done.text` is authoritative: citations are normalised to `[1][3]`, and invalid ones are removed and counted. Zero results give `done` with the fixed "not found" text, and the LLM is not called. A `: ping` heartbeat goes out every `SSE_PING_S`. A client disconnect cancels the upstream generation. Try the failure path with `FAKE_ML_FAIL=generate docker compose --profile dev up -d fake-ml`.
+
+```bash
+curl -X POST http://localhost:8000/api/v1/feedback -H 'Content-Type: application/json' -d '{"query_id": "<query_id from search or sources>", "target": "answer", "rating": 1}'
+```
+
 Single-user latency per stage:
 
 ```bash
@@ -130,8 +142,9 @@ app/
   core/              config, logging, errors, request-id middleware
   api/v1/            routers (search, answer, documents, feedback, health, admin/*)
   schemas/           Pydantic models = the contract
-  services/          search, fusion, snippets, lang, qdrant_store, ml_client, manifest,
-                     index_info, query_log, health, background
+  services/          search, answer (SSE), citations, feedback, fusion, snippets, lang,
+                     qdrant_store, ml_client, manifest, index_info, query_log,
+                     answer_store, health, background
   db/                SQLAlchemy models, session, repositories
   export_openapi.py  writes ../contracts/openapi.json
 indexer/             corpus validation + indexing pipeline + CLI (python -m indexer)

@@ -133,6 +133,24 @@ jobs:
           curl -fsS 'localhost:8000/api/v1/documents?lang=ru' | jq -e '.total == 3'
           curl -fsS localhost:8000/api/v1/articles/T0000000001:ru:a113 \
             | jq -e '.next_article_id == "T0000000001:ru:a114"'
+      - name: answer (SSE) and feedback end to end
+        run: |
+          set -euo pipefail
+          curl -fsSN -X POST localhost:8000/api/v1/answer -H 'Content-Type: application/json' \
+            -d '{"query": "Ответственность работодателя за задержку зарплаты"}' > answer.sse
+          head -c 600 answer.sse; echo
+          grep -q '^event: sources' answer.sse
+          grep -q '^event: token' answer.sse
+          grep '^data: ' answer.sse | tail -1 | cut -c7- > done.json
+          jq -e '.grounded == true and .citations == [1] and (.text | contains("[1]"))' done.json
+          query_id=$(grep -m1 '^data: ' answer.sse | cut -c7- | jq -r .query_id)
+          sleep 1
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/api/v1/feedback \
+            -H 'Content-Type: application/json' \
+            -d "{\"query_id\": \"$query_id\", \"target\": \"answer\", \"rating\": 1}")
+          test "$code" = "204"
+          docker compose exec -T postgres psql -U adilet -d adilet -tAc \
+            "SELECT status FROM answers WHERE query_id = '$query_id'" | grep -qx completed
           docker compose --profile dev ps
       - if: always()
         run: docker compose --profile dev down -v

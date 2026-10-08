@@ -18,6 +18,7 @@ dependencies = [
     "numpy>=2.1",
     "pyarrow>=18",
     "tzdata>=2026.5",
+    "sse-starlette>=2.2",
 ]
 
 [dependency-groups]

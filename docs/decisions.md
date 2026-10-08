@@ -102,3 +102,10 @@ Format:
 - **Why:** zero-downtime reindexing and instant rollback (switch the alias back) also when the corpus changes and the models do not. Pruning after the switch keeps the old index's results resolvable while the new one is built.
 - **Alternatives:** rebuild in place (downtime and no rollback); delete the previous collection on success (no rollback).
 - **Cost:** old collections accumulate; the runbook (BE-06) lists the cleanup command.
+
+## D-016: An /answer request is persisted once, when its stream ends
+- 2026-10-08 · accepted · Backend
+- **Decision:** the `query_logs` row and the `answers` row of an `/answer` request are written together, in one transaction, by a background task started when the SSE stream ends: completed, failed (`generation_unavailable`) or cancelled by a client disconnect. `has_answer` is true only for completed answers.
+- **Why:** the answer row references the query row (foreign key), so writing them separately races. A single write after the stream also captures the final outcome (citations, timings, cancelled) without updating rows, and still happens when the client disconnects, because the background task is not cancelled with the response.
+- **Alternatives:** write the log at the start and update it at the end (two writes per answer, plus an update path); write synchronously before streaming (delays the `sources` event).
+- **Revisit if:** the admin panel needs to show answers that are still streaming.

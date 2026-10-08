@@ -10,7 +10,10 @@ from app.core.config import Settings
 from app.db import repositories as repo
 from app.db.models import Article, Document
 from app.db.session import create_engine, create_sessionmaker
+from app.services.answer import AnswerConfig, AnswerService
+from app.services.answer_store import AnswerStore
 from app.services.background import BackgroundRunner
+from app.services.feedback import FeedbackService
 from app.services.health import HealthService
 from app.services.index_info import IndexInfoProvider
 from app.services.manifest import ManifestProvider
@@ -31,6 +34,8 @@ class Resources:
     health: HealthService
     index_info: IndexInfoProvider
     search: SearchService
+    answer: AnswerService
+    feedback: FeedbackService
     query_log: QueryLogWriter
     background: BackgroundRunner
     started_at: float = field(default_factory=time.monotonic)
@@ -72,6 +77,19 @@ class Resources:
                 rerank_s=settings.search_rerank_timeout_s,
             ),
         )
+        background = BackgroundRunner()
+        answer = AnswerService(
+            search=search,
+            ml=ml,
+            manifest=manifest,
+            store=AnswerStore(sessionmaker),
+            background=background,
+            config=AnswerConfig(
+                timeout_s=settings.answer_timeout_s,
+                max_tokens=settings.answer_max_tokens,
+                temperature=settings.answer_temperature,
+            ),
+        )
         return cls(
             settings=settings,
             engine=engine,
@@ -82,8 +100,10 @@ class Resources:
             health=HealthService(engine, qdrant, ml, settings.health_timeout_s),
             index_info=index_info,
             search=search,
+            answer=answer,
+            feedback=FeedbackService(sessionmaker),
             query_log=QueryLogWriter(sessionmaker),
-            background=BackgroundRunner(),
+            background=background,
         )
 
     async def aclose(self) -> None:

@@ -5,6 +5,7 @@ dev data or the migration tests. The corpus is the synthetic one from dev/sample
 """
 
 import asyncio
+import json
 import time
 import uuid
 from collections.abc import Iterator
@@ -422,3 +423,185 @@ def test_index_built_by_another_process_is_used_at_once(corpus_dir: Path) -> Non
         after = api.post("/api/v1/search", json={"query": QUERY_RU})
         assert after.status_code == 200, after.text
         assert after.json()["results"]
+
+
+# --- answer (SSE) ---------------------------------------------------------------------------
+
+
+def parse_sse(raw: str) -> list[tuple[str, dict[str, Any]]]:
+    events = []
+    for block in raw.replace("\r\n", "\n").strip().split("\n\n"):
+        fields = dict(line.split(": ", 1) for line in block.splitlines() if ": " in line)
+        if "event" in fields:
+            events.append((fields["event"], json.loads(fields["data"])))
+    return events
+
+
+def answer(client: TestClient, **body: Any) -> list[tuple[str, dict[str, Any]]]:
+    with client.stream("POST", "/api/v1/answer", json=body) as response:
+        assert response.status_code == 200, response.read()
+        assert response.headers["content-type"].startswith("text/event-stream")
+        return parse_sse(response.read().decode("utf-8"))
+
+
+def wait_for_rows(query: str, *args: Any) -> list[asyncpg.Record]:
+    for _ in range(50):
+        rows = sql(query, *args)
+        if rows:
+            return rows
+        time.sleep(0.1)
+    return []
+
+
+def test_answer_streams_and_is_persisted(client: TestClient) -> None:
+    events = answer(client, query=QUERY_RU, context_top_k=3)
+    names = [name for name, _ in events]
+    assert names[0] == "sources"
+    assert names[-1] == "done"
+    assert names.count("token") >= 2
+    sources = events[0][1]
+    assert [s["ref"] for s in sources["sources"]] == [1, 2, 3]
+    done = events[-1][1]
+    assert "[1]" in done["text"]  # the fake ML's canned answer cites [1]
+    assert done["citations"] == [1]
+    assert done["grounded"] is True
+    assert set(done["timing_ms"]) == {"search", "ttft", "total"}
+
+    query_id = uuid.UUID(sources["query_id"])
+    answer_rows = wait_for_rows("SELECT * FROM answers WHERE query_id = $1", query_id)
+    assert answer_rows, "answer row was not written"
+    row = answer_rows[0]
+    assert str(row["answer_id"]) == done["answer_id"]
+    assert row["status"] == "completed"
+    assert row["text"] == done["text"]
+    assert list(row["citations"]) == [1]
+    log_row = sql("SELECT * FROM query_logs WHERE query_id = $1", query_id)[0]
+    assert log_row["endpoint"] == "answer"
+    assert log_row["has_answer"] is True
+
+
+def test_answer_with_zero_results_does_not_call_the_llm(client: TestClient) -> None:
+    events = answer(client, query="квантовая хромодинамика", mode="keyword")
+    assert [name for name, _ in events] == ["sources", "done"]
+    assert events[0][1]["sources"] == []
+    done = events[1][1]
+    assert done["grounded"] is False
+    assert done["finish_reason"] == "no_results"
+    assert "ttft" not in done["timing_ms"] or done["timing_ms"]["ttft"] is None
+
+
+def test_answer_kazakh(client: TestClient) -> None:
+    events = answer(client, query="Еңбек шартын бұзу негіздері")
+    assert events[0][1]["lang"] == "kk"
+    assert "[1]" in events[-1][1]["text"]
+
+
+@pytest.fixture(scope="module")
+def failing_ml() -> Iterator[str]:
+    """A second fake-ml whose /generate fails (FAKE_ML_FAIL=generate)."""
+    import os
+    import subprocess
+    import sys
+
+    import httpx
+
+    port = 8011
+    env = {**os.environ, "FAKE_ML_FAIL": "generate", "FAKE_ML_DIM": "768"}
+    proc = subprocess.Popen(  # noqa: S603 - fixed argv, test-only
+        [sys.executable, "-m", "uvicorn", "dev.fake_ml.app:app", "--port", str(port)],
+        cwd=REPO_ROOT / "backend",
+        env=env,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    url = f"http://127.0.0.1:{port}"
+    try:
+        for _ in range(100):
+            try:
+                if httpx.get(f"{url}/version", timeout=1).status_code == 200:
+                    break
+            except httpx.HTTPError:
+                time.sleep(0.1)
+        yield url
+    finally:
+        proc.terminate()
+        proc.wait(timeout=10)
+
+
+def test_answer_generation_failure_sends_error_after_sources(
+    first_index: IndexResult, failing_ml: str
+) -> None:
+    failing = settings().model_copy(update={"ml_service_url": failing_ml})
+    with TestClient(create_app(failing)) as api:
+        events = answer(api, query=QUERY_RU)
+    assert events[0][0] == "sources"
+    assert events[0][1]["sources"]
+    assert events[-1] == (
+        "error",
+        {
+            "code": "generation_unavailable",
+            "message": "The answer generator is unavailable; the sources above are valid.",
+        },
+    )
+    query_id = uuid.UUID(events[0][1]["query_id"])
+    rows = wait_for_rows("SELECT status, error_code FROM answers WHERE query_id = $1", query_id)
+    assert rows[0]["status"] == "error"
+    assert rows[0]["error_code"] == "generation_unavailable"
+
+
+# --- feedback ---------------------------------------------------------------------------------
+
+
+def test_feedback_upsert_and_validation(client: TestClient) -> None:
+    session = {"X-Session-Id": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee"}
+    body = search(client, query="Сроки выплаты зарплаты")
+    query_id = body["query_id"]
+    article_id = body["results"][0]["article"]["article_id"]
+    wait_for_rows("SELECT 1 FROM query_logs WHERE query_id = $1", uuid.UUID(query_id))
+
+    for rating in (1, -1):
+        response = client.post(
+            "/api/v1/feedback",
+            json={
+                "query_id": query_id,
+                "target": "result",
+                "article_id": article_id,
+                "rating": rating,
+            },
+            headers=session,
+        )
+        assert response.status_code == 204
+        assert response.content == b""
+    rows = sql("SELECT rating, article_id FROM feedback WHERE query_id = $1", uuid.UUID(query_id))
+    assert [(r["rating"], r["article_id"]) for r in rows] == [(-1, article_id)]
+
+    # Answer feedback is a separate row, and article_id is ignored for it.
+    response = client.post(
+        "/api/v1/feedback",
+        json={
+            "query_id": query_id,
+            "target": "answer",
+            "article_id": article_id,
+            "rating": 1,
+            "comment": "ok",
+        },
+        headers=session,
+    )
+    assert response.status_code == 204
+    rows = sql(
+        "SELECT target, article_id, comment FROM feedback WHERE query_id = $1 ORDER BY target",
+        uuid.UUID(query_id),
+    )
+    assert [(r["target"], r["article_id"], r["comment"]) for r in rows] == [
+        ("answer", None, "ok"),
+        ("result", article_id, None),
+    ]
+
+
+def test_feedback_unknown_query_is_404(client: TestClient) -> None:
+    response = client.post(
+        "/api/v1/feedback",
+        json={"query_id": str(uuid.uuid4()), "target": "answer", "rating": 1},
+    )
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"

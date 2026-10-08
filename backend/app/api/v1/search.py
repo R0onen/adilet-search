@@ -1,25 +1,12 @@
 from fastapi import APIRouter, Request
 
+from app.api.context import request_context
 from app.api.deps import BackgroundDep, QueryLogDep, SearchServiceDep, SettingsDep
 from app.api.responses import errors
 from app.schemas.search import SearchRequest, SearchResponse
-from app.services.query_log import session_hash
-from app.services.search import SearchContext, SearchError
+from app.services.search import SearchError
 
 router = APIRouter(tags=["search"])
-
-
-def request_context(request: Request, salt: str, endpoint: str) -> SearchContext:
-    session_id = request.headers.get("x-session-id")
-    if request.headers.get("x-api-key"):
-        client = "api-key"
-    elif session_id:
-        client = "web"
-    else:
-        client = "unknown"
-    return SearchContext(
-        session_hash=session_hash(session_id, salt), client=client, endpoint=endpoint
-    )
 
 
 @router.post(

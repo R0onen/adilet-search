@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     search_rerank_timeout_s: float = 1.5
     index_state_ttl_s: float = 30.0
 
+    # --- answer (SSE) ---
+    answer_timeout_s: float = 90.0
+    answer_max_tokens: int = 512
+    answer_temperature: float = 0.1
+    sse_ping_s: float = 15.0
+
     # --- health ---
     health_timeout_s: float = 2.0
 

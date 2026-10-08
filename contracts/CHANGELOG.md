@@ -12,6 +12,18 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-10-08 · api.md, openapi.json · v1 · no · Frontend (regenerate types), ML (FYI)
+
+Backend phase BE-03. `POST /answer` (SSE) and `POST /feedback` are live; their `501` responses are removed from `openapi.json`. Clarifications in `api.md` (additive):
+- **Zero results:** `done.finish_reason` is `"no_results"`.
+- **Line endings:** SSE lines may end with `\r\n` (sse-starlette's default) or `\n`; clients must accept both.
+- **Errors before the stream:** validation (422) and search failures (503) are plain JSON, no stream is opened.
+- **`/feedback`:** for `target: "answer"`, `article_id` is ignored; an unknown `query_id` returns 404.
+
+The `error` event message for a failed generation is "The answer generator is unavailable; the sources above are valid." (code `generation_unavailable`).
+
+---
+
 ## 2026-10-08 · openapi.json (api.md unchanged) · v1 · no · Frontend (regenerate types)
 
 Backend phase BE-02. `POST /search`, `GET /documents`, `GET /documents/{doc_id}` and `GET /articles/{article_id}` are now live. Their `501` responses are removed from `openapi.json`. `/search` documents `503 upstream_unavailable` (no index yet, ML or Qdrant down, or an incompatible index; the full-text fallback replaces this in BE-04).

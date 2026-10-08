@@ -10,7 +10,7 @@ from sqlalchemy import Select, and_, delete, func, literal_column, select, tuple
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import Article, Document, IndexJob, IndexState, QueryLog
+from app.db.models import Answer, Article, Document, Feedback, IndexJob, IndexState, QueryLog
 
 BATCH_ROWS = 500
 
@@ -244,3 +244,29 @@ async def record_index_state(session: AsyncSession, values: dict[str, Any]) -> N
 
 async def get_index_state(session: AsyncSession, collection: str) -> IndexState | None:
     return await session.get(IndexState, collection)
+
+
+# --- answers and feedback -----------------------------------------------------------------
+
+
+async def insert_answer(session: AsyncSession, values: dict[str, Any]) -> None:
+    await session.execute(insert(Answer).values(**values))
+
+
+async def query_exists(session: AsyncSession, query_id: uuid.UUID) -> bool:
+    found = await session.scalar(select(QueryLog.query_id).where(QueryLog.query_id == query_id))
+    return found is not None
+
+
+async def upsert_feedback(session: AsyncSession, values: dict[str, Any]) -> None:
+    """A repeat for the same (session, query, target, article) overwrites the earlier rating."""
+    stmt = insert(Feedback).values(**values)
+    stmt = stmt.on_conflict_do_update(
+        constraint="uq_feedback_session_query_target_article",
+        set_={
+            "rating": stmt.excluded.rating,
+            "comment": stmt.excluded.comment,
+            "updated_at": func.now(),
+        },
+    )
+    await session.execute(stmt)
