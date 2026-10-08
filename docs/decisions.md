@@ -75,3 +75,16 @@ Format:
 - 2026-10-05 · accepted · ML
 - **Decision:** GPU training runs on free Colab/Kaggle GPUs. Datasets, checkpoints, adapters and GGUF files go to private HF repos, pinned by revision in the manifest.
 - **Why:** no GPU budget, and the artifacts must be reachable from laptops, notebooks and the server.
+
+## D-012: No customer support: own data pipeline and own hosting
+- 2026-10-08 · accepted · all (recorded by Backend)
+- **Decision:** Tehsnab Group provides neither a database export nor a test VM. ML builds the corpus with its own polite scraper of adilet.zan.kz (PROJECT_PLAN §6 fallback). Backend deploys to a VPS and domain that the team rents (PROJECT_PLAN §9 fallback).
+- **Why:** the team confirmed there is no customer support for this project.
+- **Consequences:** BE-06 needs a human to rent a VPS (Ubuntu 24.04, ≥ 4 vCPU / 16 GB RAM / 80 GB SSD) and a domain (or a free dynamic-DNS name) in week 5. The integration guide describes integration with Legal Service as a proposal, not something tested against their system.
+- **Revisit if:** the customer later offers an export or a VM.
+
+## D-013: `/health` status ignores the LLM; enums are TEXT + CHECK
+- 2026-10-08 · accepted · Backend
+- **Decision:** (1) `/health` is `down` only when Postgres is down (not even the full-text fallback can run), `degraded` when Qdrant or the ML search models fail, and `ok` otherwise. The LLM is reported but does not change the status. (2) Enumerated columns are `TEXT` with `CHECK` constraints instead of Postgres enum types. At most one active index job is enforced by a partial unique index.
+- **Why:** (1) the 2 s search SLA is the core function, and the answer feature degrades separately (`degraded: ["generation"]`); this also matches the contract example. (2) Adding a value becomes a one-line migration (Postgres enums cannot drop values), and the single-job rule holds even with several backend workers.
+- **Alternatives:** count the LLM in `status` (the dashboard would show "degraded" every time the CPU LLM is off); application-level locking for jobs (racy with several workers).
