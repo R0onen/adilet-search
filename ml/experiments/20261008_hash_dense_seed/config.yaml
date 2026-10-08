@@ -1,0 +1,4 @@
+model: hash_dense_seed
+dim: 768
+query_prefix: 'query: '
+passage_prefix: 'passage: '

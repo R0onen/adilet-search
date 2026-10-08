@@ -12,6 +12,19 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-10-08 · fixtures/fusion_cases.json, ml_service.md · v1 · no · Backend
+
+ML phase bootstrap. Added `contracts/fixtures/fusion_cases.json` with the weighted-RRF cases from
+`ml_service.md` §2: ties, chunks present in one list, article collapse, unequal weights, empty
+lists, keyword mode and rerank head reordering. This is additive and lets Backend compare its
+fusion implementation against ML's implementation.
+
+ML also confirms the BE-02 indexing details from the 2026-10-08 changelog:
+- same-version rebuilds may use timestamped collection names;
+- `articles.parquet` has no `corpus_version`, so Backend should derive it from the document row.
+
+---
+
 ## 2026-10-08 · api.md, openapi.json · v1 · no · Frontend (regenerate types), ML (FYI)
 
 Backend phase BE-03. `POST /answer` (SSE) and `POST /feedback` are live; their `501` responses are removed from `openapi.json`. Clarifications in `api.md` (additive):

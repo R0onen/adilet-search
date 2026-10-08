@@ -1,0 +1,10 @@
+{"query_id":"s0001","text":"ответственность работодателя за задержку выплаты заработной платы","lang":"ru","source":"synthetic","persona":"accountant","query_type":"plain","answerable":true}
+{"query_id":"s0002","text":"какие документы нужны для заключения трудового договора","lang":"ru","source":"synthetic","persona":"citizen","query_type":"plain","answerable":true}
+{"query_id":"s0003","text":"минимальный размер заработной платы работника","lang":"ru","source":"synthetic","persona":"accountant","query_type":"terminology","answerable":true}
+{"query_id":"s0004","text":"режим рабочего времени начало окончание перерывы","lang":"ru","source":"synthetic","persona":"entrepreneur","query_type":"terminology","answerable":true}
+{"query_id":"s0005","text":"основания расторжения трудового договора по инициативе работодателя","lang":"ru","source":"synthetic","persona":"lawyer","query_type":"terminology","answerable":true}
+{"query_id":"s0006","text":"права работника на своевременную заработную плату и безопасные условия","lang":"ru","source":"synthetic","persona":"citizen","query_type":"plain","answerable":true}
+{"query_id":"s0007","text":"штраф за нарушение экологических норм","lang":"ru","source":"synthetic","persona":"entrepreneur","query_type":"plain","answerable":false}
+{"query_id":"s0008","text":"жалақыны төлеуді кешіктіргені үшін жұмыс берушінің жауапкершілігі","lang":"kk","source":"synthetic","persona":"accountant","query_type":"plain","answerable":true}
+{"query_id":"s0009","text":"еңбек шартын жасау үшін қажетті құжаттар","lang":"kk","source":"synthetic","persona":"citizen","query_type":"plain","answerable":true}
+{"query_id":"s0010","text":"еңбек шартын жұмыс берушінің бастамасы бойынша бұзу негіздері","lang":"kk","source":"synthetic","persona":"lawyer","query_type":"terminology","answerable":true}

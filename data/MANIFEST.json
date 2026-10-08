@@ -1,0 +1,16 @@
+{
+  "corpus_version": "2026.10.08-bootstrap",
+  "scraped_at": "2026-10-08T00:00:00+00:00",
+  "row_counts": {
+    "documents": 2,
+    "articles": 30,
+    "chunks": 33
+  },
+  "sha256": {
+    "sample/documents.parquet": "b034f143e6328699ca285a5a6b2f18a815afaa9677c6c33f08580943d15b6117",
+    "sample/articles.parquet": "309e085caddcb5884427a99dcaca66eed3bdc870492f9bff9a2e251153d78f1c",
+    "sample/chunks.parquet": "d029da720deb6b606cffc3e8532567526bdd69006949fc440b31ef8e2cfd9bb5",
+    "sample/sample_articles.json": "d1cb6c01c21fb7d3297ec63a31373c976d53f549987cef40b3de87948299b59e"
+  },
+  "notes": "Bootstrap integration sample; replace with scraped Adilet text before evaluation."
+}

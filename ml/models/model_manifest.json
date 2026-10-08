@@ -1,0 +1,67 @@
+{
+  "pipeline_version": "0.1.0-bootstrap",
+  "created_at": "2026-10-08",
+  "index_compat_id": "hash-bm25-ch1",
+  "embedder": {
+    "id": "hash-e5-compatible-bootstrap",
+    "hf_repo": "intfloat/multilingual-e5-base",
+    "revision": "to-pin-after-fetch",
+    "dim": 768,
+    "distance": "cosine",
+    "max_seq_len": 512,
+    "query_prefix": "query: ",
+    "passage_prefix": "passage: ",
+    "runtime": "hash-dev; set ADILET_ML_EMBEDDER_BACKEND=sentence-transformers for real e5"
+  },
+  "sparse": {
+    "id": "bm25-hash-ru-kk-v1",
+    "type": "bm25",
+    "qdrant_idf_modifier": true,
+    "params": {
+      "k1": 1.2,
+      "b": 0.75,
+      "avgdl": 142.3
+    }
+  },
+  "reranker": {
+    "id": "lexical-overlap-bootstrap",
+    "hf_repo": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+    "revision": "to-pin-after-fetch",
+    "max_seq_len": 512,
+    "runtime": "python-overlap; cross-encoder hook planned"
+  },
+  "generator": {
+    "id": "extractive-fallback-bootstrap",
+    "base_model": null,
+    "adapter": null,
+    "gguf": null,
+    "served_model_name": "adilet-generator",
+    "prompt_template": "prompts/answer_v1.md",
+    "max_context_tokens": 6000
+  },
+  "retrieval": {
+    "dense_limit": 50,
+    "sparse_limit": 50,
+    "rrf_k": 60,
+    "weights": {
+      "dense": 1.0,
+      "sparse": 1.0
+    },
+    "rerank_top_n": 30,
+    "default_top_k": 10,
+    "context_top_k": 5,
+    "max_chars_per_context": 4000
+  },
+  "chunking": {
+    "version": "ch1",
+    "max_chunk_tokens": 400,
+    "tokenizer": "intfloat/multilingual-e5-base"
+  },
+  "corpus_version": "2026.10.08-bootstrap",
+  "eval": {
+    "dataset": null,
+    "ndcg@10": null,
+    "recall@10": null,
+    "mrr@10": null
+  }
+}

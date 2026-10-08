@@ -1,0 +1,57 @@
+[project]
+name = "adilet-ml"
+version = "0.1.0"
+description = "Adilet Search ML package: corpus tooling, retrieval experiments, and ml-service"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "fastapi>=0.115",
+    "httpx>=0.28",
+    "numpy>=2.1",
+    "prometheus-client>=0.21",
+    "pyarrow>=18",
+    "pydantic>=2.9",
+    "pyyaml>=6.0",
+    "uvicorn[standard]>=0.32",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "ruff>=0.8",
+]
+models = [
+    "sentence-transformers>=3.3",
+    "torch>=2.5",
+    "transformers>=4.46",
+]
+
+[project.scripts]
+adilet-ml-build-sample = "adilet_ml.data.sample_builder:main"
+adilet-ml-bench-latency = "adilet_ml.scripts.bench_latency:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "RUF", "SIM", "PT"]
+ignore = [
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/adilet_ml/data/sample_builder.py" = ["E501"]
+"src/adilet_ml/ingest/adilet.py" = ["S310"]
+"tests/**" = ["S101", "S603"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

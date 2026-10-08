@@ -1,0 +1,58 @@
+corpus_version: "2026.10.08-bootstrap"
+acts:
+  - key: labor_code
+    doc_id: K1500000414
+    short_title_ru: "Трудовой кодекс РК"
+    short_title_kk: "ҚР Еңбек кодексі"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: administrative_offences_code
+    doc_id: K1400000235
+    short_title_ru: "КоАП РК"
+    short_title_kk: "ҚР ӘҚБтК"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: civil_code_general
+    doc_id: K940001000_
+    short_title_ru: "ГК РК (Общая часть)"
+    short_title_kk: "ҚР АК (Жалпы бөлім)"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: civil_code_special
+    doc_id: K990000409_
+    short_title_ru: "ГК РК (Особенная часть)"
+    short_title_kk: "ҚР АК (Ерекше бөлім)"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: tax_code
+    doc_id: K2500000214
+    short_title_ru: "Налоговый кодекс РК"
+    short_title_kk: "ҚР Салық кодексі"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: environmental_code
+    doc_id: K2100000400
+    short_title_ru: "Экологический кодекс РК"
+    short_title_kk: "ҚР Экологиялық кодексі"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: entrepreneurial_code
+    doc_id: K1500000375
+    short_title_ru: "Предпринимательский кодекс РК"
+    short_title_kk: "ҚР Кәсіпкерлік кодексі"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]
+  - key: criminal_code
+    doc_id: K1400000226
+    short_title_ru: "Уголовный кодекс РК"
+    short_title_kk: "ҚР Қылмыстық кодексі"
+    doc_type: code
+    tier: 1
+    languages: [ru, kk]

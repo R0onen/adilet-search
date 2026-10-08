@@ -5,6 +5,8 @@ data/*
 !data/sample/
 !data/eval/
 models/
+!ml/models/
+!ml/models/model_manifest.json
 *.safetensors
 *.bin
 *.gguf

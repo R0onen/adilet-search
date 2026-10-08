@@ -1,0 +1,6 @@
+model: tfidf_logreg_seed
+features: [tfidf_cosine, token_overlap, bm25_score, query_len, doc_len]
+epochs: 600
+learning_rate: 0.35
+l2: 0.001
+train_queries: ['s0001', 's0002', 's0005', 's0006', 's0008', 's0009', 's0010']

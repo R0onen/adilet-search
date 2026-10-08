@@ -1,0 +1,57 @@
+{
+  "version": "splits_v1_seed",
+  "seed": 42,
+  "group_key": "doc_id:unit_key",
+  "synthetic": {
+    "train": [
+      "K1500000414:a114",
+      "K1500000414:a23",
+      "K1500000414:a33",
+      "K1500000414:a52"
+    ],
+    "val": [
+      "K1500000414:a107"
+    ],
+    "test": [
+      "K1500000414:a65"
+    ]
+  },
+  "synthetic_query_splits": {
+    "train": [
+      "s0001",
+      "s0002",
+      "s0005",
+      "s0006",
+      "s0008",
+      "s0009",
+      "s0010"
+    ],
+    "val": [
+      "s0003"
+    ],
+    "test": [
+      "s0004",
+      "s0007"
+    ]
+  },
+  "gold": {
+    "val": [],
+    "test": []
+  },
+  "query_group": {
+    "s0001": "K1500000414:a114",
+    "s0002": "K1500000414:a33",
+    "s0003": "K1500000414:a107",
+    "s0004": "K1500000414:a65",
+    "s0005": "K1500000414:a52",
+    "s0006": "K1500000414:a23",
+    "s0008": "K1500000414:a114",
+    "s0009": "K1500000414:a33",
+    "s0010": "K1500000414:a52"
+  },
+  "sha256": {
+    "queries.jsonl": "f61bdddb7b5197a840713a287f69f6ea2cb6e7fb24fe308fe53d2672120beb34",
+    "qrels.jsonl": "b67aa8a5a6e04dc7b271442af4e7d6c5ff0bf1c56fd48f46968876e1c501c184"
+  },
+  "notes": "Seed split for local baseline wiring; replace after human-labelled gold data exists."
+}

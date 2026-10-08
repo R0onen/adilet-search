@@ -109,3 +109,22 @@ Format:
 - **Why:** the answer row references the query row (foreign key), so writing them separately races. A single write after the stream also captures the final outcome (citations, timings, cancelled) without updating rows, and still happens when the client disconnects, because the background task is not cancelled with the response.
 - **Alternatives:** write the log at the start and update it at the end (two writes per answer, plus an update path); write synchronously before streaming (delays the `sources` event).
 - **Revisit if:** the admin panel needs to show answers that are still streaming.
+
+## D-017: Bootstrap ML service runs offline before real model weights are fetched
+- 2026-10-08 · accepted · ML
+- **Decision:** ship `ml-service` v0 with deterministic hash embeddings, BM25-style sparse vectors, overlap reranking and an extractive citation fallback. The manifest keeps the intended E5/cross-encoder model ids, and the service can switch to `sentence-transformers` with env vars after weights are fetched.
+- **Why:** Backend is blocked on a contract-compliant service and sample data, while real model downloads, Adilet scraping and HF/GPU setup need network credentials and human decisions.
+- **Alternatives:** wait for full E5/cross-encoder/LLM setup (better quality but blocks integration); keep only `backend/dev/fake_ml` (does not give ML-owned manifest, sparse encoder, prompt, Dockerfile or fusion fixture).
+- **Revisit if:** the real zero-shot models are downloaded and pinned, or hash embeddings start being mistaken for model-quality evidence.
+
+## D-018: BM25 remains the local seed winner until gold labels and real models exist
+- 2026-10-08 · accepted · ML
+- **Decision:** for the local assignment package, report BM25 as the best seed baseline and keep the
+  served bootstrap retrieval conservative. The dense hash path and TF-IDF/logistic reranker are
+  comparison rows, not production winners.
+- **Why:** on the committed seed set BM25 has the best nDCG@10 (`0.8796`) and MRR@10 (`0.9000`).
+  The seed set is too small and lexical to justify promoting a learned or dense model.
+- **Alternatives:** promote TF-IDF/logistic because it gets Recall@10 `1.0` (worse ranking quality);
+  promote hash-dense to exercise the dense path (not semantic evidence).
+- **Revisit if:** the gold set, real dense embeddings, cross-encoder and fine-tuned checkpoints show
+  a statistically meaningful improvement under the latency budget.

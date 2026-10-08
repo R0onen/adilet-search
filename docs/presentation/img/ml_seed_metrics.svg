@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360" role="img" aria-label="Seed retrieval metrics">
+  <rect width="720" height="360" fill="#ffffff"/>
+  <text x="40" y="34" font-family="Arial, sans-serif" font-size="22" font-weight="700">Seed retrieval metrics</text>
+  <text x="40" y="58" font-family="Arial, sans-serif" font-size="13" fill="#555">Bootstrap sample, 10 synthetic seed queries</text>
+  <line x1="160" y1="300" x2="660" y2="300" stroke="#333"/>
+  <line x1="160" y1="80" x2="160" y2="300" stroke="#333"/>
+  <line x1="154" y1="245" x2="660" y2="245" stroke="#ddd"/>
+  <line x1="154" y1="190" x2="660" y2="190" stroke="#ddd"/>
+  <line x1="154" y1="135" x2="660" y2="135" stroke="#ddd"/>
+  <line x1="154" y1="80" x2="660" y2="80" stroke="#ddd"/>
+  <rect x="195" y="106.5" width="78" height="193.5" fill="#246bfe"/>
+  <rect x="307" y="126.6" width="78" height="173.4" fill="#00a36c"/>
+  <rect x="419" y="119.6" width="78" height="180.4" fill="#f39c12"/>
+  <text x="234" y="96" font-family="Arial, sans-serif" font-size="13" text-anchor="middle">0.8796</text>
+  <text x="346" y="116" font-family="Arial, sans-serif" font-size="13" text-anchor="middle">0.7872</text>
+  <text x="458" y="109" font-family="Arial, sans-serif" font-size="13" text-anchor="middle">0.8198</text>
+  <text x="234" y="324" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">BM25</text>
+  <text x="346" y="324" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">Hash dense</text>
+  <text x="458" y="324" font-family="Arial, sans-serif" font-size="12" text-anchor="middle">TF-IDF LogReg</text>
+</svg>

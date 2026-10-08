@@ -1,0 +1,7 @@
+model: bm25_seed
+data_dir: data/sample
+queries: data/eval/queries.jsonl
+qrels: data/eval/qrels.jsonl
+top_k: 50
+k1: 1.2
+b: 0.75

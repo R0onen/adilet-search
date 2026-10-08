@@ -1,0 +1,12 @@
+beautifulsoup4>=4.12
+fastapi>=0.115
+httpx>=0.28
+numpy>=2.1
+prometheus-client>=0.21
+pyarrow>=18
+pydantic>=2.9
+pyyaml>=6.0
+uvicorn[standard]>=0.32
+sentence-transformers>=3.3
+torch>=2.5
+transformers>=4.46
