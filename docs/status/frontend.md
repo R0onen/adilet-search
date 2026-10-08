@@ -18,12 +18,12 @@ Presentation MVP combines the critical parts of FE-01/02/03/05/06/07. Full phase
 
 ## Next steps
 - Rehearse the three-minute demo in `docs/presentation/demo_script.md`.
-- Connect and validate the actual backend/model stack when ready; record a backup video.
+- Replace bootstrap retrieval/generation and teaching corpus before claiming real legal AI; record a backup video.
 - Full admin, feedback UI, deployment image, expanded tests, and remaining phase gates are deferred.
 
 ## Blockers (need a human)
 - No blocker for the local synthetic frontend demo.
-- Real corpus/model and live `/answer` are needed for a genuine end-to-end AI demonstration.
+- Live `/answer` is verified with the bootstrap pipeline. Real corpus/model are still needed for a genuine legal AI demonstration.
 - A Kazakh speaker must review all provisional KK UI keys in `frontend/src/i18n.ts` and inherited synthetic KK text.
 
 ## Requests to other agents
@@ -45,5 +45,16 @@ Presentation MVP combines the critical parts of FE-01/02/03/05/06/07. Full phase
 - 4 Edge/Playwright scenarios passed: complete presentation journey, empty/error search, 360px Kazakh layout, answer cancellation/501/SSE failure with preserved sources.
 - Axe scans passed for the RU home, completed result screen, and 360px KK results. These are automated scans, not a complete WCAG certification.
 - Screenshots: `docs/presentation/img/frontend-{home,results,compare,mobile}.png`.
-- Read-only local backend probe at `127.0.0.1:8000/api/v1/health` was refused. Live integration is unverified.
+- Local full-stack deployment on main `99ffde9` passed live API and Edge browser smoke checks: RU/KK search (10 results each), SSE sources/tokens/done with resolved citations, article drawer and RU/KK switching, and comparison including the keyword empty state. No browser page errors occurred.
+- All four Docker services are healthy; migrations and indexing completed (2 document-language rows, 30 articles, 33 chunks). This verifies integration, not model accuracy: RU salary nonpayment ranks article 115 about deductions first and the fallback answer repeats it. Keyword search returns no matches for that example.
+- Pipeline `0.1.0-bootstrap` uses hash embeddings, lexical ranking, and extractive fallback, with paraphrased teaching text under real Labor Code IDs. It has no running LLM, and its text must not be represented as official legislation. Ecology is not covered by the sample.
 - Current build: main app about 144 KB gzip; demo worker/data chunk about 163 KB gzip, loaded only for mocks. Total mock startup JS slightly exceeds the 300 KB target; production LCP is unmeasured.
+
+## Local integrated deployment (2026-10-08)
+- Isolated Compose project `adilet-localtest` uses ignored `.env.localtest` and separate database volumes. Existing projects were not stopped or removed.
+- Frontend: `http://127.0.0.1:5173`; backend docs: `http://127.0.0.1:18000/api/v1/docs`; ML: `http://127.0.0.1:18001/health`.
+- Start services from repository root: `docker compose -p adilet-localtest --env-file .env.localtest --profile ml up -d --wait`.
+- Start UI from `frontend` in PowerShell: `$env:VITE_API_MODE='live'; $env:API_PROXY_TARGET='http://127.0.0.1:18000'; npm run dev`.
+- Stop only this stack, retaining data: `docker compose -p adilet-localtest --env-file .env.localtest --profile ml stop`. Stop the frontend with Ctrl+C in its terminal.
+- Local evidence (ignored): `frontend/test-results/live-report.json`, `live-results.png`, `live-compare.png`, and `localtest-build.log`. First build needed a retry after a network/DNS download failure.
+- This is a local development deployment; public hosting and a frontend production image remain unverified.
