@@ -1,9 +1,25 @@
 # Status: Backend agent
 
-_Last updated: 2026-10-08 · whole-project integration on `main` @ `952d715` (branch `be/integration`)_
+_Last updated: 2026-10-08 · real-corpus demo (branch `be/real-corpus-demo`, stacked on `be/integration`)_
 
 ## Current phase
-BE-01 to BE-03 and the audit fixes are merged (PRs #1–#4). **Integration of all three parts** on the current `main` (ML commit `952d715`, Frontend PR #6): the real ml-service is wired into compose, ML's `data/sample/` is indexed with ML's models, and the frontend runs in live mode against it. Everything works end to end (details below). Next: BE-04.
+BE-01 to BE-03 and the audit fixes are merged (PRs #1–#4). **Integration of all three parts** on the current `main` (ML commit `952d715`, Frontend PR #6): the real ml-service is wired into compose, ML's `data/sample/` is indexed with ML's models, and the frontend runs in live mode against it. Everything works end to end (details below). **Real-corpus demo** (this branch): the demo's results were unrelated to the question, so it now runs on real law and a real embedder (below). Next: BE-04.
+
+## Real-corpus demo 2026-10-08 (branch `be/real-corpus-demo`)
+**Problem (reported by a human):** in the live demo, search results and the "AI answer" had nothing to do with the question. Causes, none of them in backend code:
+1. ML's `data/sample/` is 30 paraphrased Labor Code fragments, so most questions have no relevant article at all.
+2. The ml-service embedder is a hash function (`hash-bm25-ch1`), not a model: "similar" means "shares hashed tokens".
+3. The reranker scores word overlap and reorders the semantic results by it.
+4. The answer generator is extractive: the first sentence of the top source. It can only be as relevant as source [1].
+
+**What Backend changed (all in backend-owned paths):**
+- `dev/import_adiletcodex.py`: converts the public AdiletCodex v1.0 corpus (CC BY 4.0, Zenodo 10.5281/zenodo.22812626; parsed from adilet.zan.kz) into the `data_schema.md` Parquet files. Tier-1 acts from `ml/configs/corpus.yaml`, RU + KK, text verbatim, footnotes → `amendment_notes`, §5 headers, RU↔KK links. Output: 16 documents, 9,259 articles, 16,264 chunks (9,248 linked across languages). It passes the indexer's validator. The data goes to git-ignored `data/raw/` and `data/processed/`.
+- `article_id` / `doc_id` accept `_`: real adilet codes end in one (`K030000442_`). See CHANGELOG.
+- `infra/ml-e5/`: an overlay on ML's image with `sentence-transformers` + `intfloat/multilingual-e5-base` (pinned torch CPU / sentence-transformers / transformers). Its manifest is derived from ML's (`pipeline_version` `…-e5`, `index_compat_id` `e5base-…`), so an index built with the hash embedder is refused. Compose service `ml-service-e5`, profile `ml-e5`.
+- `SEARCH_RERANK_TOP_N` (env): overrides the manifest's rerank depth; `0` turns the rerank stage off. The demo uses 0 until ML ships a real cross-encoder.
+- `backend/README.md`: "Demo on the real corpus".
+
+**Still open:** the answer stays extractive until an LLM is configured (`ADILET_ML_GENERATOR_MODE=openai` + `LLM_BASE_URL`; the `llm` compose service is still an empty placeholder).
 
 ## Integration 2026-10-08 (main @ 952d715)
 Run on the dev laptop (i7-13700HX, Docker Desktop/WSL2).
@@ -81,6 +97,7 @@ Run on the dev laptop (i7-13700HX, Docker Desktop/WSL2).
 | ML | Confirm D-015 details | 2026-10-08 | **done** (CHANGELOG 2026-10-08, ML) |
 | ML | Run `pytest -m ml` after each ml-service/manifest change | 2026-10-08 | ongoing; CI's `ml-stack` job now does it on every PR touching `ml/` |
 | ML | See "Findings for the other parts": mark the bootstrap sample, pin models + lockfile, `LLM_BASE_URL` convention, adilet anchors. A `llm` compose snippet is still needed when the GGUF generator is ready (profile `llm-cpu`). | 2026-10-08 | open |
+| ML | Real-corpus demo: adopt or replace `backend/dev/import_adiletcodex.py` (AdiletCodex → `data_schema`) until the ML-01 scraper ships; make E5 the default embedder in ML's own image (then `infra/ml-e5/` can go); a real cross-encoder (the word-overlap reranker hurts semantic results, so the demo runs with `SEARCH_RERANK_TOP_N=0`); stemming for the sparse encoder; an LLM generator. Note: real `source_url` anchors are adilet's own (`#z104`), not `#a{N}`. | 2026-10-08 | open |
 | Frontend | Live integration verified by Backend (see Integration); update your status. Consider a "sample data" badge while `pipeline_version` ends in `-bootstrap`. Confirm that `/admin/stats` covers the dashboard design before BE-04. | 2026-10-08 | open |
 
 ## Notes for others (endpoints, env vars, how to run)
