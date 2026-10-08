@@ -10,6 +10,9 @@ on:
       - "docker-compose.yml"
       - ".env.example"
       - ".github/workflows/backend.yml"
+      # ML changes can break the integration (ml-stack job)
+      - "ml/**"
+      - "data/sample/**"
   workflow_dispatch:
 
 concurrency:
@@ -154,3 +157,53 @@ jobs:
           docker compose --profile dev ps
       - if: always()
         run: docker compose --profile dev down -v
+
+  ml-stack:
+    name: full stack with the real ml-service and ML's data/sample
+    runs-on: ubuntu-24.04
+    env:
+      ML_SERVICE_URL: http://ml-service:8001
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: cp .env.example .env
+      - run: docker compose --profile ml up -d --build
+      - name: wait for a healthy backend on the real ml-service
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS localhost:8000/api/v1/health | jq -e '.components.ml_service == "ok"'; then
+              exit 0
+            fi
+            sleep 3
+          done
+          docker compose --profile ml logs --no-color
+          exit 1
+      - name: index ML's data/sample with ML's models
+        run: docker compose exec -T backend python -m indexer --data-dir /data/sample
+      - name: search and answer end to end
+        run: |
+          set -euo pipefail
+          manifest_version=$(jq -r .pipeline_version ml/models/model_manifest.json)
+          curl -fsS localhost:8000/api/v1/version \
+            | jq -e --arg v "$manifest_version" '.pipeline_version == $v'
+          curl -fsS -X POST localhost:8000/api/v1/search -H 'Content-Type: application/json' \
+            -d '{"query": "Основания расторжения трудового договора", "top_k": 5}' > search.json
+          jq -e '[.results[].doc.doc_id] | index("K1500000414") != null' search.json
+          curl -fsSN -X POST localhost:8000/api/v1/answer -H 'Content-Type: application/json' \
+            -d '{"query": "Ответственность работодателя за задержку зарплаты"}' > answer.sse
+          grep -q '^event: done' answer.sse
+      - name: opt-in real-ML contract and TOR tests
+        working-directory: backend
+        env:
+          TEST_ML_SERVICE_URL: http://127.0.0.1:8001
+          TEST_QDRANT_URL: http://127.0.0.1:6333
+          TEST_DATABASE_URL: postgresql+asyncpg://adilet:adilet@127.0.0.1:5432/adilet_test
+        run: |
+          uv sync --locked
+          uv run pytest -m ml -v
+      - if: always()
+        run: docker compose --profile ml down -v
