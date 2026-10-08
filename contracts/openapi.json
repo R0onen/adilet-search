@@ -205,7 +205,7 @@
             ],
             "maxLength": 128,
             "minLength": 5,
-            "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+            "pattern": "^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$",
             "title": "Article Id",
             "type": "string"
           },
@@ -937,7 +937,7 @@
                 ],
                 "maxLength": 128,
                 "minLength": 5,
-                "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+                "pattern": "^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$",
                 "type": "string"
               },
               {
@@ -2373,7 +2373,7 @@
             ],
             "maxLength": 128,
             "minLength": 5,
-            "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+            "pattern": "^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$",
             "title": "Article Id",
             "type": "string"
           },

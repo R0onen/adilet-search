@@ -50,6 +50,9 @@ class Settings(BaseSettings):
     search_retrieve_timeout_s: float = Field(default=2.0, gt=0)
     search_rerank_timeout_s: float = Field(default=1.5, gt=0)
     index_state_ttl_s: float = Field(default=30.0, ge=0)
+    # Overrides the manifest's retrieval.rerank_top_n; 0 = no rerank (fused order). A latency lever,
+    # and a way to bypass a reranker that hurts quality (e.g. ML's bootstrap word-overlap reranker).
+    search_rerank_top_n: int | None = Field(default=None, ge=0, le=100)
 
     # --- answer (SSE) ---
     answer_timeout_s: float = Field(default=90.0, gt=0)
@@ -71,7 +74,7 @@ class Settings(BaseSettings):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
-    @field_validator("qdrant_api_key", mode="before")
+    @field_validator("qdrant_api_key", "search_rerank_top_n", mode="before")
     @classmethod
     def _empty_is_none(cls, value: object) -> object:
         return None if value == "" else value

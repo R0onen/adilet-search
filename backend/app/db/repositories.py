@@ -229,6 +229,19 @@ async def update_job(session: AsyncSession, job_id: uuid.UUID, **values: Any) ->
     await session.execute(update(IndexJob).where(IndexJob.job_id == job_id).values(**values))
 
 
+async def abandon_active_jobs(
+    session: AsyncSession, reason: str
+) -> list[tuple[uuid.UUID, str | None]]:
+    """Mark every queued/running job failed; returns (job_id, collection) of each one."""
+    rows = await session.execute(
+        update(IndexJob)
+        .where(IndexJob.status.in_(("queued", "running")))
+        .values(status="failed", finished_at=now_utc(), error=reason, message="failed: abandoned")
+        .returning(IndexJob.job_id, IndexJob.collection)
+    )
+    return [(row.job_id, row.collection) for row in rows]
+
+
 def now_utc() -> datetime:
     return datetime.now(UTC)
 

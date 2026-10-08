@@ -12,6 +12,14 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-10-08 · openapi.json (api.md unchanged) · v1 · no · Frontend (regenerate types), ML (FYI)
+
+Real adilet document codes can end in an underscore (e.g. `K940001000_`, the Civil Code, General Part; `K030000442_`, the Land Code). The backend's `article_id` pattern rejected them, which `data_schema.md` §2 never required. The pattern is now `^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$`, and the indexer accepts such `doc_id`s. This is a relaxation, so nothing that was valid becomes invalid.
+
+**For ML (FYI):** until the ML-01 scraper ships, `backend/dev/import_adiletcodex.py` converts the public AdiletCodex v1.0 corpus (CC BY 4.0, Zenodo 10.5281/zenodo.22812626, parsed from adilet.zan.kz) into the `data_schema.md` Parquet files. It covers RU + KK, the Tier-1 acts from `ml/configs/corpus.yaml`, keeps the text verbatim, moves footnotes to `amendment_notes`, and uses the §5 header format. ML may adopt it into `ml/` or replace it.
+
+---
+
 ## 2026-10-08 · fixtures/fusion_cases.json, ml_service.md · v1 · no · Backend
 
 ML phase bootstrap. Added `contracts/fixtures/fusion_cases.json` with the weighted-RRF cases from

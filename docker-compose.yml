@@ -42,6 +42,7 @@ x-backend-env: &backend-env
   SEARCH_EMBED_TIMEOUT_S: ${SEARCH_EMBED_TIMEOUT_S:-2}
   SEARCH_RETRIEVE_TIMEOUT_S: ${SEARCH_RETRIEVE_TIMEOUT_S:-2}
   SEARCH_RERANK_TIMEOUT_S: ${SEARCH_RERANK_TIMEOUT_S:-1.5}
+  SEARCH_RERANK_TOP_N: ${SEARCH_RERANK_TOP_N:-}
   INDEX_STATE_TTL_S: ${INDEX_STATE_TTL_S:-30}
   ANSWER_TIMEOUT_S: ${ANSWER_TIMEOUT_S:-90}
   ANSWER_MAX_TOKENS: ${ANSWER_MAX_TOKENS:-512}
@@ -163,6 +164,37 @@ services:
       interval: 10s
       timeout: 5s
       retries: 6
+
+  # ml-service with the real multilingual E5 embedder (backend overlay on ML's image, see
+  # infra/ml-e5/Dockerfile). Its manifest says "-e5", so an index built with the hash embedder must
+  # be rebuilt first. The model (~1.1 GB) is downloaded into the ml-model-cache volume on first start.
+  #   docker compose --profile ml build ml-service
+  #   ML_SERVICE_URL=http://ml-service-e5:8001 docker compose --profile ml-e5 up -d --build
+  ml-service-e5:
+    build:
+      context: ./infra/ml-e5
+      args:
+        BASE_IMAGE: adilet-ml-service:dev
+    image: adilet-ml-service-e5:dev
+    profiles: ["ml-e5"]
+    restart: unless-stopped
+    environment:
+      MODEL_CACHE_DIR: /models
+      ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
+      ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002}
+      LLM_MODEL: ${LLM_MODEL:-adilet-generator}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    volumes:
+      - ml-model-cache:/models
+    ports:
+      - "127.0.0.1:${ML_SERVICE_PORT:-8001}:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
 
   # The CPU LLM (llama.cpp + GGUF) is not needed while ml-service runs its fallback generator.
   # Placeholder until ML publishes the llm snippet; its own profile keeps `--profile ml` light.

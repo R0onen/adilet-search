@@ -22,7 +22,7 @@ DOC_STATUSES = {"in_force", "repealed", "not_yet_in_force"}
 UNIT_TYPES = {"article", "paragraph", "chapter", "preamble", "annex"}
 UNIT_STATUSES = {"in_force", "excluded"}
 
-DOC_ID_RE = re.compile(r"^[A-Za-z0-9]+$")
+DOC_ID_RE = re.compile(r"^[A-Za-z0-9_]+$")  # real adilet codes end in "_", e.g. K030000442_
 UNIT_KEY_RE = re.compile(r"^[a-z0-9-]+$")
 
 # column -> (kind, nullable)

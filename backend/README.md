@@ -55,6 +55,50 @@ cd frontend && npm ci && VITE_API_MODE=live npm run dev
 
 Then open `http://127.0.0.1:5173`. The real-ML checks are `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` (from `backend/`). CI runs the same chain in the `ml-stack` job.
 
+## Demo on the real corpus (AdiletCodex + E5)
+
+The relevant-results demo uses real law and a real embedder:
+
+1. Get AdiletCodex v1.0 (CC BY 4.0, 34 MB) into the git-ignored `data/raw/`:
+
+   ```bash
+   mkdir -p data/raw/adiletcodex && curl -L -o data/raw/adiletcodex/adiletcodex.csv.gz https://zenodo.org/api/records/22812626/files/adiletcodex.csv.gz/content
+   ```
+
+   Check its MD5: `bde74683987a1e52c16d339ba14953a6`.
+2. Convert the Tier-1 codes (RU + KK) to the `data_schema.md` files in `data/processed/`. This gives about 9,260 articles and 16,260 chunks; add `--all-acts` for all 343 acts.
+
+   ```bash
+   cd backend && uv run python -m dev.import_adiletcodex --csv ../data/raw/adiletcodex/adiletcodex.csv.gz --out ../data/processed
+   ```
+
+3. Start the stack with the E5 ml-service. `infra/ml-e5/` adds the real embedder on top of ML's image, and the model (~1.1 GB) downloads into a volume on first start. `SEARCH_RERANK_TOP_N=0` skips ML's bootstrap word-overlap reranker, which worsens semantic results.
+
+   ```bash
+   docker compose --profile ml build ml-service
+   ```
+
+   ```bash
+   ML_SERVICE_URL=http://ml-service-e5:8001 SEARCH_RERANK_TOP_N=0 docker compose --profile ml-e5 up -d --build
+   ```
+
+4. Index the corpus. On a CPU this takes about 40 minutes for 16k chunks.
+
+   ```bash
+   docker compose exec backend python -m indexer --data-dir /data/processed
+   ```
+
+5. For a generated answer, point the ml-service at any OpenAI-compatible LLM in `.env`. Without this, the answer is ML's extractive fallback: the first sentence of the top source. For example, Groq:
+
+   ```
+   ADILET_ML_GENERATOR_MODE=openai
+   LLM_BASE_URL=https://api.groq.com/openai
+   LLM_MODEL=qwen/qwen3.8-27b
+   LLM_API_KEY=<your key>
+   ```
+
+   Then recreate the service (not during indexing): `docker compose --profile ml-e5 up -d ml-service-e5`.
+
 ## Index data and search
 
 Search needs an index. Until ML publishes `data/sample/`, index the **synthetic** test corpus (invented texts, clearly marked; not legislation):
@@ -75,7 +119,9 @@ Then:
 curl -X POST http://localhost:8000/api/v1/search -H 'Content-Type: application/json' -d '{"query": "Ответственность работодателя за задержку зарплаты"}'
 ```
 
-Indexer options: `--manifest PATH` (otherwise the manifest comes from `MANIFEST_SOURCE`), `--embeddings PATH` (precomputed `embeddings_{pipeline_version}.parquet`), `--batch-size 64`, `--no-switch` (build without moving the alias), and `--no-prune` (keep DB rows that are not in the data). Exit codes: 0 ok, 1 invalid data or indexing error, 2 another job is running.
+Indexer options: `--manifest PATH` (otherwise the manifest comes from `MANIFEST_SOURCE`), `--embeddings PATH` (precomputed `embeddings_{pipeline_version}.parquet`), `--batch-size 64`, `--no-switch` (build without moving the alias), `--no-prune` (keep DB rows that are not in the data), and `--abandon-stuck-job`. Exit codes: 0 ok, 1 invalid data or indexing error, 2 another job is running.
+
+If the indexer process dies mid-run (crash, killed container, Docker restart), its job stays `running` and every later run exits with 2. Rerun with `--abandon-stuck-job`: it marks that job failed and deletes its unfinished collection (never the one the alias serves). Use it only when no indexer is actually running.
 
 The indexer validates the Parquet files against `contracts/data_schema.md` and lists every problem. It then upserts Postgres (unchanged rows are skipped) and builds a **new** collection `legal_chunks__{pipeline_version}` (or a timestamped sibling if that name exists). It checks the point count, records `index_state`, switches the `legal_chunks` alias atomically, and prunes rows that left the corpus. Old collections are kept for rollback. Progress goes to `index_jobs`.
 
