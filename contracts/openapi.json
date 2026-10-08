@@ -1971,62 +1971,27 @@
         "type": "object"
       },
       "SearchTiming": {
-        "description": "Milliseconds per stage. A stage that did not run is null or missing.",
+        "description": "Milliseconds per stage. A key is present only if its stage ran.",
         "properties": {
           "embed": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Embed"
+            "title": "Embed",
+            "type": "integer"
           },
           "fuse": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Fuse"
+            "title": "Fuse",
+            "type": "integer"
           },
           "rerank": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Rerank"
+            "title": "Rerank",
+            "type": "integer"
           },
           "retrieve": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Retrieve"
+            "title": "Retrieve",
+            "type": "integer"
           },
           "total": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total"
+            "title": "Total",
+            "type": "integer"
           }
         },
         "title": "SearchTiming",
@@ -3685,16 +3650,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "summary": "Full verbatim article",
@@ -3818,16 +3773,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "summary": "List documents",
@@ -3904,16 +3849,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "summary": "Document with its table of contents",
@@ -4070,16 +4005,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           },
           "503": {
             "content": {
