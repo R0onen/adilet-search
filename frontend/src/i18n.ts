@@ -22,6 +22,9 @@ export const ru = {
   exampleSalary: 'Мне не платят зарплату',
   exampleDismissal: 'Меня увольняют по сокращению',
   exampleEco: 'Штраф за загрязнение воздуха',
+  exampleHours: 'Сколько часов длится рабочая неделя?',
+  exampleLeave: 'Сколько дней ежегодного отпуска?',
+  examplePayment: 'Когда должны выплачивать зарплату?',
   language: 'Язык источников',
   auto: 'Авто',
   ru: 'Русский',
@@ -111,6 +114,9 @@ const en: typeof ru = {
   exampleSalary: 'My salary has not been paid',
   exampleDismissal: 'I am being made redundant',
   exampleEco: 'Fine for air pollution',
+  exampleHours: 'How long is the working week?',
+  exampleLeave: 'How many days of annual leave?',
+  examplePayment: 'When must salaries be paid?',
   language: 'Source language',
   auto: 'Auto',
   ru: 'Русский',
@@ -199,6 +205,9 @@ const kk: typeof ru = {
   exampleSalary: 'Жалақымды төлемейді',
   exampleDismissal: 'Мені қысқартуға байланысты жұмыстан шығарады',
   exampleEco: 'Ауаны ластағаны үшін айыппұл',
+  exampleHours: 'Жұмыс аптасы қанша сағат?',
+  exampleLeave: 'Жыл сайынғы демалыс қанша күн?',
+  examplePayment: 'Жалақы қашан төленеді?',
   language: 'Дереккөз тілі',
   auto: 'Авто',
   inForce: 'Тек қолданыстағы',
@@ -271,14 +280,12 @@ try {
 } catch {
   /* Storage is optional. */
 }
-void i18n
-  .use(initReactI18next)
-  .init({
-    resources: { ru: { translation: ru }, en: { translation: en }, kk: { translation: kk } },
-    lng: ['ru', 'en', 'kk'].includes(language) ? language : 'ru',
-    fallbackLng: 'ru',
-    interpolation: { escapeValue: false },
-  });
+void i18n.use(initReactI18next).init({
+  resources: { ru: { translation: ru }, en: { translation: en }, kk: { translation: kk } },
+  lng: ['ru', 'en', 'kk'].includes(language) ? language : 'ru',
+  fallbackLng: 'ru',
+  interpolation: { escapeValue: false },
+});
 i18n.on('languageChanged', (lang) => {
   document.documentElement.lang = lang;
   try {
