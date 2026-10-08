@@ -1,79 +1,94 @@
 # Status: Backend agent
 
-_Last updated: 2026-10-08 · BE-03 merged; BE-01..03 audit fixes (branch `be/03-hardening`)_
+_Last updated: 2026-10-08 · whole-project integration on `main` @ `952d715` (branch `be/integration`)_
 
 ## Current phase
-BE-01 to BE-03 merged (PRs #1–#3). After the plan update of 2026-10-08, every BE-01..03 task and acceptance line was re-checked against the briefs and contracts. Fixes are on `be/03-hardening` (see "Audit fixes"). Next: BE-04.
+BE-01 to BE-03 and the audit fixes are merged (PRs #1–#4). **Integration of all three parts** on the current `main` (ML commit `952d715`, Frontend PR #6): the real ml-service is wired into compose, ML's `data/sample/` is indexed with ML's models, and the frontend runs in live mode against it. Everything works end to end (details below). Next: BE-04.
 
-BE-03: streamed RAG answer, feedback, full query logging. Code complete and tested on the fake ML and the synthetic corpus. The G1/G2 items that need ML's real sample, full Tier-1 corpus and service v0 are still open (checklists below).
+## Integration 2026-10-08 (main @ 952d715)
+Run on the dev laptop (i7-13700HX, Docker Desktop/WSL2).
+
+| Check | Result |
+|---|---|
+| Backend unit + contract tests | 248 passed. **ML's `contracts/fixtures/fusion_cases.json`: all 7 cases pass against the backend's fusion** (offline and online ranking agree, D-005). |
+| ML's own tests (`ml/`, `pytest`) | 30 passed (3 deprecation warnings). |
+| `data/sample/` against `data_schema.md` (indexer validator) | valid: 2 documents, 30 articles, 33 chunks, `corpus_version` 2026.10.08-bootstrap |
+| `docker compose --profile ml` with `ML_SERVICE_URL=http://ml-service:8001` | healthy; `/health` ok, `pipeline_version` 0.1.0-bootstrap |
+| Search on the old index built with the fake models | 503 "reindex required" (the `index_compat_id` check works: fake ≠ hash-bm25-ch1) |
+| `python -m indexer --data-dir /data/sample` (ML's service, `MANIFEST_SOURCE=service`) | 33 points → `legal_chunks__0.1.0-bootstrap`, alias switched, synthetic rows pruned, 5.1 s |
+| `pytest -m ml` (real-ML contract + TOR tests) | **6 passed** |
+| `/answer` via ML's fallback generator | `sources` → 17 `token` → `done`, citations `[1]`, grounded |
+| KK search; RU↔KK / prev / next article links | KK query → `K1500000414:kk:a114` first; links resolve |
+| Frontend: `npm ci`, `gen:api` (no drift), lint, 12 unit tests, production build | all pass |
+| Frontend live mode (Vite proxy → backend) in a browser | search shows 10 results (`a114` first); "Сформировать ответ" streams the cited answer with sources [1]–[5]; no console errors |
+
+**TOR queries (ML bootstrap models: hash embedder + lexical reranker, ML's bootstrap Labor Code sample, NOT real model quality):**
+1. «Ответственность работодателя за задержку зарплаты» → 1. `K1500000414:ru:a114` (ответственность за задержку зарплаты), 2. `a96`, 3. `a52`.
+2. «Штраф за нарушение экологических норм» → Labor Code articles only (`a114`, `a96`, `a23`): the sample has no Environmental Code, so nothing relevant can be found yet.
+3. «Основания расторжения трудового договора» → 1. `K1500000414:ru:a52` (основания расторжения), 2. `a96`, 3. `a33`.
+
+**Latency, single user, 60 requests (3 × 20 queries), ML bootstrap models, 33-chunk index:** embed p50/p95 2/3 ms, retrieve 3/8, fuse 0/0, rerank 2/3, total 11/16 ms, client wall 14/20 ms. These are not real-model numbers: E5 + cross-encoder latency will be measured when ML pins them.
+
+## Findings for the other parts (not fixed by Backend; not their code)
+| Part | Finding | Why it matters |
+|---|---|---|
+| ML | `data/sample/` texts are paraphrased teaching fragments, but they sit under the **real** Labor Code id `K1500000414`, real article numbers and real `adilet.zan.kz` links. The "(bootstrap sample)" marker is only in `documents.title`; `short_title` and the article titles carry none, so the UI shows «Трудовой кодекс РК · Статья 114 · Действует» with non-official text. | CLAUDE.md: legal text is shown verbatim. Fine for integration, but **not for demos or screenshots** until the real scrape replaces it. Suggest a marker in `short_title` (e.g. «Трудовой кодекс РК (учебный образец)») until then. |
+| ML | The ml-service models are still bootstrap (hash embedder, lexical reranker, extractive fallback), and the manifest revisions say `to-pin-after-fetch`. | G1 asks for "real zero-shot models" and real latency; not met until E5 and the cross-encoder are pinned. |
+| ML | `ml/` has no lockfile (`uv.lock`), `serving/Dockerfile` uses an unpinned `python:3.12-slim` and `pip install .` with open ranges. | CLAUDE.md reproducibility rule (pin versions). |
+| ML | ML's engine appends `/v1/chat/completions` to `LLM_BASE_URL`, so the base must not end in `/v1` (Backend's `.env.example` is now aligned). OpenAI-style hosted endpoints are usually given **with** `/v1`. | Document it in `ml/serving/README.md`, or strip a trailing `/v1`, so switching to a GPU endpoint on demo day is not a trap. |
+| ML | Article `source_url` anchors are `#a{N}` (e.g. `…/K1500000414#a114`). | Check that adilet really has such anchors; otherwise links open the document top (acceptable, but then say so). |
+| ML | `FastAPI.on_event` deprecation warnings in ml-service. | Minor; move to `lifespan`. |
+| Frontend | Live integration (search, streamed answer, sources, citations) now **verified** against the real backend + ML service. The status file still says "unverified". | Update the status file. |
+| Frontend | Result cards show `doc.short_title`, so the bootstrap/non-official nature of ML's sample text is invisible (see the first ML row). | No action needed if ML marks `short_title`; otherwise consider showing a "sample data" badge when `pipeline_version` ends in `-bootstrap`. |
 
 ## Done
-- **BE-01** (PR #1) and **BE-02** (PR #2) merged; CI green on `main`.
-- **`POST /answer` (SSE, sse-starlette):** reuses the search pipeline. The top `context_top_k` articles' full text goes to the generator, cut at a paragraph boundary to `max_chars_per_context`, with titles in the `data_schema.md` header format.
-  - `sources` is sent at once (`ref` 1..n). Zero results → `done` with a fixed RU/KK "not found" text, `grounded: false`, `finish_reason: "no_results"`, and no LLM call.
-  - `/generate` tokens are relayed as they arrive. `done` carries the authoritative text after citation cleanup and the timings `search`/`ttft`/`total`.
-  - LLM error, unavailability, an incomplete stream or `ANSWER_TIMEOUT_S` → `error` (`generation_unavailable`) after the sources.
-  - Client disconnect → the upstream request is closed and the answer is saved as `cancelled` (verified against the real server: a disconnect after the first token gave status `cancelled` with the partial text).
-  - Heartbeat `: ping` every `SSE_PING_S` (15). Validation and search failures are plain JSON before any stream.
-- **Citations** (`services/citations.py`): `[1, 3]`/`[1,3]`/`[1; 3]`/`[1][3]` → `[1][3]`. Unknown refs (`[0]`, `[12]`) are removed and counted, duplicates merged, non-numeric brackets left alone. `grounded` is false with no valid citation or a refusal phrase (phrases provisional, see Requests).
-- **`POST /feedback`:** 404 for an unknown `query_id`, `article_id` required for `target=result` and ignored for `answer`, upsert on (session_hash, query_id, target, article_id), 204.
-- **Full query logging:** adds `endpoint` (search/answer), `ua_family` (coarse browser/library family, never the full UA), `client` (web/api-key/unknown), `has_answer`, and `error_code` (`upstream_unavailable`, `generation_unavailable`, `cancelled`). Answer rows store sources, citations, invalid count, grounded, finish_reason, status and ttft/total/search ms. An `/answer` request is persisted once, when its stream ends (D-016). No IPs are stored.
-- **Index-cache fix** (in BE-02's PR): an index built by the CLI in another process is used at once.
-- CI compose smoke test now also streams an answer, checks the `done` event, posts feedback and checks the stored answer.
-- Decision D-016; CHANGELOG entry 2026-10-08 (BE-03).
-
-## Audit fixes (be/03-hardening)
-- **Opt-in real-ML tests (BE-02 task 6, was missing):** `tests/ml/test_real_ml_service.py`, run with `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml`. It checks the service against `ml_service.md` (health, manifest, embed dims/normalisation/sparse, rerank order, generate events), then indexes `data/sample/` with the real models and checks that «Основания расторжения трудового договора» (and the wage-delay TOR query) return Labor Code articles in the top 5. Verified against the fake ML (5 passed; the sample part skips until `data/sample/` exists).
-- **Stage budgets enforced end to end:** embed and rerank were bounded only by the HTTP read timeout, so a trickling service could overrun them. Each stage is now also wrapped in `wait_for(budget)`: a slow embed → 503, a slow rerank → fused order + `degraded: ["rerank"]`, a slow retrieve → 503 (tests for all three).
-- **Contract limits guarded:** rerank candidates are capped at the `/rerank` limit of 100 even if the manifest asks for more (before, the request failed with a 500). `ANSWER_MAX_TOKENS` must be 1..1024 (the `/generate` limit), timeouts must be > 0, and the indexer's `--batch-size` must be 1..128 (the `/embed` limit). Bad values fail at startup / argument parsing.
-
-## Tests
-229 unit (citations, answer stream with fakes: order/payloads/citations/zero results/error event/connection/incomplete/timeout/disconnect/refusal, SSE parser, UA family, heartbeat format) and 33 integration (real postgres + qdrant + fake-ml): answer streaming and persistence, KK answer, zero results, **`FAKE_ML_FAIL=generate` via a second fake-ml process → `error` after `sources`**, feedback upsert/404, plus all BE-01/02 suites.
+- **BE-01 to BE-03 + audit fixes** merged (PRs #1–#4): skeleton, indexer, hybrid search, documents/articles, streamed answer (SSE), feedback, query logging, stage budgets, ML limit guards, opt-in real-ML tests.
+- **Integration (this branch):**
+  - `ml-service` is wired into `docker-compose.yml` from ML's snippet, under profile `ml`. The port is bound to 127.0.0.1, a model-cache volume is added, and the `llm` placeholder moves to its own profile `llm-cpu` so `--profile ml` does not pull a llama.cpp image that ML's fallback generator does not use.
+  - New CI job **`ml-stack`**: builds ML's image, starts the stack on the real ml-service, indexes `data/sample`, checks search (TOR → Labor Code) and an answer stream, and runs `pytest -m ml`. The backend workflow now also triggers on `ml/**` and `data/sample/**`, so an ML change that breaks the integration fails CI.
+  - `.env.example`: `ML_SERVICE_PORT`, `ADILET_ML_EMBEDDER_BACKEND`, `ADILET_ML_GENERATOR_MODE`; `LLM_BASE_URL` without `/v1` (ML appends it).
+  - `backend/README.md`: "Run the whole project".
 
 ## G1 checklist (BE-02 acceptance)
 | Criterion | State |
 |---|---|
-| `python -m indexer --data-dir data/sample` with `--profile ml` succeeds, the alias moves | **Waiting on ML** (no `data/sample/`, no ml-service). Works on the synthetic corpus + fake ML. |
-| The three TOR queries return plausible articles (top 3 here) | **Waiting on ML.** On the synthetic corpus each TOR query ranks the matching synthetic article first. |
-| `/search` p50/p95 per stage, single user, 20 queries | Fake ML only: total p50 8 ms / p95 11 ms (pipeline overhead, not model cost). |
+| `python -m indexer --data-dir data/sample` with `--profile ml` succeeds, the alias moves | **Done** (ML's bootstrap sample + bootstrap models). |
+| The three TOR queries return plausible articles (top 3 here) | **Partly:** wage delay and termination → the right Labor Code article first; ecology → nothing relevant (no Environmental Code in the sample). On bootstrap models and bootstrap text, see above. |
+| `/search` p50/p95 per stage, single user, 20 queries | Measured on ML's bootstrap models (above). **Real-model numbers pending** (E5 + cross-encoder not pinned yet). |
 
 ## G2 checklist (BE-03 acceptance)
 | Criterion | State |
 |---|---|
-| With real ML v0, the three TOR queries stream answers with `[n]` citations pointing to the right sources | **Waiting on ML** (service v0 + sample). With the fake ML: the stream, citations (`[1]`), persistence and the failure paths all work. |
+| With real ML v0, the TOR queries stream answers with `[n]` citations pointing to the right sources | **Done on ML's bootstrap service** (extractive fallback generator): `[1]` → `K1500000414:ru:a114`. An LLM-generated answer is pending ML's generator. |
 | Every SSE test passes; `openapi.json` documents `/answer` with the event schemas | Done. |
-| The full Tier-1 corpus is indexed (counts here) | **Waiting on ML** (full corpus). The indexer is ready: `python -m indexer --data-dir /data/processed [--embeddings …]`. |
-| Frontend told: answer and feedback are live, 15 s heartbeat, `done.text` replaces the streamed text | Done (below and CHANGELOG). |
-
-## In progress
-- PR for `be/03-answer`.
+| The full Tier-1 corpus is indexed (counts here) | **Waiting on ML** (real scrape of the full corpus). |
+| Frontend told | Done; Frontend's UI consumes the stream correctly (verified live). |
 
 ## Next steps
-- When ML ships the sample, manifest, service v0 and full corpus: wire `ml-service`/`llm` into compose (profile `ml`), index, then paste the real TOR top 3, answers and latencies here.
 - BE-04: admin API, monitoring (Prometheus/Grafana), resilience (full-text fallback, circuit breaker, cache), security (JWT, rate limits).
+- When ML pins real models / ships the real corpus: reindex (`--embeddings` if precomputed), re-run `pytest -m ml` and `loadtests/measure_search.py`, and update the TOR results and latencies here.
 
 ## Blockers (need a human)
-- None for backend work. G1/G2 wait on ML (see Requests).
-- **Kazakh UI text check:** the KK "not found" message in `backend/app/services/citations.py` (`NOT_FOUND_TEXT["kk"]`) needs a native speaker's review.
+- None for backend work.
+- **Kazakh UI text check:** `NOT_FOUND_TEXT["kk"]` in `backend/app/services/citations.py` needs a native speaker's review.
 
 ## Requests to other agents
 | To | Request | Since | Status |
 |---|---|---|---|
-| ML | In `docs/status/ml.md`, paste the compose snippet for `ml-service` (port 8001) and `llm` (port 8002): image/build, env, volumes, healthcheck, resources. | 2026-10-08 | open |
-| ML | Publish `data/sample/`, `ml/models/model_manifest.json` and `contracts/fixtures/fusion_cases.json` (proposed format below). | 2026-10-08 | open |
-| ML | **Refusal phrases:** tell us the exact phrase(s) your prompt template makes the model use when the sources don't answer. The backend currently detects (case- and whitespace-insensitive): RU «в предоставленных источниках нет ответа», «источники не содержат ответа», «не могу ответить на основании предоставленных источников»; KK «берілген дереккөздерде жауап жоқ». The list is in `backend/app/services/citations.py`. Please use one of these or send yours. | 2026-10-08 | open |
-| ML | When ml-service v0 + `data/sample/` are ready, run (or ask Backend to run) `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` in `backend/`. It checks your service against `ml_service.md` and the Labor Code TOR query end to end. | 2026-10-08 | open |
-| ML | `/generate` is called with `stream: true`, `max_tokens` 512, `temperature` 0.1, ≤ 8 sources, each text ≤ `retrieval.max_chars_per_context` (cut at a paragraph), and title `«{short_title}. Статья {N}. {title}»` / `«{short_title}. {N}-бап. {title}»`. The backend waits up to `ANSWER_TIMEOUT_S` (90 s) for each chunk and in total; tell us if CPU TTFT needs more. | 2026-10-08 | FYI |
-| ML | Confirm two `data_schema.md` §8 details (CHANGELOG 2026-10-08 BE-02, D-015): timestamped collection names for same-version rebuilds; article `corpus_version` taken from the document. | 2026-10-08 | open |
-| Frontend | Regenerate types. `/answer` and `/feedback` are live: the event schemas are `SourcesEvent`/`TokenEvent`/`DoneEvent`/`ErrorEvent`; replace the streamed text with `done.text`; heartbeat `: ping` every 15 s; **SSE lines end with `\r\n`** (parse `\r\n` and `\n`); a zero-result answer has `finish_reason: "no_results"`; validation/search errors before the stream are plain JSON. Confirm that `/admin/stats` covers the dashboard design. | 2026-10-08 | open |
-
-**Proposed `fusion_cases.json` format:** `{"cases": [{"name", "mode": "hybrid|semantic|keyword", "params": {"rrf_k", "weights": {"dense", "sparse"}, "dense_limit"?, "sparse_limit"?, "rerank_top_n"?}, "dense": [chunk_id…], "sparse": [chunk_id…], "rerank_scores"?: {article_id: score}, "expected": [{"article_id", "best_chunk_id"?, "score"?}]}]}`. The backend test (`tests/unit/test_fusion.py`) runs it automatically once the file exists.
+| ML | Compose snippet for `ml-service` | 2026-10-08 | **done** (wired, profile `ml`) |
+| ML | `data/sample/`, `model_manifest.json`, `fusion_cases.json` | 2026-10-08 | **done** (all 7 fusion cases pass on the backend) |
+| ML | Refusal phrases | 2026-10-08 | **done** (RU «В предоставленных источниках нет ответа.», KK «Берілген дереккөздерде жауап жоқ.»; both are detected by `citations.py`) |
+| ML | Confirm D-015 details | 2026-10-08 | **done** (CHANGELOG 2026-10-08, ML) |
+| ML | Run `pytest -m ml` after each ml-service/manifest change | 2026-10-08 | ongoing; CI's `ml-stack` job now does it on every PR touching `ml/` |
+| ML | See "Findings for the other parts": mark the bootstrap sample, pin models + lockfile, `LLM_BASE_URL` convention, adilet anchors. A `llm` compose snippet is still needed when the GGUF generator is ready (profile `llm-cpu`). | 2026-10-08 | open |
+| Frontend | Live integration verified by Backend (see Integration); update your status. Consider a "sample data" badge while `pipeline_version` ends in `-bootstrap`. Confirm that `/admin/stats` covers the dashboard design before BE-04. | 2026-10-08 | open |
 
 ## Notes for others (endpoints, env vars, how to run)
+- **Whole project:** `docker compose --profile dev stop fake-ml`, then `ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build`, then `docker compose exec backend python -m indexer --data-dir /data/sample`, then `cd frontend && npm ci && VITE_API_MODE=live npm run dev` → `http://127.0.0.1:5173`. See `backend/README.md` (PowerShell and Git Bash notes there).
 - **API base:** `http://localhost:8000/api/v1`. CORS allows `http://localhost:5173`. Swagger UI: `/api/v1/docs`.
 - **Live:** `/health`, `/version`, `/search`, `/answer` (SSE), `/feedback`, `/documents`, `/documents/{doc_id}`, `/articles/{article_id}`. **Stubs (501):** `/admin/*` (BE-04).
-- **Searchable dev stack without ML data:** `docker compose --profile dev up -d --build`, then `docker compose exec backend sh -c "python -m dev.sample_corpus /tmp/sample && python -m indexer --data-dir /tmp/sample"`. Synthetic ids start with `T000000000`; the titles say they are synthetic. Don't use them as real law.
-- **Answer failure drill:** `FAKE_ML_FAIL=generate docker compose --profile dev up -d fake-ml` → `/answer` sends `sources` then `error`.
-- **New env vars (BE-03):** `ANSWER_TIMEOUT_S` (90), `ANSWER_MAX_TOKENS` (512), `ANSWER_TEMPERATURE` (0.1), `SSE_PING_S` (15). From BE-02: `SEARCH_*_TIMEOUT_S`, `INDEX_STATE_TTL_S`, `QDRANT_PREFER_GRPC`, `QDRANT_GRPC_PORT`.
-- **Windows:** if a native PostgreSQL holds 5432, set `POSTGRES_PORT=55432` in `.env`; use `127.0.0.1`, not `localhost`, in test URLs.
+- **Fake stack (no ML):** `docker compose --profile dev up -d --build` + the synthetic corpus (`python -m dev.sample_corpus /tmp/sample && python -m indexer --data-dir /tmp/sample`). Synthetic ids start with `T000000000`; don't use them as real law.
+- **Switching models** (fake → ML bootstrap → real E5): each needs a reindex. Until then search answers 503 "reindex required" (by design).
+- **Env vars:** `ML_SERVICE_PORT`, `ADILET_ML_EMBEDDER_BACKEND`, `ADILET_ML_GENERATOR_MODE` (new); `ANSWER_*`, `SSE_PING_S`, `SEARCH_*_TIMEOUT_S`, `INDEX_STATE_TTL_S`, `QDRANT_PREFER_GRPC`, `QDRANT_GRPC_PORT`.
+- **Windows:** if a native PostgreSQL holds 5432, set `POSTGRES_PORT=55432` in `.env`; use `127.0.0.1`, not `localhost`, in test URLs; in Git Bash prefix container paths with `MSYS_NO_PATHCONV=1`.
 - **Deployed URL:** — (BE-06).

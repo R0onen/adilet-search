@@ -5,8 +5,8 @@
 #
 # Profiles:
 #   dev  - fake ML service (contract-compliant, no models). Default ML_SERVICE_URL points to it.
-#   ml   - the real ml-service + llm (wired in from the ML agent's snippet in BE-02).
-#          Use with ML_SERVICE_URL=http://ml-service:8001 in .env.
+#   ml   - the real ml-service (from ML's snippet). Use with ML_SERVICE_URL=http://ml-service:8001.
+#   llm-cpu - a llama.cpp server for ml-service's `openai` generator mode (placeholder).
 
 name: adilet
 
@@ -131,23 +131,47 @@ services:
       timeout: 5s
       retries: 5
 
-  # --- ML-owned services (profile "ml") -------------------------------------------------
-  # Placeholders until the ML agent publishes its compose snippet in docs/status/ml.md
-  # (phase ML-02). Contract: contracts/ml_service.md, internal port 8001 / 8002.
+  # --- ML-owned services ---------------------------------------------------------------
+  # From the ML snippet in docs/status/ml.md (2026-10-08). Contract: contracts/ml_service.md.
+  # Run the stack against the real ml-service instead of the fake one:
+  #   ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
+  # (profiles `dev` and `ml` both publish host port 8001: use one or the other)
   ml-service:
-    image: ${ML_SERVICE_IMAGE:-adilet-ml-service:dev}
+    build:
+      context: ./ml
+      dockerfile: serving/Dockerfile
+    image: adilet-ml-service:dev
     profiles: ["ml"]
     restart: unless-stopped
     environment:
-      LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002/v1}
+      MODEL_MANIFEST_PATH: /app/models/model_manifest.json
+      MODEL_CACHE_DIR: /models
+      # hash | sentence-transformers (real E5; downloads the model into MODEL_CACHE_DIR)
+      ADILET_ML_EMBEDDER_BACKEND: ${ADILET_ML_EMBEDDER_BACKEND:-hash}
+      # fallback (extractive, no LLM) | openai (calls LLM_BASE_URL)
+      ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002}
       LLM_MODEL: ${LLM_MODEL:-adilet-generator}
       LLM_API_KEY: ${LLM_API_KEY:-}
+    volumes:
+      - ./ml/models:/app/models:ro
+      - ml-model-cache:/models
+    ports:
+      - "127.0.0.1:${ML_SERVICE_PORT:-8001}:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
 
+  # The CPU LLM (llama.cpp + GGUF) is not needed while ml-service runs its fallback generator.
+  # Placeholder until ML publishes the llm snippet; its own profile keeps `--profile ml` light.
   llm:
     image: ${LLM_IMAGE:-ghcr.io/ggml-org/llama.cpp:server}
-    profiles: ["ml"]
+    profiles: ["llm-cpu"]
     restart: unless-stopped
 
 volumes:
   pgdata:
   qdrant:
+  ml-model-cache:
