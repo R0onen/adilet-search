@@ -54,5 +54,6 @@
 ## Acceptance criteria (G1)
 
 - [ ] On mocks, every state can be reached and looks right on mobile (360 px) and desktop.
-- [ ] Against the live dev API (`VITE_API_MODE=live`, Backend's stack up), the three TOR queries show real Labor Code results. Put a screenshot in the status file.
+- [ ] Against the live dev API (`VITE_API_MODE=live`, Backend's stack up), the three TOR queries return results. Until ML ships `data/sample/`, Backend's synthetic corpus is acceptable. Start it with `docker compose --profile dev up -d --build`, then index it with `docker compose exec backend sh -c "python -m dev.sample_corpus /tmp/sample && python -m indexer --data-dir /tmp/sample"`. Re-check with real Labor Code results once ML's sample is indexed. Put a screenshot in the status file.
+- [ ] `timing_ms` keys are optional (e.g. no `rerank` in `keyword` mode); the summary line handles missing stages.
 - [ ] Any contract mismatches found are reported to Backend through the status file.

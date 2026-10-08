@@ -3,7 +3,7 @@
 **Goal: G5.** The prototype runs at a public HTTPS URL, with monitoring, backups and a runbook.
 
 **Ask the human first:**
-- Which server? The customer's test VM, or a rented VPS (Ubuntu 24.04, ≥ 4 vCPU / 16 GB RAM / 80 GB SSD)?
+- Has the team rented the VPS yet (Ubuntu 24.04, ≥ 4 vCPU / 16 GB RAM / 80 GB SSD)? The customer provides no VM (D-012).
 - The domain, or a customer subdomain.
 - SSH access.
 - Generator mode for demo day: the CPU GGUF on the VM, or an external GPU endpoint (`LLM_BASE_URL`)?

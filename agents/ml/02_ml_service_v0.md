@@ -1,5 +1,7 @@
 # ML-02: ml-service v0 (walking skeleton) and LLM serving (week 2)
 
+**Backend is already waiting for this phase** (it finished BE-03 against its fake ML service). Before you start, read the open requests to ML in `docs/status/backend.md`; this phase answers all of them. They are summarised in tasks 4–6 and 10 below.
+
 **Goal:** by the end of week 2 the Backend can call real zero-shot models through the contract. Quality comes later. The **interface must already have its final shape.**
 
 ## Tasks
@@ -35,6 +37,19 @@
 
    The service fills the template from the `/generate` sources.
 
+   **Refusal phrase (agreed with Backend).** When the sources don't answer the question, the model must use one fixed phrase per language. Backend's `grounded` flag detects these exact phrases (case- and whitespace-insensitive; the list is in `backend/app/services/citations.py`):
+   - RU: «в предоставленных источниках нет ответа» (also accepted: «источники не содержат ответа», «не могу ответить на основании предоставленных источников»);
+   - KK: «берілген дереккөздерде жауап жоқ».
+
+   Use one of these. If you need a different phrase, ask Backend through your status file before you ship. The SFT data in ML-04 must use the same phrases. Ask a native speaker to check the KK phrase.
+
+   **What `/generate` receives from Backend:**
+   - `stream: true`, `max_tokens` 512, `temperature` 0.1, ≤ 8 sources;
+   - each source text is cut at a paragraph boundary to `retrieval.max_chars_per_context`;
+   - titles look like `«{short_title}. Статья {N}. {title}»` / `«{short_title}. {N}-бап. {title}»`.
+
+   Backend waits up to `ANSWER_TIMEOUT_S` (90 s) per chunk and in total. If CPU TTFT needs more, tell Backend.
+
 5. **Fusion fixture.**
    - Implement `adilet_ml.retrieval.fusion.rrf` (the contract §2 algorithm, including collapse to articles).
    - Write `contracts/fixtures/fusion_cases.json` with at least 6 cases:
@@ -45,11 +60,22 @@
      - empty lists;
      - `keyword` mode.
 
-   The backend tests its own implementation against this file.
+   The backend tests its own implementation against this file. **Use the format Backend proposed** in `docs/status/backend.md`, because its test `backend/tests/unit/test_fusion.py` runs it automatically:
+
+   ```json
+   {"cases": [{"name": "…", "mode": "hybrid|semantic|keyword",
+               "params": {"rrf_k": 60, "weights": {"dense": 1.0, "sparse": 1.0}, "dense_limit": 50, "sparse_limit": 50, "rerank_top_n": 30},
+               "dense": ["<chunk_id>", "…"], "sparse": ["<chunk_id>", "…"],
+               "rerank_scores": {"<article_id>": 7.2},
+               "expected": [{"article_id": "…", "best_chunk_id": "…", "score": 0.0328}]}]}
+   ```
+
+   `dense_limit`, `sparse_limit`, `rerank_top_n`, `rerank_scores`, `best_chunk_id` and `score` are optional. Use real-looking chunk ids (`{doc_id}:{lang}:{unit_key}:c{n}`), not `c1`.
 
 6. **Packaging.**
    - `ml/serving/Dockerfile`: CPU-only torch wheels, non-root user, a healthcheck, `MODEL_CACHE_DIR` as a volume.
-   - Put a ready-to-paste compose snippet for `ml-service` and `llm` (images, env, volumes, healthchecks, resource limits) in your status file. Backend owns `docker-compose.yml`.
+   - Put a ready-to-paste compose snippet for `ml-service` (port 8001) and `llm` (port 8002) in your status file: images/build, env, volumes, healthchecks, resource limits. Backend owns `docker-compose.yml` and will add them under the `ml` profile.
+   - Backend's dev stack needs nothing else from you: it already runs Postgres, Qdrant (gRPC on 6334) and a fake ML service. On Windows a native PostgreSQL may hold port 5432, so the stack uses `POSTGRES_PORT=55432`.
 
 7. **Manifest and docs.** Write `ml/models/model_manifest.json` v0.1.0 (the contract §3 schema, revisions pinned to commit SHAs) and `ml/serving/README.md` with curl examples for every endpoint.
 
@@ -67,6 +93,10 @@
    - `/embed` with 64 passages;
    - `/rerank` with 30 candidates;
    - `/generate` TTFT and tokens/s.
+
+10. **Answer Backend's open data-schema questions** (CHANGELOG 2026-10-08 BE-02, decision D-015). Confirm or object in `contracts/CHANGELOG.md` (and `data_schema.md` §8 if you accept):
+    - a same-version rebuild goes into a timestamped collection `legal_chunks__{pipeline_version}__{YYYYMMDDHHMMSS}`, and old collections are kept for rollback;
+    - the backend copies the document's `corpus_version` onto each article row (`articles.parquet` has no such column).
 
 ## Acceptance criteria
 
