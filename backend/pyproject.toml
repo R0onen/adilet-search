@@ -16,6 +16,8 @@ dependencies = [
     "structlog>=24.4",
     "qdrant-client>=1.15",
     "numpy>=2.1",
+    "pyarrow>=18",
+    "tzdata>=2026.5",
 ]
 
 [dependency-groups]
@@ -47,6 +49,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "S105", "S106"]
+"dev/sample_corpus.py" = ["E501"]  # data tables
 
 [tool.mypy]
 python_version = "3.12"
@@ -56,6 +59,10 @@ warn_unused_ignores = true
 warn_redundant_casts = true
 ignore_missing_imports = false
 exclude = ["migrations/", "tests/"]
+
+[[tool.mypy.overrides]]
+module = ["pyarrow", "pyarrow.*"]
+ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 module = ["app.services.*", "app.api.*"]
