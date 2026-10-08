@@ -4,6 +4,9 @@ One pooled `httpx.AsyncClient` per process. Every call has a timeout. Failures a
 `MlUnavailable` so callers can degrade instead of failing.
 """
 
+import json
+from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 from typing import Any, Literal
 
 import httpx
@@ -14,6 +17,7 @@ from app.core.context import current_request_id
 from app.schemas.ml import (
     EmbedRequest,
     EmbedResponse,
+    GenerateRequest,
     Manifest,
     MlHealth,
     RerankCandidate,
@@ -33,6 +37,20 @@ class MlUnavailable(Exception):
         self.kind = kind
 
 
+@dataclass(frozen=True, slots=True)
+class GenerateEvent:
+    """One SSE event from ml-service `/generate`: `token`, `done` or `error`."""
+
+    event: str
+    data: dict[str, Any]
+
+
+def _parse(data_lines: list[str]) -> dict[str, Any]:
+    """Join the `data:` lines of one SSE event (separated by newlines) and decode the JSON."""
+    data: dict[str, Any] = json.loads(chr(10).join(data_lines))
+    return data
+
+
 async def _add_request_id(request: httpx.Request) -> None:
     request_id = current_request_id()
     if request_id:
@@ -47,6 +65,7 @@ class MlClient:
         connect_timeout_s: float,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
+        self._connect_timeout_s = connect_timeout_s
         self._client = httpx.AsyncClient(
             base_url=base_url,
             timeout=httpx.Timeout(timeout_s, connect=connect_timeout_s),
@@ -130,6 +149,45 @@ class MlClient:
             return RerankResponse.model_validate(data)
         except ValidationError as exc:
             raise MlUnavailable("/rerank", "invalid_response") from exc
+
+    async def generate_stream(
+        self, request: GenerateRequest, *, timeout_s: float
+    ) -> AsyncGenerator[GenerateEvent]:
+        """Stream `/generate` events. Closing the iterator closes (cancels) the upstream request.
+
+        `timeout_s` bounds every wait for the next chunk, so it must cover the time to first
+        token on a CPU LLM. The caller enforces the total answer time.
+        """
+        timeout = httpx.Timeout(timeout_s, connect=self._connect_timeout_s)
+        try:
+            async with self._client.stream(
+                "POST", "/generate", json=request.model_dump(), timeout=timeout
+            ) as response:
+                if response.status_code >= 400:
+                    raise MlUnavailable("/generate", "status", str(response.status_code))
+                event, data_lines = "message", list[str]()
+                async for line in response.aiter_lines():
+                    if not line:
+                        if data_lines:
+                            yield GenerateEvent(event, _parse(data_lines))
+                        event, data_lines = "message", []
+                    elif line.startswith(":"):
+                        continue  # SSE comment (heartbeat)
+                    else:
+                        field, _, value = line.partition(":")
+                        value = value.removeprefix(" ")
+                        if field == "event":
+                            event = value
+                        elif field == "data":
+                            data_lines.append(value)
+                if data_lines:
+                    yield GenerateEvent(event, _parse(data_lines))
+        except httpx.TimeoutException as exc:
+            raise MlUnavailable("/generate", "timeout") from exc
+        except httpx.HTTPError as exc:
+            raise MlUnavailable("/generate", "connection", type(exc).__name__) from exc
+        except json.JSONDecodeError as exc:
+            raise MlUnavailable("/generate", "invalid_json") from exc
 
     async def health(self, timeout_s: float | None = None) -> MlHealth:
         data = await self._get_json("/health", timeout_s)
