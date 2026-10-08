@@ -19,6 +19,16 @@ BE-01 to BE-03 and the audit fixes are merged (PRs #1–#4). **Integration of al
 - `SEARCH_RERANK_TOP_N` (env): overrides the manifest's rerank depth; `0` turns the rerank stage off. The demo uses 0 until ML ships a real cross-encoder.
 - `backend/README.md`: "Demo on the real corpus".
 
+- **Result (indexed 16,264 chunks with E5 in 47 min on CPU; search p50 ≈ 50 ms warm):**
+  - wage-delay liability → Labor Code arts. 121, 123, **113** (wage payment terms), 120;
+  - environmental fines → CAO arts. 324, 344, 347 and Criminal Code art. 324;
+  - termination grounds → Labor Code arts. **52**, 53, 49, 56, 50;
+  - annual leave → art. 88 in the top 5, and first in the UI;
+  - speeding fine → CAO art. **592** first;
+  - KK annual leave → art. 88 first;
+  - weak: divorce property → Civil Code arts. 120, 209, 221 instead of the Marriage and Family Code, which is not among the 8 Tier-1 codes imported (16 documents = 8 codes × RU/KK; `--all-acts` adds all 343 acts, a much longer reindex).
+
+  The UI (live mode) shows the sources and streams a generated answer with `[1]`/`[2]` citations to art. 88.
 - **Generated answers:** ML's `openai` generator mode works with a hosted OpenAI-compatible LLM. Groq was checked with `qwen/qwen3.8-27b`, a plain-text answer with `[1]` in RU and KK in about 1.3 s; `openai/gpt-oss-120b` also works but writes Markdown bold. Configure it in `.env` (README, step 5). The local `llm` compose service is still an empty placeholder (ML).
 - **Indexer recovery:** a Docker crash mid-index left the job `running` and blocked every later run. `python -m indexer … --abandon-stuck-job` fails such a job and deletes its partial collection (tests included).
 
