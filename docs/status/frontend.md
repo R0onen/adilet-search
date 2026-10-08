@@ -29,7 +29,7 @@ Presentation MVP combines the critical parts of FE-01/02/03/05/06/07. Full phase
 ## Requests to other agents
 | To | Request | Since | Status |
 |---|---|---|---|
-| Backend | UI consumes full `/api/v1/...` schema paths; documents/search/articles are wired. Implement `/answer` SSE per contract for live answers. | 2026-10-08 | open |
+| Backend | Types regenerated after BE-03; UI handles CRLF/LF, heartbeat comments, sources/tokens/authoritative done, JSON errors and SSE failures. Live integration remains to be rehearsed. Admin coverage is deferred. | 2026-10-08 | FYI |
 | ML | Supply real sample articles and real pipeline; current demo uses synthetic backend fixtures and scripted answers, clearly labelled. | 2026-10-08 | open |
 
 ## Notes for others (routes, how to run, contract mismatches found)
@@ -38,10 +38,10 @@ Presentation MVP combines the critical parts of FE-01/02/03/05/06/07. Full phase
 - Proxy: `API_PROXY_TARGET=http://127.0.0.1:8000`; network errors never silently fall back to mocks.
 - Mock `/answer` streams scripted text; `/error`, `/answer-error`, `/stream-error` support failure drills.
 - No API contract mismatch found; generated types mark some documented fields optional, handled defensively.
-- No backend/ML-owned files changed. No pull/rebase, commit, push, PR, deployment, or remote system mutation.
+- Frontend changes only; backend/ML-owned files are unchanged by this PR. Branch `fe/presentation-mvp` is based on the fetched `origin/main` including BE-03 and the updated agent briefs. Commit/push/PR authorized by the user; no deployment or merge.
 
 ## Validation
-- `npm run gen:api`, production build (includes strict typecheck), lint, and 7 unit tests passed.
+- `npm run gen:api`, production build (includes strict typecheck), lint, and 12 unit tests passed after updating to BE-03. Answer lifecycle tests include JSON 422/503, SSE failure after sources, authoritative final text, and incomplete streams.
 - 4 Edge/Playwright scenarios passed: complete presentation journey, empty/error search, 360px Kazakh layout, answer cancellation/501/SSE failure with preserved sources.
 - Axe scans passed for the RU home, completed result screen, and 360px KK results. These are automated scans, not a complete WCAG certification.
 - Screenshots: `docs/presentation/img/frontend-{home,results,compare,mobile}.png`.

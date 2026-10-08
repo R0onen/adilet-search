@@ -1846,6 +1846,7 @@ export interface operations {
              *     The JSON in each event's `data:` line follows the schema named in `x-sse-events`
              *     (`SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`). A `: ping` comment is sent every 15 s.
              *     `done.text` is authoritative: replace the streamed text with it.
+             *     Errors before the stream starts (validation, search unavailable) are normal JSON responses.
              */
             200: {
                 headers: {
@@ -1875,15 +1876,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2087,15 +2079,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };

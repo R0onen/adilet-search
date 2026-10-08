@@ -40,9 +40,10 @@ The page shows **Live API**, and MSW is not started. Network failures remain vis
 automatic substitution of demo data. Remove `.env.local` or set `VITE_API_MODE=mock`, then restart
 to return to the reliable demonstration. These variables contain no credentials.
 
-The last backend status lists `/search`, `/documents`, and `/articles/{article_id}` as implemented;
-`/answer` is still a 501 stub. Live search can therefore work before AI answers do. Answer errors
-preserve search results and article access. `/documents` populates the document filter in both modes.
+The latest backend status lists `/search`, `/documents`, `/articles/{article_id}`, `/answer` (SSE),
+and `/feedback` as implemented; admin endpoints remain 501 stubs. Answer errors preserve search
+results and article access. `/documents` populates the document filter in both modes. Local live
+integration has not been verified: the backend was not listening during the frontend check.
 Real data and actual models must be provided by the backend/AI teammates.
 
 ## Verify

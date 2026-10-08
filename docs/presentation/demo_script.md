@@ -47,4 +47,4 @@ Describe what the team has actually integrated live, separately from this local 
 - Kazakh UI translations require review by a Kazakh speaker.
 - Admin and deployment were deferred for the same-day frontend MVP.
 - Local automated checks do not establish real model quality or deployed latency.
-- The latest backend handoff lists `/answer` as a stub; live AI answers depend on that implementation.
+- The latest backend handoff lists `/answer` as implemented with fake-ML tests; the frontend's live integration and real model output remain unverified.
