@@ -1,0 +1,4133 @@
+{
+  "components": {
+    "schemas": {
+      "AnswerRequest": {
+        "properties": {
+          "context_top_k": {
+            "default": 5,
+            "description": "How many top articles are given to the generator",
+            "maximum": 8.0,
+            "minimum": 1.0,
+            "title": "Context Top K",
+            "type": "integer"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/SearchFilters"
+          },
+          "lang": {
+            "default": "auto",
+            "description": "`auto`: `kk` if the query contains any of ә ғ қ ң ө ұ ү һ і, otherwise `ru`",
+            "enum": [
+              "auto",
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "description": "1–500 characters after trimming",
+            "examples": [
+              "Ответственность работодателя за задержку зарплаты"
+            ],
+            "title": "Query",
+            "type": "string"
+          },
+          "top_k": {
+            "default": 10,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "AnswerRequest",
+        "type": "object"
+      },
+      "AnswerSource": {
+        "properties": {
+          "article": {
+            "$ref": "#/components/schemas/ArticleRef"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/DocumentRef"
+          },
+          "ref": {
+            "description": "The `n` used in `[n]` citations",
+            "minimum": 1,
+            "title": "Ref",
+            "type": "integer"
+          },
+          "snippet": {
+            "title": "Snippet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ref",
+          "article",
+          "doc",
+          "snippet"
+        ],
+        "title": "AnswerSource",
+        "type": "object"
+      },
+      "AnswerTiming": {
+        "properties": {
+          "search": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          },
+          "ttft": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ttft"
+          }
+        },
+        "title": "AnswerTiming",
+        "type": "object"
+      },
+      "ArticleDetail": {
+        "properties": {
+          "amendment_notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Amendment Notes",
+            "type": "array"
+          },
+          "article": {
+            "$ref": "#/components/schemas/ArticleRef"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/DocumentRef"
+          },
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "next_article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Article Id"
+          },
+          "parallel_article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The same unit in the other language",
+            "title": "Parallel Article Id"
+          },
+          "prev_article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prev Article Id"
+          },
+          "text": {
+            "description": "Full verbatim article text; line breaks and numbering preserved",
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "article",
+          "doc",
+          "lang",
+          "text"
+        ],
+        "title": "ArticleDetail",
+        "type": "object"
+      },
+      "ArticleRef": {
+        "properties": {
+          "article_id": {
+            "description": "`{doc_id}:{lang}:{unit_key}` (data_schema.md §2)",
+            "examples": [
+              "K1500000414:ru:a113"
+            ],
+            "maxLength": 128,
+            "minLength": 5,
+            "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+            "title": "Article Id",
+            "type": "string"
+          },
+          "chapter_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter Title"
+          },
+          "has_amendments": {
+            "title": "Has Amendments",
+            "type": "boolean"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "113"
+            ],
+            "title": "Number"
+          },
+          "section_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Title"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "Сроки, место и порядок выплаты заработной платы"
+            ],
+            "title": "Title"
+          },
+          "unit_status": {
+            "enum": [
+              "in_force",
+              "excluded"
+            ],
+            "title": "Unit Status",
+            "type": "string"
+          },
+          "unit_type": {
+            "enum": [
+              "article",
+              "paragraph",
+              "chapter",
+              "preamble",
+              "annex"
+            ],
+            "title": "Unit Type",
+            "type": "string"
+          },
+          "url": {
+            "description": "Article anchor when known, otherwise the document URL",
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "article_id",
+          "unit_type",
+          "unit_status",
+          "has_amendments",
+          "url"
+        ],
+        "title": "ArticleRef",
+        "type": "object"
+      },
+      "Components": {
+        "properties": {
+          "database": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down",
+              "unavailable"
+            ],
+            "title": "Database",
+            "type": "string"
+          },
+          "llm": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down",
+              "unavailable"
+            ],
+            "title": "Llm",
+            "type": "string"
+          },
+          "ml_service": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down",
+              "unavailable"
+            ],
+            "title": "Ml Service",
+            "type": "string"
+          },
+          "qdrant": {
+            "enum": [
+              "ok",
+              "degraded",
+              "down",
+              "unavailable"
+            ],
+            "title": "Qdrant",
+            "type": "string"
+          }
+        },
+        "required": [
+          "database",
+          "qdrant",
+          "ml_service",
+          "llm"
+        ],
+        "title": "Components",
+        "type": "object"
+      },
+      "DocumentDetail": {
+        "properties": {
+          "adopted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2015-11-23"
+            ],
+            "title": "Adopted Date"
+          },
+          "doc_id": {
+            "description": "adilet document code",
+            "examples": [
+              "K1500000414"
+            ],
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "doc_type": {
+            "enum": [
+              "code",
+              "law",
+              "decree",
+              "resolution",
+              "order",
+              "other"
+            ],
+            "title": "Doc Type",
+            "type": "string"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "414-V"
+            ],
+            "title": "Number"
+          },
+          "revision_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date of the latest amendment in the text",
+            "title": "Revision Date"
+          },
+          "short_title": {
+            "examples": [
+              "Трудовой кодекс РК"
+            ],
+            "title": "Short Title",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "in_force",
+              "repealed",
+              "not_yet_in_force"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "examples": [
+              "Трудовой кодекс Республики Казахстан"
+            ],
+            "title": "Title",
+            "type": "string"
+          },
+          "toc": {
+            "description": "Units in document order",
+            "items": {
+              "$ref": "#/components/schemas/TocItem"
+            },
+            "title": "Toc",
+            "type": "array"
+          },
+          "url": {
+            "examples": [
+              "https://adilet.zan.kz/rus/docs/K1500000414"
+            ],
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "short_title",
+          "doc_type",
+          "status",
+          "url",
+          "toc"
+        ],
+        "title": "DocumentDetail",
+        "type": "object"
+      },
+      "DocumentListItem": {
+        "properties": {
+          "adopted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2015-11-23"
+            ],
+            "title": "Adopted Date"
+          },
+          "article_count": {
+            "minimum": 0.0,
+            "title": "Article Count",
+            "type": "integer"
+          },
+          "doc_id": {
+            "description": "adilet document code",
+            "examples": [
+              "K1500000414"
+            ],
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "doc_type": {
+            "enum": [
+              "code",
+              "law",
+              "decree",
+              "resolution",
+              "order",
+              "other"
+            ],
+            "title": "Doc Type",
+            "type": "string"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "414-V"
+            ],
+            "title": "Number"
+          },
+          "revision_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date of the latest amendment in the text",
+            "title": "Revision Date"
+          },
+          "short_title": {
+            "examples": [
+              "Трудовой кодекс РК"
+            ],
+            "title": "Short Title",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "in_force",
+              "repealed",
+              "not_yet_in_force"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "examples": [
+              "Трудовой кодекс Республики Казахстан"
+            ],
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "examples": [
+              "https://adilet.zan.kz/rus/docs/K1500000414"
+            ],
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "short_title",
+          "doc_type",
+          "status",
+          "url",
+          "article_count"
+        ],
+        "title": "DocumentListItem",
+        "type": "object"
+      },
+      "DocumentPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentListItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "DocumentPage",
+        "type": "object"
+      },
+      "DocumentRef": {
+        "properties": {
+          "adopted_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "2015-11-23"
+            ],
+            "title": "Adopted Date"
+          },
+          "doc_id": {
+            "description": "adilet document code",
+            "examples": [
+              "K1500000414"
+            ],
+            "title": "Doc Id",
+            "type": "string"
+          },
+          "doc_type": {
+            "enum": [
+              "code",
+              "law",
+              "decree",
+              "resolution",
+              "order",
+              "other"
+            ],
+            "title": "Doc Type",
+            "type": "string"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "414-V"
+            ],
+            "title": "Number"
+          },
+          "revision_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Date of the latest amendment in the text",
+            "title": "Revision Date"
+          },
+          "short_title": {
+            "examples": [
+              "Трудовой кодекс РК"
+            ],
+            "title": "Short Title",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "in_force",
+              "repealed",
+              "not_yet_in_force"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "examples": [
+              "Трудовой кодекс Республики Казахстан"
+            ],
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "examples": [
+              "https://adilet.zan.kz/rus/docs/K1500000414"
+            ],
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "doc_id",
+          "title",
+          "short_title",
+          "doc_type",
+          "status",
+          "url"
+        ],
+        "title": "DocumentRef",
+        "type": "object"
+      },
+      "DoneEvent": {
+        "description": "`event: done` (sent once, last). `text` is authoritative and replaces the streamed text.",
+        "properties": {
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "citations": {
+            "description": "Sorted unique source refs cited in `text`",
+            "items": {
+              "type": "integer"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "finish_reason": {
+            "examples": [
+              "stop"
+            ],
+            "title": "Finish Reason",
+            "type": "string"
+          },
+          "grounded": {
+            "title": "Grounded",
+            "type": "boolean"
+          },
+          "invalid_citations_removed": {
+            "minimum": 0,
+            "title": "Invalid Citations Removed",
+            "type": "integer"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "title": "Pipeline Version"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "timing_ms": {
+            "$ref": "#/components/schemas/AnswerTiming"
+          }
+        },
+        "required": [
+          "answer_id",
+          "text",
+          "citations",
+          "invalid_citations_removed",
+          "grounded",
+          "finish_reason",
+          "timing_ms"
+        ],
+        "title": "DoneEvent",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "properties": {
+          "code": {
+            "description": "Machine-readable error code, e.g. `validation_error`",
+            "title": "Code",
+            "type": "string"
+          },
+          "details": {
+            "description": "Extra data, e.g. per-field validation errors",
+            "title": "Details"
+          },
+          "message": {
+            "description": "Human-readable message (English)",
+            "title": "Message",
+            "type": "string"
+          },
+          "request_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Same value as the `X-Request-Id` header",
+            "title": "Request Id"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "request_id"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorEvent": {
+        "description": "`event: error` (sent instead of `done` when generation fails after the stream started).",
+        "properties": {
+          "code": {
+            "description": "`generation_unavailable` or `internal_error`",
+            "examples": [
+              "generation_unavailable"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorEvent",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "FeedbackCounts": {
+        "properties": {
+          "negative": {
+            "title": "Negative",
+            "type": "integer"
+          },
+          "positive": {
+            "title": "Positive",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "positive",
+          "negative"
+        ],
+        "title": "FeedbackCounts",
+        "type": "object"
+      },
+      "FeedbackItem": {
+        "properties": {
+          "article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Article Id"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "rating": {
+            "enum": [
+              1,
+              -1
+            ],
+            "title": "Rating",
+            "type": "integer"
+          },
+          "target": {
+            "enum": [
+              "result",
+              "answer"
+            ],
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "rating",
+          "created_at"
+        ],
+        "title": "FeedbackItem",
+        "type": "object"
+      },
+      "FeedbackRequest": {
+        "properties": {
+          "article_id": {
+            "anyOf": [
+              {
+                "description": "`{doc_id}:{lang}:{unit_key}` (data_schema.md §2)",
+                "examples": [
+                  "K1500000414:ru:a113"
+                ],
+                "maxLength": 128,
+                "minLength": 5,
+                "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Required when target=result",
+            "title": "Article Id"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          },
+          "query_id": {
+            "format": "uuid",
+            "title": "Query Id",
+            "type": "string"
+          },
+          "rating": {
+            "enum": [
+              1,
+              -1
+            ],
+            "title": "Rating",
+            "type": "integer"
+          },
+          "target": {
+            "enum": [
+              "result",
+              "answer"
+            ],
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query_id",
+          "target",
+          "rating"
+        ],
+        "title": "FeedbackRequest",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "app_version": {
+            "title": "App Version",
+            "type": "string"
+          },
+          "components": {
+            "$ref": "#/components/schemas/Components"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Version"
+          },
+          "status": {
+            "description": "`ok` (200), `degraded`: search works but a component is down (200), `down`: search cannot work (503)",
+            "enum": [
+              "ok",
+              "degraded",
+              "down"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "components",
+          "app_version"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "Highlight": {
+        "properties": {
+          "end": {
+            "description": "Character offset into `snippet` (exclusive)",
+            "minimum": 0.0,
+            "title": "End",
+            "type": "integer"
+          },
+          "start": {
+            "description": "Character offset into `snippet` (inclusive)",
+            "minimum": 0.0,
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Highlight",
+        "type": "object"
+      },
+      "IndexInfo": {
+        "properties": {
+          "alias": {
+            "title": "Alias",
+            "type": "string"
+          },
+          "articles": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Articles"
+          },
+          "collection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collection"
+          },
+          "compatible": {
+            "description": "Collection index_compat_id equals the manifest's; false = reindex required",
+            "title": "Compatible",
+            "type": "boolean"
+          },
+          "documents": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Documents"
+          },
+          "index_compat_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Compat Id"
+          },
+          "last_job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Job"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "points": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Points"
+          }
+        },
+        "required": [
+          "alias",
+          "compatible"
+        ],
+        "title": "IndexInfo",
+        "type": "object"
+      },
+      "Job": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "reindex",
+            "default": "reindex",
+            "title": "Kind",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "progress": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Progress",
+            "type": "number"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "progress",
+          "created_at"
+        ],
+        "title": "Job",
+        "type": "object"
+      },
+      "JobRef": {
+        "properties": {
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id"
+        ],
+        "title": "JobRef",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "password": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          },
+          "username": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Username",
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "PipelineInfo": {
+        "properties": {
+          "embedder": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embedder"
+          },
+          "generator": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator"
+          },
+          "index_compat_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Index Compat Id"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Version"
+          },
+          "reranker": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reranker"
+          }
+        },
+        "title": "PipelineInfo",
+        "type": "object"
+      },
+      "QueryCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "query": {
+            "description": "Normalised query (lower-cased, whitespace-collapsed)",
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query",
+          "count"
+        ],
+        "title": "QueryCount",
+        "type": "object"
+      },
+      "QueryLogAnswer": {
+        "properties": {
+          "answer_id": {
+            "format": "uuid",
+            "title": "Answer Id",
+            "type": "string"
+          },
+          "citations": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Citations",
+            "type": "array"
+          },
+          "grounded": {
+            "title": "Grounded",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "timing_ms": {
+            "$ref": "#/components/schemas/AnswerTiming"
+          }
+        },
+        "required": [
+          "answer_id",
+          "text",
+          "citations",
+          "grounded",
+          "timing_ms"
+        ],
+        "title": "QueryLogAnswer",
+        "type": "object"
+      },
+      "QueryLogDetail": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/QueryLogAnswer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "degraded": {
+            "items": {
+              "enum": [
+                "rerank",
+                "semantic",
+                "generation"
+              ],
+              "type": "string"
+            },
+            "title": "Degraded",
+            "type": "array"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/FeedbackCounts"
+          },
+          "feedback_items": {
+            "items": {
+              "$ref": "#/components/schemas/FeedbackItem"
+            },
+            "title": "Feedback Items",
+            "type": "array"
+          },
+          "filters": {
+            "$ref": "#/components/schemas/SearchFilters"
+          },
+          "has_answer": {
+            "title": "Has Answer",
+            "type": "boolean"
+          },
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Version"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "query_id": {
+            "format": "uuid",
+            "title": "Query Id",
+            "type": "string"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/QueryLogResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "search_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Ms"
+          },
+          "session_hash": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Hash"
+          },
+          "timing_ms": {
+            "$ref": "#/components/schemas/SearchTiming"
+          },
+          "top_article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top Article Id"
+          },
+          "top_k": {
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query_id",
+          "created_at",
+          "query",
+          "lang",
+          "mode",
+          "result_count",
+          "has_answer",
+          "feedback",
+          "filters",
+          "top_k",
+          "results",
+          "timing_ms",
+          "feedback_items"
+        ],
+        "title": "QueryLogDetail",
+        "type": "object"
+      },
+      "QueryLogItem": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "degraded": {
+            "items": {
+              "enum": [
+                "rerank",
+                "semantic",
+                "generation"
+              ],
+              "type": "string"
+            },
+            "title": "Degraded",
+            "type": "array"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/FeedbackCounts"
+          },
+          "has_answer": {
+            "title": "Has Answer",
+            "type": "boolean"
+          },
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "query_id": {
+            "format": "uuid",
+            "title": "Query Id",
+            "type": "string"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "search_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search Ms"
+          },
+          "top_article_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Top Article Id"
+          }
+        },
+        "required": [
+          "query_id",
+          "created_at",
+          "query",
+          "lang",
+          "mode",
+          "result_count",
+          "has_answer",
+          "feedback"
+        ],
+        "title": "QueryLogItem",
+        "type": "object"
+      },
+      "QueryLogPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QueryLogItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "minimum": 1.0,
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "total": {
+            "minimum": 0.0,
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "page_size",
+          "total",
+          "items"
+        ],
+        "title": "QueryLogPage",
+        "type": "object"
+      },
+      "QueryLogResult": {
+        "properties": {
+          "article_id": {
+            "title": "Article Id",
+            "type": "string"
+          },
+          "doc_short_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doc Short Title"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "rank",
+          "article_id",
+          "score"
+        ],
+        "title": "QueryLogResult",
+        "type": "object"
+      },
+      "ReindexRequest": {
+        "properties": {
+          "source": {
+            "default": "processed",
+            "enum": [
+              "processed",
+              "sample"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "use_precomputed_embeddings": {
+            "default": true,
+            "title": "Use Precomputed Embeddings",
+            "type": "boolean"
+          }
+        },
+        "title": "ReindexRequest",
+        "type": "object"
+      },
+      "SearchFilters": {
+        "properties": {
+          "date_from": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Act adoption date, inclusive",
+            "title": "Date From"
+          },
+          "date_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Act adoption date, inclusive",
+            "title": "Date To"
+          },
+          "doc_ids": {
+            "description": "Empty = no filter",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Doc Ids",
+            "type": "array"
+          },
+          "doc_types": {
+            "description": "Empty = no filter",
+            "items": {
+              "enum": [
+                "code",
+                "law",
+                "decree",
+                "resolution",
+                "order",
+                "other"
+              ],
+              "type": "string"
+            },
+            "title": "Doc Types",
+            "type": "array"
+          },
+          "in_force_only": {
+            "default": true,
+            "description": "Act in force **and** article not excluded",
+            "title": "In Force Only",
+            "type": "boolean"
+          }
+        },
+        "title": "SearchFilters",
+        "type": "object"
+      },
+      "SearchRequest": {
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/SearchFilters"
+          },
+          "lang": {
+            "default": "auto",
+            "description": "`auto`: `kk` if the query contains any of ә ғ қ ң ө ұ ү һ і, otherwise `ru`",
+            "enum": [
+              "auto",
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "mode": {
+            "default": "hybrid",
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "query": {
+            "description": "1–500 characters after trimming",
+            "examples": [
+              "Ответственность работодателя за задержку зарплаты"
+            ],
+            "title": "Query",
+            "type": "string"
+          },
+          "top_k": {
+            "default": 10,
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Top K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "SearchRequest",
+        "type": "object"
+      },
+      "SearchResponse": {
+        "properties": {
+          "degraded": {
+            "items": {
+              "enum": [
+                "rerank",
+                "semantic",
+                "generation"
+              ],
+              "type": "string"
+            },
+            "title": "Degraded",
+            "type": "array"
+          },
+          "lang": {
+            "description": "The resolved language",
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Version"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "query_id": {
+            "format": "uuid",
+            "title": "Query Id",
+            "type": "string"
+          },
+          "results": {
+            "description": "One result per article; may be empty",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "timing_ms": {
+            "$ref": "#/components/schemas/SearchTiming"
+          },
+          "total_candidates": {
+            "minimum": 0.0,
+            "title": "Total Candidates",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "query_id",
+          "query",
+          "lang",
+          "mode",
+          "results",
+          "total_candidates",
+          "timing_ms"
+        ],
+        "title": "SearchResponse",
+        "type": "object"
+      },
+      "SearchResult": {
+        "properties": {
+          "article": {
+            "$ref": "#/components/schemas/ArticleRef"
+          },
+          "chunk_id": {
+            "examples": [
+              "K1500000414:ru:a113:c0"
+            ],
+            "title": "Chunk Id",
+            "type": "string"
+          },
+          "doc": {
+            "$ref": "#/components/schemas/DocumentRef"
+          },
+          "highlights": {
+            "items": {
+              "$ref": "#/components/schemas/Highlight"
+            },
+            "title": "Highlights",
+            "type": "array"
+          },
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "rank": {
+            "minimum": 1.0,
+            "title": "Rank",
+            "type": "integer"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "score_type": {
+            "enum": [
+              "rerank",
+              "fusion",
+              "fts"
+            ],
+            "title": "Score Type",
+            "type": "string"
+          },
+          "snippet": {
+            "description": "Best passage of the best chunk",
+            "maxLength": 300,
+            "title": "Snippet",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rank",
+          "article",
+          "doc",
+          "chunk_id",
+          "lang",
+          "score",
+          "score_type",
+          "snippet"
+        ],
+        "title": "SearchResult",
+        "type": "object"
+      },
+      "SearchTiming": {
+        "description": "Milliseconds per stage. A stage that did not run is null or missing.",
+        "properties": {
+          "embed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Embed"
+          },
+          "fuse": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fuse"
+          },
+          "rerank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rerank"
+          },
+          "retrieve": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieve"
+          },
+          "total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total"
+          }
+        },
+        "title": "SearchTiming",
+        "type": "object"
+      },
+      "SourcesEvent": {
+        "description": "`event: sources` (sent once, first).",
+        "properties": {
+          "degraded": {
+            "items": {
+              "enum": [
+                "rerank",
+                "semantic",
+                "generation"
+              ],
+              "type": "string"
+            },
+            "title": "Degraded",
+            "type": "array"
+          },
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "query_id": {
+            "format": "uuid",
+            "title": "Query Id",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerSource"
+            },
+            "title": "Sources",
+            "type": "array"
+          }
+        },
+        "required": [
+          "query_id",
+          "lang",
+          "sources"
+        ],
+        "title": "SourcesEvent",
+        "type": "object"
+      },
+      "StatsDay": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          },
+          "search_p95_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search P95 Ms"
+          },
+          "zero_result_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zero Result Rate"
+          }
+        },
+        "required": [
+          "date",
+          "queries"
+        ],
+        "title": "StatsDay",
+        "type": "object"
+      },
+      "StatsLang": {
+        "properties": {
+          "lang": {
+            "enum": [
+              "ru",
+              "kk"
+            ],
+            "title": "Lang",
+            "type": "string"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "lang",
+          "queries"
+        ],
+        "title": "StatsLang",
+        "type": "object"
+      },
+      "StatsLatency": {
+        "properties": {
+          "answer_ttft_p50": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Ttft P50"
+          },
+          "answer_ttft_p95": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Ttft P95"
+          },
+          "search_p50": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search P50"
+          },
+          "search_p95": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Search P95"
+          }
+        },
+        "title": "StatsLatency",
+        "type": "object"
+      },
+      "StatsMode": {
+        "properties": {
+          "mode": {
+            "enum": [
+              "hybrid",
+              "semantic",
+              "keyword"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mode",
+          "queries"
+        ],
+        "title": "StatsMode",
+        "type": "object"
+      },
+      "StatsRates": {
+        "properties": {
+          "degraded_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Degraded Rate"
+          },
+          "satisfaction_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "positive / (positive + negative); null without feedback",
+            "title": "Satisfaction Rate"
+          },
+          "zero_result_rate": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zero Result Rate"
+          }
+        },
+        "title": "StatsRates",
+        "type": "object"
+      },
+      "StatsResponse": {
+        "properties": {
+          "by_day": {
+            "items": {
+              "$ref": "#/components/schemas/StatsDay"
+            },
+            "title": "By Day",
+            "type": "array"
+          },
+          "by_lang": {
+            "items": {
+              "$ref": "#/components/schemas/StatsLang"
+            },
+            "title": "By Lang",
+            "type": "array"
+          },
+          "by_mode": {
+            "items": {
+              "$ref": "#/components/schemas/StatsMode"
+            },
+            "title": "By Mode",
+            "type": "array"
+          },
+          "date_from": {
+            "format": "date",
+            "title": "Date From",
+            "type": "string"
+          },
+          "date_to": {
+            "format": "date",
+            "title": "Date To",
+            "type": "string"
+          },
+          "latency_ms": {
+            "$ref": "#/components/schemas/StatsLatency"
+          },
+          "rates": {
+            "$ref": "#/components/schemas/StatsRates"
+          },
+          "top_queries": {
+            "items": {
+              "$ref": "#/components/schemas/QueryCount"
+            },
+            "maxItems": 20,
+            "title": "Top Queries",
+            "type": "array"
+          },
+          "top_zero_result_queries": {
+            "items": {
+              "$ref": "#/components/schemas/QueryCount"
+            },
+            "maxItems": 20,
+            "title": "Top Zero Result Queries",
+            "type": "array"
+          },
+          "totals": {
+            "$ref": "#/components/schemas/StatsTotals"
+          }
+        },
+        "required": [
+          "date_from",
+          "date_to",
+          "totals",
+          "rates",
+          "latency_ms",
+          "by_day",
+          "by_lang",
+          "by_mode",
+          "top_queries",
+          "top_zero_result_queries"
+        ],
+        "title": "StatsResponse",
+        "type": "object"
+      },
+      "StatsTotals": {
+        "properties": {
+          "answers": {
+            "title": "Answers",
+            "type": "integer"
+          },
+          "feedback_negative": {
+            "title": "Feedback Negative",
+            "type": "integer"
+          },
+          "feedback_positive": {
+            "title": "Feedback Positive",
+            "type": "integer"
+          },
+          "queries": {
+            "title": "Queries",
+            "type": "integer"
+          },
+          "unique_sessions": {
+            "title": "Unique Sessions",
+            "type": "integer"
+          },
+          "zero_result_queries": {
+            "title": "Zero Result Queries",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "queries",
+          "unique_sessions",
+          "answers",
+          "feedback_positive",
+          "feedback_negative",
+          "zero_result_queries"
+        ],
+        "title": "StatsTotals",
+        "type": "object"
+      },
+      "SystemResponse": {
+        "properties": {
+          "app_version": {
+            "title": "App Version",
+            "type": "string"
+          },
+          "components": {
+            "$ref": "#/components/schemas/Components"
+          },
+          "git_sha": {
+            "title": "Git Sha",
+            "type": "string"
+          },
+          "index": {
+            "$ref": "#/components/schemas/IndexInfo"
+          },
+          "pipeline": {
+            "$ref": "#/components/schemas/PipelineInfo"
+          },
+          "uptime_s": {
+            "title": "Uptime S",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "components",
+          "app_version",
+          "git_sha",
+          "uptime_s",
+          "pipeline",
+          "index"
+        ],
+        "title": "SystemResponse",
+        "type": "object"
+      },
+      "TocItem": {
+        "properties": {
+          "article_id": {
+            "description": "`{doc_id}:{lang}:{unit_key}` (data_schema.md §2)",
+            "examples": [
+              "K1500000414:ru:a113"
+            ],
+            "maxLength": 128,
+            "minLength": 5,
+            "pattern": "^[A-Za-z0-9]+:(ru|kk):[a-z0-9-]+$",
+            "title": "Article Id",
+            "type": "string"
+          },
+          "chapter_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chapter Title"
+          },
+          "number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Number"
+          },
+          "section_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Title"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "unit_status": {
+            "enum": [
+              "in_force",
+              "excluded"
+            ],
+            "title": "Unit Status",
+            "type": "string"
+          },
+          "unit_type": {
+            "enum": [
+              "article",
+              "paragraph",
+              "chapter",
+              "preamble",
+              "annex"
+            ],
+            "title": "Unit Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "article_id",
+          "unit_type",
+          "unit_status"
+        ],
+        "title": "TocItem",
+        "type": "object"
+      },
+      "TokenEvent": {
+        "description": "`event: token` (sent many times).",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "TokenEvent",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "description": "Seconds until the token expires",
+            "examples": [
+              28800
+            ],
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "token_type": {
+            "const": "bearer",
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "expires_in"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "VersionResponse": {
+        "properties": {
+          "app_version": {
+            "title": "App Version",
+            "type": "string"
+          },
+          "git_sha": {
+            "title": "Git Sha",
+            "type": "string"
+          },
+          "index_collection": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The collection the `legal_chunks` alias points to",
+            "title": "Index Collection"
+          },
+          "pipeline_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pipeline Version"
+          }
+        },
+        "required": [
+          "app_version",
+          "git_sha"
+        ],
+        "title": "VersionResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "description": "Admin JWT from `POST /admin/login`",
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "description": "Semantic search and source-cited answers over the legislation of Kazakhstan (RU/KK).\nThe normative description of shapes and semantics is `contracts/api.md`.\nEvery error uses the shape `{\"error\": {\"code\", \"message\", \"details\", \"request_id\"}}`.\n",
+    "title": "Adilet Search API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/admin/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_api_v1_admin_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Job status and progress",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/login": {
+      "post": {
+        "operationId": "login_api_v1_admin_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited (see the `Retry-After` header)"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "summary": "Exchange admin credentials for a JWT",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/queries": {
+      "get": {
+        "operationId": "list_queries_api_v1_admin_queries_get",
+        "parameters": [
+          {
+            "description": "Substring of the query",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring of the query",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ru",
+                    "kk"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "hybrid",
+                    "semantic",
+                    "keyword"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "zero_results",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zero Results"
+            }
+          },
+          {
+            "in": "query",
+            "name": "feedback",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "positive",
+                    "negative"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Feedback"
+            }
+          },
+          {
+            "in": "query",
+            "name": "degraded",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Degraded"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryLogPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Query log (filtered, paginated)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/queries/export": {
+      "get": {
+        "operationId": "export_queries_api_v1_admin_queries_export_get",
+        "parameters": [
+          {
+            "description": "Substring of the query",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring of the query",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "ru",
+                    "kk"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lang"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "hybrid",
+                    "semantic",
+                    "keyword"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Mode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "zero_results",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Zero Results"
+            }
+          },
+          {
+            "in": "query",
+            "name": "feedback",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "positive",
+                    "negative"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Feedback"
+            }
+          },
+          {
+            "in": "query",
+            "name": "degraded",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Degraded"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "One row per query. Columns: query_id, created_at, query, lang, mode, result_count, top_article_id, search_ms, has_answer, feedback_positive, feedback_negative, degraded"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Query log as CSV (UTF-8 with BOM)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/queries/{query_id}": {
+      "get": {
+        "operationId": "get_query_api_v1_admin_queries__query_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "query_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Query Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryLogDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "One query with results, answer and feedback",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/reindex": {
+      "post": {
+        "operationId": "reindex_api_v1_admin_reindex_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReindexRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobRef"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start a reindex job into a new collection",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/stats": {
+      "get": {
+        "operationId": "stats_api_v1_admin_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Usage statistics (defaults to the last 7 days)",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/system": {
+      "get": {
+        "operationId": "system_api_v1_admin_system_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Missing or invalid admin token"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Components, pipeline and index status",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/answer": {
+      "post": {
+        "operationId": "answer_api_v1_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnswerRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Server-Sent Events stream. Event order: `sources` (once) → `token` (many) → `done` (once),\nor `error` instead of `done` if generation fails after the stream started.\nThe JSON in each event's `data:` line follows the schema named in `x-sse-events`\n(`SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`). A `: ping` comment is sent every 15 s.\n`done.text` is authoritative: replace the streamed text with it.\n",
+            "x-sse-events": {
+              "done": {
+                "$ref": "#/components/schemas/DoneEvent"
+              },
+              "error": {
+                "$ref": "#/components/schemas/ErrorEvent"
+              },
+              "sources": {
+                "$ref": "#/components/schemas/SourcesEvent"
+              },
+              "token": {
+                "$ref": "#/components/schemas/TokenEvent"
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited (see the `Retry-After` header)"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A required upstream component is unavailable"
+          }
+        },
+        "summary": "Streamed RAG answer with citations (SSE)",
+        "tags": [
+          "answer"
+        ]
+      }
+    },
+    "/api/v1/articles/{article_id}": {
+      "get": {
+        "operationId": "get_article_api_v1_articles__article_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "article_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "title": "Article Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "summary": "Full verbatim article",
+        "tags": [
+          "documents",
+          "articles"
+        ]
+      }
+    },
+    "/api/v1/documents": {
+      "get": {
+        "operationId": "list_documents_api_v1_documents_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lang",
+            "required": true,
+            "schema": {
+              "enum": [
+                "ru",
+                "kk"
+              ],
+              "title": "Lang",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "doc_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "code",
+                    "law",
+                    "decree",
+                    "resolution",
+                    "order",
+                    "other"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Doc Type"
+            }
+          },
+          {
+            "description": "Substring of the title",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 200,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Substring of the title",
+              "title": "Q"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentPage"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "summary": "List documents",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/documents/{doc_id}": {
+      "get": {
+        "operationId": "get_document_api_v1_documents__doc_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "doc_id",
+            "required": true,
+            "schema": {
+              "maxLength": 64,
+              "title": "Doc Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lang",
+            "required": true,
+            "schema": {
+              "enum": [
+                "ru",
+                "kk"
+              ],
+              "title": "Lang",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "summary": "Document with its table of contents",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/api/v1/feedback": {
+      "post": {
+        "operationId": "feedback_api_v1_feedback_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          }
+        },
+        "summary": "Rate a result or an answer (a repeat overwrites)",
+        "tags": [
+          "feedback"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Search cannot work (`down`)"
+          }
+        },
+        "summary": "Service health",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/api/v1/search": {
+      "post": {
+        "operationId": "search_api_v1_search_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Rate limited (see the `Retry-After` header)"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not implemented yet (stub)"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "A required upstream component is unavailable"
+          }
+        },
+        "summary": "Hybrid / semantic / keyword search over articles",
+        "tags": [
+          "search"
+        ]
+      }
+    },
+    "/api/v1/version": {
+      "get": {
+        "operationId": "version_api_v1_version_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal error"
+          }
+        },
+        "summary": "Versions",
+        "tags": [
+          "system"
+        ]
+      }
+    }
+  }
+}

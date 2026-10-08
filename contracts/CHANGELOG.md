@@ -12,6 +12,19 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-10-08 · api.md, openapi.json · v1 · no · Frontend (regenerate types), ML (FYI)
+
+Backend phase BE-01. `contracts/openapi.json` is generated for the first time and lists all 16 v1 endpoints with their real models. Every endpoint except `/health` and `/version` is a stub that returns `501`. All `api.md` changes are additive or clarifications:
+- **Error codes:** added `not_implemented` (501, stubs during development only). Other HTTP error statuses use a code derived from the reason phrase (e.g. `method_not_allowed` for 405). `validation_error.details` is a list of `{loc, msg, type}`.
+- **Request id:** a client-sent `X-Request-Id` is echoed if it is 8–128 chars of `[A-Za-z0-9._-]`; otherwise the server generates one.
+- **`/health`:** component values are `ok | degraded | down | unavailable`. `status` is `down` iff the database is not ok, `degraded` if qdrant or ml_service is not ok; `llm` is reported but does not change `status` (this matches the existing example). `pipeline_version` (here and in `/version`) is `null` until the manifest is loaded. `/version.index_collection` is `null` before the first index.
+- **`/documents/{doc_id}`:** `lang` is required; unknown (`doc_id`, `lang`) → 404.
+- **`/answer` SSE:** the event payloads are published in `openapi.json` as `SourcesEvent`, `TokenEvent`, `DoneEvent`, `ErrorEvent`, linked from the 200 response under `x-sse-events`. Confirms the open G0 item: the event shapes are implementable as written.
+- **Examples:** ids and timestamps that were `"…"` are now concrete values (UUIDs, ISO timestamps). A backend test checks that every example in `api.md` validates against the models and round-trips.
+- **IDs in requests:** `article_id` must match `{doc_id}:{ru|kk}:{unit_key}`; `query_id`, `answer_id` and `job_id` are UUIDs.
+
+---
+
 ## 2026-10-05 · api.md, ml_service.md, data_schema.md · v1 · — · everyone
 
 Initial contracts, written during planning. Expect small additive adjustments in week 1, while the agents scaffold. After gate G0, every change follows the process above.
