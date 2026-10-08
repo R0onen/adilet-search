@@ -50,7 +50,8 @@ Legal Service (https://test.tehprof.kz/legal, Tehsnab Group) already ingests leg
 
 | Assignment | ML phase | Key outputs |
 |---|---|---|
-| A2: Data preparation & baseline | ML-03 | cleaned corpus, eval set, BM25 + TF-IDF/LogReg baselines, ≥2 metrics, results, slides |
+| A2: Data preparation & EDA | ML-03 Part B | dataset description, 3 research questions, quality assessment, justified cleaning (before/after), EDA (≥ 5 observations, ≥ 5 charts), features/target + leakage check, group split; notebook + 1–2 page report |
+| Midterm: baseline | ML-03 Part C | BM25 + TF-IDF/LogReg baselines, ≥ 2 metrics, first results, model rationale, 5–7 slides |
 | A3: Training & fine-tuning | ML-04 | ≥3 configs on one split, tuning, fine-tuned bi-encoder, transfer learning, QLoRA generator, unified table |
 | A4: Embeddings → ML → Transformer → fine-tuning | ML-05 | 4 configs for relevance classification/re-ranking, error analysis, RQ1–RQ4, report, slides, checkpoint |
 
@@ -184,7 +185,8 @@ adilet-search/
 
 ## 6. Data plan
 
-- **Source.** The customer's DB export if Tehsnab Group provides one. Otherwise our own polite scraper of adilet.zan.kz: raw HTML cached, ≤ 1 request/s, robots.txt respected.
+- **Source.** Our own polite scraper of adilet.zan.kz: raw HTML cached, ≤ 1 request/s, robots.txt respected. Tehsnab Group provides no DB export (D-012).
+- **Public snapshot.** The A2 grader must be able to run the notebook without our tokens, so the corpus snapshot (public law) and the synthetic pairs are published as a public HF dataset, if the team agrees.
 - **Tier-1 corpus (RU + KK):** Labor Code, Code on Administrative Offences, Civil Code (General Part and Special Part), Tax Code (the edition currently in force; verify on adilet), Environmental Code, Entrepreneurial Code, Criminal Code. Roughly 4–5k articles per language.
 - **Unit.** One article (or one top-level point for acts that have no articles). Articles longer than ~400 tokens are split into chunks. Each chunk gets the header "Act. Article N. Title" for embedding.
 - **Metadata.** Act, type, number, adoption date, revision date, act status (in force / repealed / not yet in force), article status (in force / excluded), amendment notes, source URL, RU↔KK parallel id.
@@ -228,7 +230,7 @@ adilet-search/
 ## 9. Hardware and deployment
 
 - **Training:** Colab/Kaggle GPUs (T4/L4/P100). Checkpoints are pushed to the HF Hub after every epoch.
-- **Prototype server:** one Linux VM with ≥ 4 vCPU, 16 GB RAM, 80 GB SSD. Use the customer's test VM if they give one; otherwise rent a VPS. The search path runs on CPU.
+- **Prototype server:** one Linux VM with ≥ 4 vCPU, 16 GB RAM, 80 GB SSD. The team rents a VPS (the customer provides no VM, D-012). The search path runs on CPU.
 - **Generator:** a quantised GGUF on CPU via llama.cpp (slow but it works), or, for demo day, an external GPU endpoint with the same OpenAI-compatible API. Switching between them is an env-var change.
 - **Public URL:** HTTPS via Caddy (a customer subdomain or our own domain).
 
@@ -242,7 +244,7 @@ Six weeks by default. If the deadline is closer, compress by merging weeks, but 
 |---|---|---|---|---|
 | 1 | 00 + 01 corpus, **sample in ~2 days** | 00 + 01 skeleton, fake ML, openapi stubs | 00 + 01 scaffold, mocks, shell | **G0:** `docker compose up` green on fake ML; `openapi.json` committed; `data/sample/` committed; UI shell runs on mocks |
 | 2 | 02 ml-service v0; start gold query drafting | 02 indexer + search | 02 search UI | **G1, walking skeleton:** a real query on real sample data through the real UI, real API and real zero-shot models |
-| 3 | 03 eval set + baselines (**A2**); full Tier-1 corpus | 03 answer (SSE), feedback, query logs | 03 answer panel, article viewer | **G2:** RAG v0 end to end; full Tier-1 corpus indexed |
+| 3 | 03 eval data, **A2** data notebook, **midterm** baseline; full Tier-1 corpus | 03 answer (SSE), feedback, query logs | 03 answer panel, article viewer | **G2:** RAG v0 end to end; full Tier-1 corpus indexed |
 | 4 | 04 comparison, fine-tuning, QLoRA (**A3**) | 04 admin, monitoring, resilience, security | 04 admin panel | **G3:** admin panel and Grafana show live data; degraded-mode drill passes |
 | 5 | 05 (**A4**) + 06 final pipeline v1.0.0 | 05 tests, CI, load test | 05 live integration, compare page, polish | **G4:** v1.0.0 models indexed; all test suites green; `/search` p95 ≤ 2 s measured |
 | 6 | 07 API evaluation, model card, ML slides | 06 deployment + 07 docs | 06 tests + production build, 07 demo | **G5:** public URL live; docs complete; deck exported; demo rehearsed with a backup video |
@@ -274,7 +276,7 @@ Six weeks by default. If the deadline is closer, compress by merging weeks, but 
 
 | Risk | Likelihood | Mitigation |
 |---|---|---|
-| adilet blocks scraping, or its HTML is inconsistent | M | ask the customer for a DB export; cache raw HTML; start with one code; parser tests on saved fixtures |
+| adilet blocks scraping, or its HTML is inconsistent | M | no customer export exists (D-012): cache raw HTML, ≤ 1 req/s, start with one code, parser tests on saved fixtures; fall back to fewer codes |
 | Gold labelling takes longer than planned | H | pooling (label only the top-20 candidates); split across three people; start in week 2 |
 | Colab/Kaggle GPU quota runs out | M | small models first; checkpoint to the HF Hub every epoch; QLoRA instead of full fine-tuning |
 | Reranker too slow on CPU, so p95 > 2 s | M | ONNX int8, fewer candidates, a smaller cross-encoder, caching; choose by measured latency |
@@ -316,5 +318,5 @@ Six weeks by default. If the deadline is closer, compress by merging weeks, but 
 - [ ] Pipeline v1.0.0 is pinned in the manifest; the model card describes inputs and outputs; checkpoints are on the HF Hub.
 - [ ] All test suites and CI are green; `openapi.json` is up to date.
 - [ ] `docs/tech/` is complete (architecture, API, ML, frontend, deployment, runbook, security, integration guide, infrastructure sizing).
-- [ ] A2, A3 and A4 notebooks run top to bottom on a fresh Colab runtime; reports and slides are in `docs/`.
+- [ ] A2, midterm, A3 and A4 notebooks run top to bottom on a fresh Colab runtime; reports and slides are in `docs/`.
 - [ ] Final deck exported to PPTX/PDF; demo script rehearsed; backup video recorded.

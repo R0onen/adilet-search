@@ -12,6 +12,18 @@ The **standing brief** (`00_general.md`) is the general prompt: role, mission, o
 
 ---
 
+## 0. Current state (2026-10-08)
+
+| Agent | State | Next prompt |
+|---|---|---|
+| Backend | BE-01 and BE-02 merged; BE-03 done on branch `be/03-answer`. G1/G2 wait on ML (sample, service v0, full corpus) | merge BE-03, then `04_admin_monitoring_resilience` |
+| ML | not started; **this is now the critical path** | kickoff → `01_corpus`; Backend's requests to ML are folded into `01` and `02` |
+| Frontend | not started; `contracts/openapi.json` is ready, so it can start at once | kickoff → `01_scaffold` |
+
+Decision D-012: the customer provides no DB export and no VM. ML scrapes adilet.zan.kz; the team rents a VPS for BE-06.
+
+Course order for ML-03: eval data → **A2** (data preparation & EDA notebook + 1–2 page report) → **midterm** (baseline + slides).
+
 ## 1. Setup
 
 **Option A (recommended): three teammates, three machines.** Each person clones the repo and opens Claude Code at the repo root.
@@ -102,7 +114,7 @@ actual: <…>. Fix it with a test that reproduces it, then update your status fi
 |---|---|---|---|---|
 | 1 | `01_corpus` | `01_skeleton` | `01_scaffold` | **G0** |
 | 2 | `02_ml_service_v0` | `02_indexer_search` | `02_search` | **G1, walking skeleton** |
-| 3 | `03_eval_baseline_A2` | `03_answer_feedback_logging` | `03_answer_article` | **G2** |
+| 3 | `03_eval_baseline_A2` (eval data → A2 data notebook → midterm baseline) | `03_answer_feedback_logging` | `03_answer_article` | **G2** |
 | 4 | `04_training_finetuning_A3` | `04_admin_monitoring_resilience` | `04_admin` | **G3** |
 | 5 | `05_embeddings_to_finetuning_A4`, then `06_final_model` | `05_testing_ci` | `05_integration_compare_polish` | **G4** |
 | 6 | `07_eval_docs_slides` | `06_deployment`, then `07_docs_presentation` | `06_testing_build`, then `07_demo_docs` | **G5** |
@@ -126,7 +138,7 @@ Agents cannot do these things. Plan time for them.
 
 | When | Task | Who |
 |---|---|---|
-| before week 1 | move the repo out of OneDrive, set up GitHub, HF org, tokens; ask the customer for a DB export and a test VM | team lead |
+| before week 1 | move the repo out of OneDrive, set up GitHub, HF org, tokens; (done: the customer provides no export or VM, D-012) | team lead |
 | weeks 1–6 | review and merge PRs; relay requests between agents; run the gate checks | each owner |
 | weeks 2–3 | edit gold queries; label relevance (~3–4 h per person); double-label 20 queries for agreement | all three |
 | weeks 3–5 | run training notebooks on Colab/Kaggle; commit `ml/experiments/<run>/` folders | ML owner |

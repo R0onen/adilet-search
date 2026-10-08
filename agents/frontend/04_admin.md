@@ -1,5 +1,7 @@
 # FE-04: Admin panel (week 4)
 
+**Dependency:** the admin endpoints return `501` until Backend's BE-04 lands. Build against MSW first, then switch to live.
+
 **Goal: G3.** An administrator can see how the search is used and how well it performs, find the queries where it fails, and check or refresh the system. All of it works on real data from BE-04.
 
 The admin UI is Russian-first; English is acceptable for technical labels.

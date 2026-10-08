@@ -2,9 +2,14 @@
 
 **Goal:** a clean, schema-valid corpus of the Tier-1 acts in RU and KK. A small sample is committed **within ~2 days**, so Backend and Frontend can work with real text.
 
+**Context (2026-10-08):**
+- Tehsnab Group provides **no DB export** (decision D-012), so the scraper is the only data source.
+- Backend has already finished BE-01 to BE-03 and is **waiting on this phase** for G1/G2. Read its requests in `docs/status/backend.md`.
+- Ship the sample first.
+
 **Ask the human first:**
-- Did Tehsnab Group provide a DB export? If yes, write an importer for it instead of the scraper, with the same output schema. If the answer is pending, start with the scraper.
 - What is the HF namespace, and is `HF_TOKEN` available in `.env`?
+- May the corpus snapshot be published as a **public** HF dataset? Assignment 2 needs a grader to run the notebook without our tokens (see ML-03 §B.3).
 
 ## Tasks
 
@@ -39,7 +44,13 @@
 
 6. **RU↔KK linking.** Link parallel articles by `doc_id` + `unit_key` into `parallel_article_id`, and report the match rate per act.
 
-7. **Validation and QA.**
+7. **Keep a pre-cleaning snapshot (needed for Assignment 2).**
+   - Before any cleaning, write the raw parse result to `data/interim/articles_parsed_raw.parquet`: footnotes still inline, raw whitespace, raw category strings, raw date strings.
+   - Have every cleaning step append to `ml/reports/cleaning_log.csv` (step, rule, rows/values affected, justification).
+   - Record the collection period (min/max `scraped_at`) in `data/MANIFEST.json`.
+   - The A2 notebook shows quality issues and before → after from these files, so the cleaning must be reproducible by code, never by hand edits.
+
+8. **Validation and QA.**
    - A pydantic or pandera schema that mirrors `contracts/data_schema.md` exactly; validation runs as part of the release script.
    - QA report `ml/reports/data_quality.md` covering:
      - counts per act and language;
@@ -51,14 +62,14 @@
      - 5 examples of tricky parses.
    - 3–4 charts in `ml/reports/figures/`. They will be reused in the A2 slides.
 
-8. **Release, in two steps.**
+9. **Release, in two steps.**
    - **Sample (fast):** Labor Code RU + KK only, written to `data/sample/` (documents, articles, chunks Parquet files) plus `sample_articles.json` (30 varied articles, including a long split one, an excluded one and one with amendment notes). Commit it, then write "sample ready" with row counts in your status file.
    - **Full Tier-1:**
      - write the files to `data/processed/` and write `data/MANIFEST.json`;
-     - upload to the HF dataset repo `<ns>/adilet-corpus`, tagged with the `corpus_version`;
+     - upload to the HF dataset repo `<ns>/adilet-corpus` (public if the human agreed), tagged with the `corpus_version`;
      - add `ml/scripts/download_data.py --corpus-version X` for everyone else.
 
-9. **Tests.**
+10. **Tests.**
    - Parser unit tests on saved HTML fixtures in `ml/tests/fixtures/` (at least one RU and one KK page) covering:
      - an excluded article;
      - a footnote;

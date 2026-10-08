@@ -21,7 +21,10 @@
 2. **API layer.**
    - `npm run gen:api` runs openapi-typescript on `../contracts/openapi.json` and writes `src/api/schema.d.ts`. If the file isn't there yet (Backend creates it in BE-01), use `types.tmp.ts` and record that in your status file.
    - `client.ts`: an openapi-fetch client with base URL `/api/v1`. It adds `X-Session-Id` (a random UUID kept in localStorage under `adilet_session_id`; it must work when storage is unavailable) and turns every error into the contract error type, with a typed `ApiError`.
-   - `sse.ts`: a typed POST-SSE helper for `/answer`. It has `onSources`, `onToken`, `onDone` and `onError` callbacks and supports `AbortController` cancellation. **It must handle events split across network chunks.**
+   - `sse.ts`: a typed POST-SSE helper for `/answer`. It has `onSources`, `onToken`, `onDone` and `onError` callbacks and supports `AbortController` cancellation. **It must handle events split across network chunks, and both `
+` and `
+` line endings** (the backend's sse-starlette sends `
+`). It must ignore `: ping` heartbeat comments (sent every 15 s). Validation (422) and search (503) errors arrive as plain JSON before any stream opens; map them to `ApiError`.
 
 3. **MSW mocks** for every endpoint in `contracts/api.md`, with realistic fixtures:
    - articles from `data/sample/sample_articles.json`, mapped into the API shapes;
@@ -46,5 +49,6 @@
 ## Acceptance criteria (G0)
 
 - [ ] `npm run dev` on mocks shows the shell, routes and language switch. `npm run build`, `npm run lint`, `npm run typecheck` and `npm test` all pass.
-- [ ] Unit tests for `sse.ts` cover: an event split across chunks, several events in one chunk, `error` after `sources`, and abort.
+- [ ] Unit tests for `sse.ts` cover: an event split across chunks, several events in one chunk, `
+` line endings, a `: ping` comment, `error` after `sources`, a JSON 422/503 instead of a stream, and abort.
 - [ ] The status file lists the commands, env vars and any open questions about the contract.

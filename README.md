@@ -26,9 +26,7 @@ Three AI coding agents develop this repository: **ML**, **Backend** and **Fronte
    - **Hugging Face:** a shared org/namespace for private models and datasets, with one write token per person.
    - **Google Colab and/or Kaggle:** free GPUs for training.
    - **GitHub.**
-5. **Ask Tehsnab Group two questions.** The ML agent's first phase depends on the first answer.
-   - Can they give us an export of their legal-acts database?
-   - Can they give us a test VM for deployment?
+5. ~~Ask Tehsnab Group for a DB export and a test VM.~~ Settled: they provide neither (decision D-012). We scrape adilet.zan.kz and rent our own VPS.
 6. Fill in the owner names and gate dates in `docs/PROJECT_PLAN.md` §10.
 7. Follow [agents/README.md](agents/README.md) to start the agents.
 

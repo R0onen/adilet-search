@@ -9,8 +9,8 @@
    - **Stream handling** via `sse.ts`:
      - `sources`: show a compact source list right away (ref number, act + article, link);
      - `token`: append text progressively. The panel keeps a stable height so the page doesn't jump;
-     - `done`: **replace** the text with `done.text` (it is authoritative) and show the timing in small text;
-     - `error`: show "the answer is temporarily unavailable"; the search results stay usable.
+     - `done`: **replace** the text with `done.text` (it is authoritative) and show the timing in small text. `finish_reason: "no_results"` means search found nothing and no LLM ran; show the not-found state, not an error;
+     - `error` (`generation_unavailable`, sent after `sources`): show "the answer is temporarily unavailable" and keep the sources and search results usable. Drill it with `FAKE_ML_FAIL=generate docker compose --profile dev up -d fake-ml`;
    - **Abort** on a new query, on navigation and on unmount.
    - **Progress copy:** «Ищем нормы…» until `sources`, then «Формируем ответ…» until the first token.
    - **Rendering:** a markdown subset (paragraphs, lists, bold), sanitised. Each `[n]` becomes a citation chip:

@@ -12,7 +12,7 @@ Read now, in this order:
 ## Your mission
 
 1. **Data.** Build the corpus (articles of the Tier-1 acts, RU + KK) and the evaluation data, exactly to the schema in `contracts/data_schema.md`.
-2. **Research.** Run the experiments that satisfy course assignments **A2, A3 and A4**, on one frozen split, with honest metrics.
+2. **Research.** Run the experiments that satisfy course assignments **A2 (data preparation & EDA), the midterm (baseline), A3 and A4**, on one frozen split, with honest metrics.
 3. **Inference.** Deliver the inference-ready pipeline (embedder, sparse encoder, reranker, generator + prompt) behind the internal `ml-service` API, versioned by `ml/models/model_manifest.json`.
 4. **Evidence.** Provide what the final defence needs: unified results, end-to-end evaluation through the deployed API, the model card, the ML slides.
 
@@ -21,7 +21,7 @@ Read now, in this order:
 - `ml/` and `data/`
 - `contracts/data_schema.md`, `contracts/ml_service.md` and `contracts/fixtures/`
 - the `ml-service` and `llm` images (Dockerfiles in `ml/serving/`)
-- the ML files in docs: `docs/tech/ml.md`, `docs/report/A2_report.md`, `A3_report.md`, `A4_report.md`, `final_eval.md`, `docs/presentation/A2_slides.md`, `A3_slides.md`, `A4_slides.md`, `sections/ml.md`, `qa_ml.md`
+- the ML files in docs: `docs/tech/ml.md`, `docs/report/A2_report.md`, `midterm_report.md`, `A3_report.md`, `A4_report.md`, `final_eval.md`, `docs/presentation/midterm_slides.md`, `A3_slides.md`, `A4_slides.md`, `sections/ml.md`, `qa_ml.md`
 
 You do **not** edit `backend/`, `frontend/`, `infra/` or `docker-compose*.yml`. If you need something there, put a request (for example, a compose snippet) in your status file.
 
@@ -84,7 +84,7 @@ You do **not** edit `backend/`, `frontend/`, `infra/` or `docker-compose*.yml`. 
 |---|---|
 | 01 corpus and sample release | `01_corpus.md` |
 | 02 ml-service v0 | `02_ml_service_v0.md` |
-| 03 eval set + baselines (A2) | `03_eval_baseline_A2.md` |
+| 03 eval data, A2 data notebook + report, midterm baseline | `03_eval_baseline_A2.md` |
 | 04 comparison, tuning, fine-tuning, QLoRA (A3) | `04_training_finetuning_A3.md` |
 | 05 embeddings → ML → transformer → fine-tuning (A4) | `05_embeddings_to_finetuning_A4.md` |
 | 06 final pipeline v1.0.0 | `06_final_model.md` |
