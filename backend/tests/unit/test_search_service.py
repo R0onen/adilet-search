@@ -123,10 +123,16 @@ class FakeManifest:
 
 
 class FakeIndex:
-    def __init__(self, active: ActiveIndex) -> None:
+    def __init__(self, active: ActiveIndex, after_refresh: ActiveIndex | None = None) -> None:
         self.value = active
+        self.after_refresh = after_refresh
+        self.refreshes = 0
 
-    async def get(self) -> ActiveIndex:
+    async def get(self, refresh: bool = False) -> ActiveIndex:
+        if refresh:
+            self.refreshes += 1
+            if self.after_refresh is not None:
+                self.value = self.after_refresh
         return self.value
 
 
@@ -313,3 +319,23 @@ async def test_log_values_shape() -> None:
     )
     assert values["search_ms"] == outcome.response.timing_ms["total"]
     assert values["filters"]["in_force_only"] is True
+
+
+async def test_stale_no_index_state_is_refreshed_once() -> None:
+    service, _, _ = make_service()
+    index = FakeIndex(
+        ActiveIndex(None, None, None),
+        after_refresh=ActiveIndex("legal_chunks__0.0.0-fake", "fake", "0.0.0-fake"),
+    )
+    service._index = index
+    outcome = await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert outcome.response.results
+    assert index.refreshes == 1
+
+
+async def test_compatible_index_is_not_refreshed() -> None:
+    service, _, _ = make_service()
+    index = FakeIndex(ActiveIndex("legal_chunks__0.0.0-fake", "fake", "0.0.0-fake"))
+    service._index = index
+    await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert index.refreshes == 0

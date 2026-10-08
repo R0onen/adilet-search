@@ -379,3 +379,46 @@ def test_document_detail(client: TestClient) -> None:
     ]
     missing = client.get("/api/v1/documents/T9999999999", params={"lang": "ru"})
     assert missing.status_code == 404
+
+
+def test_index_built_by_another_process_is_used_at_once(corpus_dir: Path) -> None:
+    """The CI sequence: search (no index) -> CLI indexes -> search, with the default cache TTL."""
+    alias = "test_cache_chunks"
+    cache_settings = settings().model_copy(update={"qdrant_alias": alias, "index_state_ttl_s": 30})
+
+    async def with_resources(fn: Any) -> None:
+        resources = Resources.create(cache_settings)
+        try:
+            await fn(resources)
+        finally:
+            await resources.aclose()
+
+    async def reset(resources: Resources) -> None:
+        client = resources.qdrant.client
+        if any(a.alias_name == alias for a in (await client.get_aliases()).aliases):
+            from qdrant_client import models as qm
+
+            await client.update_collection_aliases(
+                change_aliases_operations=[
+                    qm.DeleteAliasOperation(delete_alias=qm.DeleteAlias(alias_name=alias))
+                ]
+            )
+        for collection in (await client.get_collections()).collections:
+            if collection.name.startswith(f"{alias}__"):
+                await client.delete_collection(collection.name)
+
+    async def index(resources: Resources) -> None:
+        manifest = await resources.manifest.get()
+        assert manifest is not None
+        indexer = Indexer(resources.sessionmaker, resources.qdrant, resources.ml, manifest)
+        await indexer.run(IndexOptions(data_dir=corpus_dir, prune=False))
+
+    asyncio.run(with_resources(reset))
+    with TestClient(create_app(cache_settings)) as api:
+        before = api.post("/api/v1/search", json={"query": QUERY_RU})
+        assert before.status_code == 503
+        assert "No search index" in before.json()["error"]["message"]
+        asyncio.run(with_resources(index))
+        after = api.post("/api/v1/search", json={"query": QUERY_RU})
+        assert after.status_code == 200, after.text
+        assert after.json()["results"]

@@ -73,7 +73,7 @@ class ManifestSource(Protocol):
 
 
 class IndexSource(Protocol):
-    async def get(self) -> ActiveIndex: ...
+    async def get(self, refresh: bool = False) -> ActiveIndex: ...
 
 
 @dataclass(frozen=True)
@@ -204,6 +204,9 @@ class SearchService:
             raise _unavailable("Search models are not available (model manifest not loaded)")
         try:
             active = await self._timed(self._index.get(), self._budgets.retrieve_s)
+            if not active.compatible_with(manifest.index_compat_id):
+                # The cache may predate a reindex done by another process: read once more.
+                active = await self._timed(self._index.get(refresh=True), self._budgets.retrieve_s)
         except Exception as exc:
             log.warning("index_info_failed", error=type(exc).__name__)
             raise _unavailable("The search index is unavailable") from exc
