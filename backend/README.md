@@ -27,6 +27,34 @@ Stop with `docker compose --profile dev down` (add `-v` to delete the database a
 
 **Port 5432 already taken?** If a native PostgreSQL runs on your machine, set `POSTGRES_PORT=55432` in `.env`. Only the host-side port changes; containers still use 5432 internally.
 
+## Run the whole project (real ml-service + ML's data + UI)
+
+Use the real ml-service (profile `ml`, built from `ml/`) instead of the fake one, and point the backend at it. In bash:
+
+```bash
+docker compose --profile dev stop fake-ml
+```
+
+```bash
+ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
+```
+
+In PowerShell, set the variable first (`$env:ML_SERVICE_URL = "http://ml-service:8001"`) and then run `docker compose --profile ml up -d --build`. Index ML's sample with ML's models:
+
+```bash
+docker compose exec backend python -m indexer --data-dir /data/sample
+```
+
+(In Git Bash, prefix that command with `MSYS_NO_PATHCONV=1`, otherwise `/data/sample` is rewritten into a Windows path.) Until the reindex, search answers 503 "reindex required", because the old index was built with other models.
+
+The UI comes from `frontend/` in live mode (`VITE_API_MODE=live`); Vite proxies `/api` to the backend:
+
+```bash
+cd frontend && npm ci && VITE_API_MODE=live npm run dev
+```
+
+Then open `http://127.0.0.1:5173`. The real-ML checks are `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` (from `backend/`). CI runs the same chain in the `ml-stack` job.
+
 ## Index data and search
 
 Search needs an index. Until ML publishes `data/sample/`, index the **synthetic** test corpus (invented texts, clearly marked; not legislation):
