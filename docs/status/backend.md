@@ -1,8 +1,10 @@
 # Status: Backend agent
 
-_Last updated: 2026-10-08 · BE-03 answer (SSE), feedback, query logging (branch `be/03-answer`)_
+_Last updated: 2026-10-08 · BE-03 merged; BE-01..03 audit fixes (branch `be/03-hardening`)_
 
 ## Current phase
+BE-01 to BE-03 merged (PRs #1–#3). After the plan update of 2026-10-08, every BE-01..03 task and acceptance line was re-checked against the briefs and contracts. Fixes are on `be/03-hardening` (see "Audit fixes"). Next: BE-04.
+
 BE-03: streamed RAG answer, feedback, full query logging. Code complete and tested on the fake ML and the synthetic corpus. The G1/G2 items that need ML's real sample, full Tier-1 corpus and service v0 are still open (checklists below).
 
 ## Done
@@ -19,6 +21,11 @@ BE-03: streamed RAG answer, feedback, full query logging. Code complete and test
 - **Index-cache fix** (in BE-02's PR): an index built by the CLI in another process is used at once.
 - CI compose smoke test now also streams an answer, checks the `done` event, posts feedback and checks the stored answer.
 - Decision D-016; CHANGELOG entry 2026-10-08 (BE-03).
+
+## Audit fixes (be/03-hardening)
+- **Opt-in real-ML tests (BE-02 task 6, was missing):** `tests/ml/test_real_ml_service.py`, run with `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml`. It checks the service against `ml_service.md` (health, manifest, embed dims/normalisation/sparse, rerank order, generate events), then indexes `data/sample/` with the real models and checks that «Основания расторжения трудового договора» (and the wage-delay TOR query) return Labor Code articles in the top 5. Verified against the fake ML (5 passed; the sample part skips until `data/sample/` exists).
+- **Stage budgets enforced end to end:** embed and rerank were bounded only by the HTTP read timeout, so a trickling service could overrun them. Each stage is now also wrapped in `wait_for(budget)`: a slow embed → 503, a slow rerank → fused order + `degraded: ["rerank"]`, a slow retrieve → 503 (tests for all three).
+- **Contract limits guarded:** rerank candidates are capped at the `/rerank` limit of 100 even if the manifest asks for more (before, the request failed with a 500). `ANSWER_MAX_TOKENS` must be 1..1024 (the `/generate` limit), timeouts must be > 0, and the indexer's `--batch-size` must be 1..128 (the `/embed` limit). Bad values fail at startup / argument parsing.
 
 ## Tests
 229 unit (citations, answer stream with fakes: order/payloads/citations/zero results/error event/connection/incomplete/timeout/disconnect/refusal, SSE parser, UA family, heartbeat format) and 33 integration (real postgres + qdrant + fake-ml): answer streaming and persistence, KK answer, zero results, **`FAKE_ML_FAIL=generate` via a second fake-ml process → `error` after `sources`**, feedback upsert/404, plus all BE-01/02 suites.
@@ -55,6 +62,7 @@ BE-03: streamed RAG answer, feedback, full query logging. Code complete and test
 | ML | In `docs/status/ml.md`, paste the compose snippet for `ml-service` (port 8001) and `llm` (port 8002): image/build, env, volumes, healthcheck, resources. | 2026-10-08 | open |
 | ML | Publish `data/sample/`, `ml/models/model_manifest.json` and `contracts/fixtures/fusion_cases.json` (proposed format below). | 2026-10-08 | open |
 | ML | **Refusal phrases:** tell us the exact phrase(s) your prompt template makes the model use when the sources don't answer. The backend currently detects (case- and whitespace-insensitive): RU «в предоставленных источниках нет ответа», «источники не содержат ответа», «не могу ответить на основании предоставленных источников»; KK «берілген дереккөздерде жауап жоқ». The list is in `backend/app/services/citations.py`. Please use one of these or send yours. | 2026-10-08 | open |
+| ML | When ml-service v0 + `data/sample/` are ready, run (or ask Backend to run) `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` in `backend/`. It checks your service against `ml_service.md` and the Labor Code TOR query end to end. | 2026-10-08 | open |
 | ML | `/generate` is called with `stream: true`, `max_tokens` 512, `temperature` 0.1, ≤ 8 sources, each text ≤ `retrieval.max_chars_per_context` (cut at a paragraph), and title `«{short_title}. Статья {N}. {title}»` / `«{short_title}. {N}-бап. {title}»`. The backend waits up to `ANSWER_TIMEOUT_S` (90 s) for each chunk and in total; tell us if CPU TTFT needs more. | 2026-10-08 | FYI |
 | ML | Confirm two `data_schema.md` §8 details (CHANGELOG 2026-10-08 BE-02, D-015): timestamped collection names for same-version rebuilds; article `corpus_version` taken from the document. | 2026-10-08 | open |
 | Frontend | Regenerate types. `/answer` and `/feedback` are live: the event schemas are `SourcesEvent`/`TokenEvent`/`DoneEvent`/`ErrorEvent`; replace the streamed text with `done.text`; heartbeat `: ping` every 15 s; **SSE lines end with `\r\n`** (parse `\r\n` and `\n`); a zero-result answer has `finish_reason: "no_results"`; validation/search errors before the stream are plain JSON. Confirm that `/admin/stats` covers the dashboard design. | 2026-10-08 | open |

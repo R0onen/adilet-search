@@ -58,3 +58,28 @@ def test_article_id_format() -> None:
     for bad in ("K1500000414:kz:a113", "K1500000414:ru:A113", "a113"):
         with pytest.raises(ValidationError):
             FeedbackRequest(query_id=query_id, target="result", rating=1, article_id=bad)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("name", "value"),
+    [
+        ("answer_max_tokens", 1025),  # ml_service.md limit
+        ("answer_max_tokens", 0),
+        ("search_rerank_timeout_s", 0),
+        ("answer_timeout_s", -1),
+        ("sse_ping_s", 0),
+    ],
+)
+def test_out_of_contract_settings_fail_at_startup(name: str, value: float) -> None:
+    with pytest.raises(ValidationError, match=name):
+        make_settings(**{name: value})
+
+
+@pytest.mark.parametrize("size", ["0", "129", "abc"])
+def test_indexer_batch_size_bounds(size: str, capsys: pytest.CaptureFixture[str]) -> None:
+    from indexer.__main__ import parse_args
+
+    with pytest.raises(SystemExit) as info:
+        parse_args(["--data-dir", "x", "--batch-size", size])
+    assert info.value.code == 2
+    assert parse_args(["--data-dir", "x", "--batch-size", "128"]).batch_size == 128

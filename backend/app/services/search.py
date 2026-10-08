@@ -36,6 +36,8 @@ log = structlog.get_logger(__name__)
 T = TypeVar("T")
 # Extra candidates fetched from Postgres in case some ids are missing there (e.g. mid-reindex).
 ASSEMBLE_SLACK = 10
+# ml_service.md §1: /rerank accepts at most 100 candidates, whatever the manifest says.
+MAX_RERANK_CANDIDATES = 100
 
 
 class Embedder(Protocol):
@@ -230,15 +232,19 @@ class SearchService:
         # 1. embed
         t = time.perf_counter()
         try:
-            embedded = await self._ml.embed(
-                [request.query],
-                "query",
-                dense=need_dense,
-                sparse=need_sparse,
-                timeout_s=self._budgets.embed_s,
+            # The HTTP timeout bounds each read; wait_for bounds the stage as a whole.
+            embedded = await self._timed(
+                self._ml.embed(
+                    [request.query],
+                    "query",
+                    dense=need_dense,
+                    sparse=need_sparse,
+                    timeout_s=self._budgets.embed_s,
+                ),
+                self._budgets.embed_s,
             )
-        except MlUnavailable as exc:
-            log.warning("embed_failed", error=str(exc))
+        except (MlUnavailable, TimeoutError) as exc:
+            log.warning("embed_failed", error=str(exc) or type(exc).__name__)
             raise _unavailable("The search models are unavailable") from exc
         timing["embed"] = _ms(time.perf_counter() - t)
 
@@ -301,23 +307,27 @@ class SearchService:
         degraded: list[Literal["rerank", "semantic", "generation"]] = []
         if mode != "keyword" and candidates:
             t = time.perf_counter()
-            head = candidates[: params.rerank_top_n]
+            top_n = min(params.rerank_top_n, MAX_RERANK_CANDIDATES)
+            head = candidates[:top_n]
             try:
-                reranked = await self._ml.rerank(
-                    request.query,
-                    [
-                        RerankCandidate(
-                            id=c.article_id,
-                            text=str(payloads[c.best_chunk_id].get("text_for_embedding", "")),
-                        )
-                        for c in head
-                    ],
-                    timeout_s=self._budgets.rerank_s,
+                reranked = await self._timed(
+                    self._ml.rerank(
+                        request.query,
+                        [
+                            RerankCandidate(
+                                id=c.article_id,
+                                text=str(payloads[c.best_chunk_id].get("text_for_embedding", "")),
+                            )
+                            for c in head
+                        ],
+                        timeout_s=self._budgets.rerank_s,
+                    ),
+                    self._budgets.rerank_s,
                 )
                 scores = {r.id: r.score for r in reranked.results}
-                candidates = apply_rerank(candidates, scores, params.rerank_top_n)
-            except MlUnavailable as exc:
-                log.warning("rerank_degraded", error=str(exc))
+                candidates = apply_rerank(candidates, scores, top_n)
+            except (MlUnavailable, TimeoutError) as exc:
+                log.warning("rerank_degraded", error=str(exc) or type(exc).__name__)
                 degraded.append("rerank")
             timing["rerank"] = _ms(time.perf_counter() - t)
 

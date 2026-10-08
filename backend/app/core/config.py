@@ -46,19 +46,20 @@ class Settings(BaseSettings):
     manifest_retry_s: float = 30.0
 
     # --- search (per-stage time budgets; /search p95 target is 2 s) ---
-    search_embed_timeout_s: float = 2.0
-    search_retrieve_timeout_s: float = 2.0
-    search_rerank_timeout_s: float = 1.5
-    index_state_ttl_s: float = 30.0
+    search_embed_timeout_s: float = Field(default=2.0, gt=0)
+    search_retrieve_timeout_s: float = Field(default=2.0, gt=0)
+    search_rerank_timeout_s: float = Field(default=1.5, gt=0)
+    index_state_ttl_s: float = Field(default=30.0, ge=0)
 
     # --- answer (SSE) ---
-    answer_timeout_s: float = 90.0
-    answer_max_tokens: int = 512
-    answer_temperature: float = 0.1
-    sse_ping_s: float = 15.0
+    answer_timeout_s: float = Field(default=90.0, gt=0)
+    # ml_service.md /generate: max_tokens at most 1024.
+    answer_max_tokens: int = Field(default=512, ge=1, le=1024)
+    answer_temperature: float = Field(default=0.1, ge=0, le=2)
+    sse_ping_s: float = Field(default=15.0, gt=0)
 
     # --- health ---
-    health_timeout_s: float = 2.0
+    health_timeout_s: float = Field(default=2.0, gt=0)
 
     # --- privacy ---
     session_salt: str = DEV_SESSION_SALT

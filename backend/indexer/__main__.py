@@ -27,6 +27,16 @@ from indexer.pipeline import Indexer, IndexingError, IndexOptions, JobConflict
 log = structlog.get_logger("indexer")
 
 
+MAX_EMBED_BATCH = 128  # ml_service.md /embed: up to 128 texts per call
+
+
+def _batch_size(value: str) -> int:
+    size = int(value)
+    if not 1 <= size <= MAX_EMBED_BATCH:
+        raise argparse.ArgumentTypeError(f"must be 1..{MAX_EMBED_BATCH} (the /embed limit)")
+    return size
+
+
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python -m indexer", description=__doc__.split("\n")[1])
     parser.add_argument("--data-dir", type=Path, required=True)
@@ -34,7 +44,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--manifest", type=Path, help="model_manifest.json (default: MANIFEST_SOURCE)"
     )
     parser.add_argument("--embeddings", type=Path, help="precomputed embeddings Parquet")
-    parser.add_argument("--batch-size", type=int, default=64)
+    parser.add_argument("--batch-size", type=_batch_size, default=64, help="1..128, default 64")
     parser.add_argument("--no-switch", action="store_true", help="build, but keep the alias")
     parser.add_argument("--no-prune", action="store_true", help="keep DB rows not in the data")
     return parser.parse_args(argv)
