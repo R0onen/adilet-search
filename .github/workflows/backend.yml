@@ -1,0 +1,117 @@
+name: backend
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "backend/**"
+      - "contracts/**"
+      - "docker-compose.yml"
+      - ".env.example"
+      - ".github/workflows/backend.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_VERSION: "0.11.13"
+
+jobs:
+  lint-test:
+    name: lint, types, unit + contract tests, openapi drift
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy app dev
+      - run: uv run pytest --cov=app --cov-report=term-missing:skip-covered
+      - name: openapi drift check
+        run: |
+          uv run python -m app.export_openapi
+          git diff --exit-code ../contracts/openapi.json
+
+  integration:
+    name: integration tests (postgres, qdrant, fake-ml)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16.15-bookworm
+        env:
+          POSTGRES_USER: adilet
+          POSTGRES_PASSWORD: adilet
+          POSTGRES_DB: adilet
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U adilet"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+      qdrant:
+        image: qdrant/qdrant:v1.19.2
+        ports: ["6333:6333"]
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://adilet:adilet@localhost:5432/adilet_test
+      TEST_QDRANT_URL: http://localhost:6333
+      TEST_ML_SERVICE_URL: http://localhost:8001
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - run: uv sync --locked
+      - name: start fake ML service
+        run: |
+          nohup uv run uvicorn dev.fake_ml.app:app --port 8001 > fake-ml.log 2>&1 &
+          for i in $(seq 1 30); do
+            curl -fsS localhost:8001/version > /dev/null && curl -fsS localhost:6333/readyz && exit 0
+            sleep 2
+          done
+          cat fake-ml.log; exit 1
+      - run: uv run pytest -m integration -v
+
+  compose-smoke:
+    name: docker compose dev stack smoke test
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+      - run: cp .env.example .env
+      - run: docker compose --profile dev up -d --build
+        env:
+          GIT_SHA: ${{ github.sha }}
+      - name: wait for a healthy backend
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS localhost:8000/api/v1/health; then echo; exit 0; fi
+            sleep 3
+          done
+          docker compose --profile dev ps
+          docker compose --profile dev logs --no-color
+          exit 1
+      - name: check the stack
+        run: |
+          set -euo pipefail
+          health=$(curl -fsS localhost:8000/api/v1/health)
+          echo "$health" | jq -e '.status == "ok" and .pipeline_version == "0.0.0-fake"'
+          curl -fsS localhost:8000/api/v1/version | jq -e '.git_sha == "${{ github.sha }}"'
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/api/v1/search \
+            -H 'Content-Type: application/json' -d '{"query": "зарплата"}')
+          test "$code" = "501"
+          docker compose --profile dev ps
+      - if: always()
+        run: docker compose --profile dev down -v
