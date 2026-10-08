@@ -1,0 +1,49 @@
+# --- data & models: shared via Hugging Face Hub, not git ---
+data/*
+!data/README.md
+!data/MANIFEST.json
+!data/sample/
+!data/eval/
+models/
+*.safetensors
+*.bin
+*.gguf
+*.pt
+*.pth
+*.onnx
+*.ckpt
+ml/experiments/**/checkpoints/
+ml/experiments/**/*.parquet
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.ipynb_checkpoints/
+
+# --- node ---
+node_modules/
+frontend/dist/
+frontend/coverage/
+playwright-report/
+test-results/
+
+# --- env & secrets ---
+.env
+.env.*
+!.env.example
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/*
+!.vscode/extensions.json
