@@ -191,8 +191,10 @@ Rules:
 - **Citations.** A citation marker is `[n]`, where `n` is a source `ref`. The model may write `[1, 3]` or `[1][3]`; the backend normalises both to `[1][3]` and removes markers that do not match a source.
 - **Final text.** `done.text` is authoritative. The client should replace the streamed text with it.
 - **`grounded`** is `false` when the model states that the sources do not answer the question, or when no valid citation remains.
-- **Zero results.** If search finds nothing, the stream is `sources` with an empty list, then `done` with `grounded: false` and a fixed "not found" message in the query's language. The LLM is not called.
+- **Zero results.** If search finds nothing, the stream is `sources` with an empty list, then `done` with `grounded: false`, `finish_reason: "no_results"` and a fixed "not found" message in the query's language. The LLM is not called.
 - **Heartbeat.** The server sends a comment line `: ping` every 15 s.
+- **Line endings.** Event lines may end with `\r\n` or `\n` (both are valid SSE); parse both.
+- **Errors before the stream.** Validation errors (422) and search failures (503 `upstream_unavailable`, e.g. no index) are normal JSON error responses; no stream is opened.
 - **Disconnect.** If the client disconnects, generation is cancelled.
 - **Schemas.** `openapi.json` publishes the four payloads as `SourcesEvent`, `TokenEvent`, `DoneEvent` and `ErrorEvent`, linked from the `/answer` 200 response under `x-sse-events`.
 
@@ -227,7 +229,8 @@ Returns `404 not_found` for an unknown id. The `text` preserves line breaks and 
 ```json
 {"query_id": "5f0c2a9e-3b1d-4c8e-9a47-2d6f8e1b0c3a", "target": "result", "article_id": "K1500000414:ru:a113", "rating": 1, "comment": null}
 ```
-- `target` is `result` (then `article_id` is required) or `answer`.
+- `target` is `result` (then `article_id` is required) or `answer` (then `article_id` is ignored).
+- Unknown `query_id` → `404 not_found`.
 - `rating` is `1` or `-1`.
 - `comment` is at most 1000 chars.
 - Returns `204`. A repeat for the same (session, query, target, article) overwrites the earlier feedback.
