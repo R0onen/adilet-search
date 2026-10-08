@@ -1,5 +1,6 @@
 """SearchService orchestration with fakes: modes, rerank degradation, failures, assembly, logs."""
 
+import asyncio
 from typing import Any, Literal
 
 import pytest
@@ -54,6 +55,8 @@ class FakeMl:
         self.rerank_calls: list[list[RerankCandidate]] = []
         self.fail_embed = False
         self.fail_rerank = False
+        self.embed_delay_s = 0.0
+        self.rerank_delay_s = 0.0
         self.rerank_scores: dict[str, float] = {}
 
     async def embed(
@@ -66,6 +69,8 @@ class FakeMl:
         timeout_s: float | None = None,
     ) -> EmbedResponse:
         self.embed_calls.append({"texts": texts, "kind": kind, "dense": dense, "sparse": sparse})
+        # A server that ignores the HTTP timeout (e.g. trickles bytes): only wait_for stops it.
+        await asyncio.sleep(self.embed_delay_s)
         if self.fail_embed:
             raise MlUnavailable("/embed", "connection")
         return EmbedResponse(
@@ -80,6 +85,7 @@ class FakeMl:
         self, query: str, candidates: list[RerankCandidate], *, timeout_s: float | None = None
     ) -> RerankResponse:
         self.rerank_calls.append(candidates)
+        await asyncio.sleep(self.rerank_delay_s)
         if self.fail_rerank:
             raise MlUnavailable("/rerank", "timeout")
         results = [
@@ -97,10 +103,12 @@ class FakeStore:
         self.sparse_calls = 0
         self.filters: list[Any] = []
         self.fail = False
+        self.delay_s = 0.0
 
     async def search_dense(self, vector: list[float], query_filter: Any, limit: int) -> list[Hit]:
         self.dense_calls += 1
         self.filters.append(query_filter)
+        await asyncio.sleep(self.delay_s)
         if self.fail:
             raise ConnectionError("qdrant down")
         return self.dense[:limit]
@@ -146,6 +154,7 @@ def make_service(
     manifest: Manifest | None = None,
     active: ActiveIndex | None = None,
     lookup_fn: Any = lookup,
+    budgets: SearchBudgets | None = None,
 ) -> tuple[SearchService, FakeMl, FakeStore]:
     ml = ml or FakeMl()
     store = store or FakeStore(
@@ -158,7 +167,7 @@ def make_service(
         lookup=lookup_fn,
         manifest=FakeManifest(manifest or Manifest.model_validate(fake_manifest())),
         index=FakeIndex(active or ActiveIndex("legal_chunks__0.0.0-fake", "fake", "0.0.0-fake")),
-        budgets=SearchBudgets(),
+        budgets=budgets or SearchBudgets(),
     )
     return service, ml, store
 
@@ -339,3 +348,54 @@ async def test_compatible_index_is_not_refreshed() -> None:
     service._index = index
     await service.search(SearchRequest(query=QUERY), SearchContext())
     assert index.refreshes == 0
+
+
+# --- stage budgets are enforced end to end ------------------------------------------------
+
+FAST = SearchBudgets(embed_s=0.05, retrieve_s=0.05, rerank_s=0.05)
+
+
+async def test_slow_embed_is_503() -> None:
+    ml = FakeMl()
+    ml.embed_delay_s = 0.5
+    service, _, _ = make_service(ml=ml, budgets=FAST)
+    with pytest.raises(SearchError) as info:
+        await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert info.value.status_code == 503
+
+
+async def test_slow_retrieve_is_503() -> None:
+    store = FakeStore(hits("T0000000001:ru:a113:c0"), [])
+    store.delay_s = 0.5
+    service, _, _ = make_service(store=store, budgets=FAST)
+    with pytest.raises(SearchError, match="vector index is unavailable"):
+        await service.search(SearchRequest(query=QUERY), SearchContext())
+
+
+async def test_slow_rerank_degrades_to_fused_order() -> None:
+    ml = FakeMl()
+    ml.rerank_delay_s = 0.5
+    ml.rerank_scores = {"T0000000001:ru:a114": 9.0}
+    service, _, _ = make_service(ml=ml, budgets=FAST)
+    outcome = await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert outcome.response.degraded == ["rerank"]
+    assert {r.score_type for r in outcome.response.results} == {"fusion"}
+
+
+async def test_rerank_never_gets_more_than_100_candidates() -> None:
+    """A manifest asking for more than the /rerank contract limit is capped, not a 500."""
+    manifest_data = fake_manifest()
+    manifest_data["retrieval"]["rerank_top_n"] = 150
+    manifest_data["retrieval"]["dense_limit"] = 200
+    # 150 distinct articles (the synthetic corpus is too small for this case).
+    synthetic = [
+        Hit(
+            chunk_id=f"T0000000009:ru:a{i}:c0", payload={"text_for_embedding": f"t{i}", "text": "t"}
+        )
+        for i in range(150)
+    ]
+    service, ml, _ = make_service(
+        store=FakeStore(synthetic, []), manifest=Manifest.model_validate(manifest_data)
+    )
+    await service.search(SearchRequest(query=QUERY), SearchContext())
+    assert len(ml.rerank_calls[0]) == 100
