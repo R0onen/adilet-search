@@ -4,14 +4,22 @@ One pooled `httpx.AsyncClient` per process. Every call has a timeout. Failures a
 `MlUnavailable` so callers can degrade instead of failing.
 """
 
-from typing import Any
+from typing import Any, Literal
 
 import httpx
 import structlog
 from pydantic import ValidationError
 
 from app.core.context import current_request_id
-from app.schemas.ml import Manifest, MlHealth
+from app.schemas.ml import (
+    EmbedRequest,
+    EmbedResponse,
+    Manifest,
+    MlHealth,
+    RerankCandidate,
+    RerankRequest,
+    RerankResponse,
+)
 
 log = structlog.get_logger(__name__)
 
@@ -68,6 +76,60 @@ class MlClient:
             return response.json()
         except ValueError as exc:
             raise MlUnavailable(endpoint, "invalid_json") from exc
+
+    async def _post_json(self, endpoint: str, body: dict[str, Any], timeout_s: float | None) -> Any:
+        try:
+            response = await self._client.post(
+                endpoint,
+                json=body,
+                timeout=timeout_s if timeout_s is not None else httpx.USE_CLIENT_DEFAULT,
+            )
+        except httpx.TimeoutException as exc:
+            raise MlUnavailable(endpoint, "timeout") from exc
+        except httpx.HTTPError as exc:
+            raise MlUnavailable(endpoint, "connection", type(exc).__name__) from exc
+        if response.status_code >= 400:
+            raise MlUnavailable(endpoint, "status", str(response.status_code))
+        try:
+            return response.json()
+        except ValueError as exc:
+            raise MlUnavailable(endpoint, "invalid_json") from exc
+
+    async def embed(
+        self,
+        texts: list[str],
+        kind: Literal["query", "passage"],
+        *,
+        dense: bool = True,
+        sparse: bool = True,
+        timeout_s: float | None = None,
+    ) -> EmbedResponse:
+        request = EmbedRequest(texts=texts, kind=kind, return_dense=dense, return_sparse=sparse)
+        data = await self._post_json("/embed", request.model_dump(), timeout_s)
+        try:
+            response = EmbedResponse.model_validate(data)
+        except ValidationError as exc:
+            raise MlUnavailable("/embed", "invalid_response") from exc
+        expected = len(texts)
+        if (dense and (response.dense is None or len(response.dense) != expected)) or (
+            sparse and (response.sparse is None or len(response.sparse) != expected)
+        ):
+            raise MlUnavailable("/embed", "invalid_response", "vector count mismatch")
+        return response
+
+    async def rerank(
+        self,
+        query: str,
+        candidates: list[RerankCandidate],
+        *,
+        timeout_s: float | None = None,
+    ) -> RerankResponse:
+        request = RerankRequest(query=query, candidates=candidates, top_n=None)
+        data = await self._post_json("/rerank", request.model_dump(), timeout_s)
+        try:
+            return RerankResponse.model_validate(data)
+        except ValidationError as exc:
+            raise MlUnavailable("/rerank", "invalid_response") from exc
 
     async def health(self, timeout_s: float | None = None) -> MlHealth:
         data = await self._get_json("/health", timeout_s)
