@@ -1,0 +1,8 @@
+node_modules
+dist
+public/mockServiceWorker.js
+src/api/schema.d.ts
+package-lock.json
+test-results
+playwright-report
+*.tsbuildinfo
