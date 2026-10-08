@@ -4,6 +4,7 @@ from pathlib import Path
 import httpx
 import pytest
 
+from app.schemas.ml import RerankCandidate
 from app.services.manifest import ManifestProvider
 from app.services.ml_client import MlClient, MlUnavailable
 from dev.fake_ml.app import fake_manifest
@@ -107,3 +108,69 @@ async def test_missing_manifest_file_returns_none(tmp_path: Path) -> None:
     unused = client_for(httpx.MockTransport(lambda _: httpx.Response(500)))
     provider = ManifestProvider("file", tmp_path / "missing.json", unused, retry_s=0)
     assert await provider.get() is None
+
+
+def _embed_body(n: int, dense: bool = True, sparse: bool = True) -> dict[str, object]:
+    return {
+        "dense": [[1.0, 0.0]] * n if dense else None,
+        "sparse": [{"indices": [1], "values": [1.0]}] * n if sparse else None,
+        "dim": 2,
+        "truncated": [False] * n,
+        "model_version": "0.1.0",
+    }
+
+
+async def test_embed_sends_flags_and_parses() -> None:
+    sent: list[dict[str, object]] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(json.loads(request.content))
+        return httpx.Response(200, json=_embed_body(2, sparse=False))
+
+    response = await client_for(httpx.MockTransport(handler)).embed(
+        ["a", "b"], "passage", sparse=False
+    )
+    assert sent == [
+        {"texts": ["a", "b"], "kind": "passage", "return_dense": True, "return_sparse": False}
+    ]
+    assert response.dense == [[1.0, 0.0], [1.0, 0.0]]
+    assert response.sparse is None
+
+
+@pytest.mark.parametrize(
+    "body",
+    [_embed_body(1), _embed_body(2, sparse=False), {"dense": "nope"}],
+    ids=["count-mismatch", "missing-sparse", "malformed"],
+)
+async def test_embed_rejects_bad_responses(body: dict[str, object]) -> None:
+    ml = client_for(httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+    with pytest.raises(MlUnavailable) as info:
+        await ml.embed(["a", "b"], "query")
+    assert info.value.endpoint == "/embed"
+    assert info.value.kind == "invalid_response"
+
+
+async def test_embed_and_rerank_errors() -> None:
+    def refuse(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("refused", request=request)
+
+    def slow(request: httpx.Request) -> httpx.Response:
+        raise httpx.ReadTimeout("slow", request=request)
+
+    with pytest.raises(MlUnavailable) as info:
+        await client_for(httpx.MockTransport(refuse)).embed(["a"], "query")
+    assert info.value.kind == "connection"
+    with pytest.raises(MlUnavailable) as info:
+        await client_for(httpx.MockTransport(slow)).rerank("q", [RerankCandidate(id="x", text="t")])
+    assert (info.value.endpoint, info.value.kind) == ("/rerank", "timeout")
+    unavailable = httpx.MockTransport(lambda _: httpx.Response(503, json={}))
+    with pytest.raises(MlUnavailable) as info:
+        await client_for(unavailable).rerank("q", [RerankCandidate(id="x", text="t")])
+    assert info.value.kind == "status"
+
+
+async def test_rerank_parses() -> None:
+    body = {"results": [{"id": "x", "score": 2.5}], "model_version": "0.1.0"}
+    ml = client_for(httpx.MockTransport(lambda _: httpx.Response(200, json=body)))
+    response = await ml.rerank("q", [RerankCandidate(id="x", text="t")])
+    assert response.results[0].score == 2.5

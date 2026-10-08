@@ -1,0 +1,381 @@
+"""Indexer + search + documents/articles on real postgres, qdrant and fake-ml.
+
+Uses its own database (`<test db>_search`) and alias (`test_legal_chunks`), so it never touches
+dev data or the migration tests. The corpus is the synthetic one from dev/sample_corpus.py.
+"""
+
+import asyncio
+import time
+import uuid
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Any
+
+import asyncpg
+import pytest
+from alembic import command
+from alembic.config import Config
+from fastapi.testclient import TestClient
+
+from app.core.config import Settings
+from app.main import create_app
+from app.state import Resources
+from dev.sample_corpus import build, write
+from indexer.corpus import CorpusError
+from indexer.pipeline import Indexer, IndexOptions, IndexResult, JobConflict
+from tests.conftest import REPO_ROOT, make_settings
+from tests.integration.conftest import (
+    TEST_DATABASE_URL,
+    TEST_ML_SERVICE_URL,
+    TEST_QDRANT_URL,
+    _ensure_database,
+    plain_dsn,
+)
+
+pytestmark = pytest.mark.integration
+
+ALIAS = "test_legal_chunks"
+SEARCH_DB_URL = TEST_DATABASE_URL + "_search"
+QUERY_RU = "Ответственность работодателя за задержку зарплаты"
+
+
+def settings() -> Settings:
+    return make_settings(
+        database_url=SEARCH_DB_URL,
+        qdrant_url=TEST_QDRANT_URL,
+        qdrant_alias=ALIAS,
+        ml_service_url=TEST_ML_SERVICE_URL,
+        manifest_source="service",
+        index_state_ttl_s=0,
+    )
+
+
+async def _drop_test_collections(resources: Resources) -> None:
+    client = resources.qdrant.client
+    aliases = await client.get_aliases()
+    if any(a.alias_name == ALIAS for a in aliases.aliases):
+        from qdrant_client import models as qm
+
+        await client.update_collection_aliases(
+            change_aliases_operations=[
+                qm.DeleteAliasOperation(delete_alias=qm.DeleteAlias(alias_name=ALIAS))
+            ]
+        )
+    for collection in (await client.get_collections()).collections:
+        if collection.name.startswith(f"{ALIAS}__"):
+            await client.delete_collection(collection.name)
+
+
+async def run_indexer(data_dir: Path, **options: Any) -> IndexResult:
+    resources = Resources.create(settings())
+    try:
+        manifest = await resources.manifest.get()
+        assert manifest is not None, "fake-ml /version is not reachable"
+        indexer = Indexer(resources.sessionmaker, resources.qdrant, resources.ml, manifest)
+        return await indexer.run(IndexOptions(data_dir=data_dir, **options))
+    finally:
+        await resources.aclose()
+
+
+def sql(query: str, *args: Any) -> list[asyncpg.Record]:
+    async def go() -> list[asyncpg.Record]:
+        conn = await asyncpg.connect(plain_dsn(SEARCH_DB_URL))
+        try:
+            return await conn.fetch(query, *args)
+        finally:
+            await conn.close()
+
+    return asyncio.run(go())
+
+
+@pytest.fixture(scope="module")
+def corpus_dir(tmp_path_factory: pytest.TempPathFactory) -> Path:
+    return write(tmp_path_factory.mktemp("corpus"))
+
+
+@pytest.fixture(scope="module")
+def first_index(corpus_dir: Path) -> IndexResult:
+    """Fresh schema + empty Qdrant test alias, then one full index run."""
+    asyncio.run(_ensure_database(SEARCH_DB_URL))
+    config = Config(str(REPO_ROOT / "backend" / "alembic.ini"))
+    config.set_main_option("sqlalchemy.url", SEARCH_DB_URL)
+    command.downgrade(config, "base")
+    command.upgrade(config, "head")
+
+    async def reset() -> None:
+        resources = Resources.create(settings())
+        try:
+            await _drop_test_collections(resources)
+        finally:
+            await resources.aclose()
+
+    asyncio.run(reset())
+    return asyncio.run(run_indexer(corpus_dir))
+
+
+@pytest.fixture(scope="module")
+def client(first_index: IndexResult) -> Iterator[TestClient]:
+    with TestClient(create_app(settings())) as test_client:
+        yield test_client
+
+
+def search(client: TestClient, **body: Any) -> dict[str, Any]:
+    response = client.post("/api/v1/search", json=body)
+    assert response.status_code == 200, response.text
+    data: dict[str, Any] = response.json()
+    return data
+
+
+def article_ids(body: dict[str, Any]) -> list[str]:
+    return [r["article"]["article_id"] for r in body["results"]]
+
+
+# --- indexer --------------------------------------------------------------------------------
+
+
+def test_first_index(first_index: IndexResult) -> None:
+    assert first_index.collection == f"{ALIAS}__0.0.0-fake"
+    assert first_index.switched
+    assert first_index.previous_collection is None
+    assert first_index.points == 16
+    assert (first_index.documents, first_index.articles) == (6, 14)
+    assert first_index.pg_articles.inserted == 14
+    state = sql("SELECT * FROM index_state WHERE collection = $1", first_index.collection)[0]
+    assert state["index_compat_id"] == "fake"
+    assert state["points_count"] == 16
+    job = sql("SELECT * FROM index_jobs WHERE job_id = $1", first_index.job_id)[0]
+    assert job["status"] == "succeeded"
+    assert job["progress"] == 1.0
+    assert job["collection"] == first_index.collection
+
+
+def test_reindex_same_version_builds_next_to_live_collection(
+    first_index: IndexResult, corpus_dir: Path
+) -> None:
+    result = asyncio.run(run_indexer(corpus_dir))
+    assert result.collection.startswith(f"{ALIAS}__0.0.0-fake__")
+    assert result.previous_collection == first_index.collection
+    assert result.pg_articles.unchanged == 14  # nothing changed in Postgres
+    assert result.pg_articles.inserted == result.pg_articles.updated == 0
+    # --no-switch builds a third collection and leaves the alias alone; nothing is deleted.
+    second = asyncio.run(run_indexer(corpus_dir, switch_alias=False))
+    assert not second.switched
+    assert second.collection not in (first_index.collection, result.collection)
+    assert second.previous_collection == result.collection
+
+    async def names() -> set[str]:
+        resources = Resources.create(settings())
+        try:
+            return {c.name for c in (await resources.qdrant.client.get_collections()).collections}
+        finally:
+            await resources.aclose()
+
+    assert {first_index.collection, result.collection, second.collection} <= asyncio.run(names())
+
+
+def test_bad_corpus_fails_job_and_keeps_alias(first_index: IndexResult, tmp_path: Path) -> None:
+    write(tmp_path)
+    (tmp_path / "chunks.parquet").unlink()
+
+    async def alias() -> str | None:
+        resources = Resources.create(settings())
+        try:
+            return await resources.qdrant.alias_target()
+        finally:
+            await resources.aclose()
+
+    alias_before = asyncio.run(alias())
+    before = sql("SELECT count(*) AS n FROM index_jobs WHERE status = 'failed'")[0]["n"]
+    with pytest.raises(CorpusError):
+        asyncio.run(run_indexer(tmp_path))
+    after = sql("SELECT count(*) AS n FROM index_jobs WHERE status = 'failed'")[0]["n"]
+    assert after == before + 1
+    assert asyncio.run(alias()) == alias_before
+
+
+def test_only_one_job_at_a_time(first_index: IndexResult, corpus_dir: Path) -> None:
+    job_id = uuid.uuid4()
+    sql("INSERT INTO index_jobs (job_id, status) VALUES ($1, 'running')", job_id)
+    try:
+        with pytest.raises(JobConflict):
+            asyncio.run(run_indexer(corpus_dir))
+    finally:
+        sql("DELETE FROM index_jobs WHERE job_id = $1", job_id)
+
+
+def test_cli(first_index: IndexResult, corpus_dir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.core.config import get_settings
+    from indexer.__main__ import main
+
+    for key, value in {
+        "DATABASE_URL": SEARCH_DB_URL,
+        "QDRANT_URL": TEST_QDRANT_URL,
+        "QDRANT_ALIAS": ALIAS,
+        "ML_SERVICE_URL": TEST_ML_SERVICE_URL,
+        "MANIFEST_SOURCE": "service",
+        "LOG_JSON": "false",
+    }.items():
+        monkeypatch.setenv(key, value)
+    get_settings.cache_clear()
+    try:
+        assert asyncio.run(main(["--data-dir", str(corpus_dir), "--no-switch"])) == 0
+        assert asyncio.run(main(["--data-dir", str(corpus_dir / "missing")])) == 1
+    finally:
+        get_settings.cache_clear()
+
+
+# --- search ---------------------------------------------------------------------------------
+
+
+def test_search_contract_shape(client: TestClient) -> None:
+    body = search(client, query=QUERY_RU)
+    assert body["lang"] == "ru"
+    assert body["mode"] == "hybrid"
+    assert body["degraded"] == []
+    assert body["pipeline_version"] == "0.0.0-fake"
+    assert set(body["timing_ms"]) >= {"embed", "retrieve", "fuse", "rerank", "total"}
+    ids = article_ids(body)
+    assert ids
+    assert all(i.startswith("T000000000") and ":ru:" in i for i in ids)
+    assert "T0000000001:ru:a114" in ids[:3]
+    first = body["results"][0]
+    assert first["score_type"] == "rerank"
+    assert first["doc"]["status"] == "in_force"
+    assert len(first["snippet"]) <= 300
+    for h in first["highlights"]:
+        assert 0 <= h["start"] < h["end"] <= len(first["snippet"])
+
+
+def test_in_force_filter(client: TestClient) -> None:
+    default = article_ids(search(client, query="заработная плата исключена статья", top_k=50))
+    assert "T0000000001:ru:a53" not in default  # excluded article
+    assert not any(i.startswith("T0000000003") for i in default)  # repealed act
+    everything = article_ids(
+        search(
+            client,
+            query="заработная плата исключена статья",
+            top_k=50,
+            filters={"in_force_only": False},
+        )
+    )
+    assert "T0000000001:ru:a53" in everything
+    assert any(i.startswith("T0000000003") for i in everything)
+
+
+def test_doc_type_doc_id_and_date_filters(client: TestClient) -> None:
+    laws = article_ids(
+        search(
+            client,
+            query="заработная плата",
+            filters={"doc_types": ["law"], "in_force_only": False},
+        )
+    )
+    assert laws
+    assert all(i.startswith("T0000000003") for i in laws)
+    eco = article_ids(search(client, query="штраф", filters={"doc_ids": ["T0000000002"]}))
+    assert eco == ["T0000000002:ru:a10"]
+    recent = article_ids(
+        search(client, query="штраф зарплата", top_k=50, filters={"date_from": "2020-01-01"})
+    )
+    assert recent
+    assert all(i.startswith("T0000000002") for i in recent)
+
+
+def test_kazakh_search(client: TestClient) -> None:
+    body = search(client, query="Еңбек шартын бұзу негіздері")
+    assert body["lang"] == "kk"
+    ids = article_ids(body)
+    assert ids
+    assert all(":kk:" in i for i in ids)
+    assert ids[0] == "T0000000001:kk:a52"
+
+
+def test_keyword_mode(client: TestClient) -> None:
+    body = search(client, query="экологических штраф", mode="keyword")
+    assert {r["score_type"] for r in body["results"]} == {"fusion"}
+    assert "rerank" not in body["timing_ms"]
+    assert article_ids(body)[0] == "T0000000002:ru:a10"
+
+
+def test_no_match_is_empty_not_error(client: TestClient) -> None:
+    body = search(client, query="квантовая хромодинамика", mode="keyword")
+    assert body["results"] == []
+
+
+def test_query_is_logged(client: TestClient) -> None:
+    session = "11111111-2222-4333-8444-555555555555"
+    response = client.post(
+        "/api/v1/search",
+        json={"query": "Сроки выплаты зарплаты"},
+        headers={"X-Session-Id": session},
+    )
+    query_id = uuid.UUID(response.json()["query_id"])
+    for _ in range(50):
+        rows = sql("SELECT * FROM query_logs WHERE query_id = $1", query_id)
+        if rows:
+            break
+        time.sleep(0.1)
+    assert rows, "query log row was not written"
+    row = rows[0]
+    assert row["query_norm"] == "сроки выплаты зарплаты"
+    assert row["client"] == "web"
+    assert row["session_hash"]
+    assert session not in row["session_hash"]
+    assert row["result_count"] == len(response.json()["results"])
+    assert row["search_ms"] is not None
+    assert row["pipeline_version"] == "0.0.0-fake"
+
+
+# --- articles and documents ------------------------------------------------------------------
+
+
+def test_article_round_trip(client: TestClient) -> None:
+    _, articles, _ = build()
+    source = next(a for a in articles if a["article_id"] == "T0000000001:ru:a113")
+    response = client.get("/api/v1/articles/T0000000001:ru:a113")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["text"] == source["text"]  # verbatim, line breaks kept
+    assert body["amendment_notes"] == source["amendment_notes"]
+    assert body["article"]["has_amendments"] is True
+    assert body["parallel_article_id"] == "T0000000001:kk:a113"
+    assert body["prev_article_id"] == "T0000000001:ru:a53"
+    assert body["next_article_id"] == "T0000000001:ru:a114"
+    assert body["doc"]["doc_id"] == "T0000000001"
+    first = client.get("/api/v1/articles/T0000000001:ru:a1").json()
+    assert first["prev_article_id"] is None
+
+
+def test_unknown_article_is_404(client: TestClient) -> None:
+    response = client.get("/api/v1/articles/T0000000001:ru:a999")
+    assert response.status_code == 404
+    assert response.json()["error"]["code"] == "not_found"
+
+
+def test_documents_list(client: TestClient) -> None:
+    body = client.get("/api/v1/documents", params={"lang": "ru"}).json()
+    assert body["total"] == 3
+    assert {d["doc_id"] for d in body["items"]} == {"T0000000001", "T0000000002", "T0000000003"}
+    assert all("article_count" in d for d in body["items"])
+    laws = client.get("/api/v1/documents", params={"lang": "ru", "doc_type": "law"}).json()
+    assert [d["doc_id"] for d in laws["items"]] == ["T0000000003"]
+    found = client.get("/api/v1/documents", params={"lang": "kk", "q": "экологиялық"}).json()
+    assert [d["doc_id"] for d in found["items"]] == ["T0000000002"]
+    page = client.get("/api/v1/documents", params={"lang": "ru", "page": 2, "page_size": 2}).json()
+    assert (page["page"], page["page_size"], page["total"], len(page["items"])) == (2, 2, 3, 1)
+    weird = client.get("/api/v1/documents", params={"lang": "ru", "q": "100%_"}).json()
+    assert weird["total"] == 0
+
+
+def test_document_detail(client: TestClient) -> None:
+    body = client.get("/api/v1/documents/T0000000001", params={"lang": "kk"}).json()
+    assert body["short_title"] == "Сынақ ЕК"
+    assert [t["article_id"] for t in body["toc"]] == [
+        "T0000000001:kk:a1",
+        "T0000000001:kk:a52",
+        "T0000000001:kk:a53",
+        "T0000000001:kk:a113",
+        "T0000000001:kk:a114",
+    ]
+    missing = client.get("/api/v1/documents/T9999999999", params={"lang": "ru"})
+    assert missing.status_code == 404

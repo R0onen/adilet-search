@@ -19,6 +19,7 @@ def live_client(database_url: str) -> Iterator[TestClient]:
         qdrant_url=TEST_QDRANT_URL,
         ml_service_url=TEST_ML_SERVICE_URL,
         manifest_source="service",
+        qdrant_alias="test_live_never_indexed",  # independent of any dev index
         health_timeout_s=5,
     )
     with TestClient(create_app(settings)) as client:
@@ -42,7 +43,7 @@ def test_health_all_components_ok(live_client: TestClient) -> None:
 def test_version_live(live_client: TestClient) -> None:
     body = live_client.get("/api/v1/version").json()
     assert body["pipeline_version"] == "0.0.0-fake"
-    assert body["index_collection"] is None  # nothing indexed yet (BE-02)
+    assert body["index_collection"] is None  # this alias is never indexed
 
 
 def test_health_reports_unreachable_ml(database_url: str) -> None:

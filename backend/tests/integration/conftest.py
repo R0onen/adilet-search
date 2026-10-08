@@ -4,9 +4,11 @@
 
 and point the tests at them (defaults shown):
 
-    TEST_DATABASE_URL=postgresql+asyncpg://adilet:adilet@localhost:5432/adilet_test
-    TEST_QDRANT_URL=http://localhost:6333
-    TEST_ML_SERVICE_URL=http://localhost:8001
+    TEST_DATABASE_URL=postgresql+asyncpg://adilet:adilet@127.0.0.1:5432/adilet_test
+    TEST_QDRANT_URL=http://127.0.0.1:6333
+    TEST_ML_SERVICE_URL=http://127.0.0.1:8001
+
+(127.0.0.1, not localhost: compose binds IPv4 only, and on Windows `localhost` tries ::1 first.)
 
 The test database is created if missing and is dropped/recreated by the migration tests:
 never point TEST_DATABASE_URL at a database with data you want to keep.
@@ -23,10 +25,10 @@ from alembic.config import Config
 from tests.conftest import REPO_ROOT
 
 TEST_DATABASE_URL = os.getenv(
-    "TEST_DATABASE_URL", "postgresql+asyncpg://adilet:adilet@localhost:5432/adilet_test"
+    "TEST_DATABASE_URL", "postgresql+asyncpg://adilet:adilet@127.0.0.1:5432/adilet_test"
 )
-TEST_QDRANT_URL = os.getenv("TEST_QDRANT_URL", "http://localhost:6333")
-TEST_ML_SERVICE_URL = os.getenv("TEST_ML_SERVICE_URL", "http://localhost:8001")
+TEST_QDRANT_URL = os.getenv("TEST_QDRANT_URL", "http://127.0.0.1:6333")
+TEST_ML_SERVICE_URL = os.getenv("TEST_ML_SERVICE_URL", "http://127.0.0.1:8001")
 
 
 def plain_dsn(url: str, database: str | None = None) -> str:
