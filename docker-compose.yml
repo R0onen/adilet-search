@@ -30,6 +30,8 @@ x-backend-env: &backend-env
   QDRANT_API_KEY: ${QDRANT_API_KEY:-}
   QDRANT_ALIAS: ${QDRANT_ALIAS:-legal_chunks}
   QDRANT_TIMEOUT_S: ${QDRANT_TIMEOUT_S:-5}
+  QDRANT_PREFER_GRPC: ${QDRANT_PREFER_GRPC:-true}
+  QDRANT_GRPC_PORT: 6334
   ML_SERVICE_URL: ${ML_SERVICE_URL:-http://fake-ml:8001}
   ML_CONNECT_TIMEOUT_S: ${ML_CONNECT_TIMEOUT_S:-2}
   ML_TIMEOUT_S: ${ML_TIMEOUT_S:-10}
@@ -37,6 +39,10 @@ x-backend-env: &backend-env
   MODEL_MANIFEST_PATH: ${MODEL_MANIFEST_PATH:-/models/model_manifest.json}
   MANIFEST_RETRY_S: ${MANIFEST_RETRY_S:-30}
   HEALTH_TIMEOUT_S: ${HEALTH_TIMEOUT_S:-2}
+  SEARCH_EMBED_TIMEOUT_S: ${SEARCH_EMBED_TIMEOUT_S:-2}
+  SEARCH_RETRIEVE_TIMEOUT_S: ${SEARCH_RETRIEVE_TIMEOUT_S:-2}
+  SEARCH_RERANK_TIMEOUT_S: ${SEARCH_RERANK_TIMEOUT_S:-1.5}
+  INDEX_STATE_TTL_S: ${INDEX_STATE_TTL_S:-30}
   SESSION_SALT: ${SESSION_SALT:-dev-only-session-salt}
 
 services:
@@ -62,6 +68,7 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:${QDRANT_PORT:-6333}:6333"
+      - "127.0.0.1:${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant:/qdrant/storage
     healthcheck:
@@ -91,6 +98,9 @@ services:
     environment: *backend-env
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    volumes:
+      # Corpus Parquet files for the indexer (ML publishes data/sample and data/processed).
+      - ./data:/data:ro
     depends_on:
       postgres:
         condition: service_healthy
