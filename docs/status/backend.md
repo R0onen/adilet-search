@@ -83,6 +83,10 @@ Run on the dev laptop (i7-13700HX, Docker Desktop/WSL2).
 
 ## Next steps
 - BE-04: admin API, monitoring (Prometheus/Grafana), resilience (full-text fallback, circuit breaker, cache), security (JWT, rate limits).
+- From Frontend's status (2026-10-08), for BE-04:
+  1. tell "citation refers to a valid source" apart from "the source supports the claim";
+  2. catch refusals phrased outside `REFUSAL_PHRASES` (a VAT answer that says the sources don't cover it was marked grounded), with the wording agreed with ML's prompt template;
+  3. expose the upstream generator failure reason safely.
 - When ML pins real models / ships the real corpus: reindex (`--embeddings` if precomputed), re-run `pytest -m ml` and `loadtests/measure_search.py`, and update the TOR results and latencies here.
 
 ## Blockers (need a human)
