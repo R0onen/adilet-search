@@ -1,0 +1,10 @@
+import type { components } from './schema';
+export type Schemas = components['schemas'];
+export type SearchRequest = Schemas['SearchRequest'];
+export type SearchResponse = Schemas['SearchResponse'];
+export type SearchResult = Schemas['SearchResult'];
+export type ArticleDetail = Schemas['ArticleDetail'];
+export type AnswerSource = Schemas['AnswerSource'];
+export type SourcesEvent = Schemas['SourcesEvent'];
+export type DoneEvent = Schemas['DoneEvent'];
+export type ErrorEvent = Schemas['ErrorEvent'];
