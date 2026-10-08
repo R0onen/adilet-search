@@ -1,5 +1,7 @@
 # Live presentation: three minutes
 
+> Updated baseline: the live stack now contains the complete extracted Labor and Environmental Codes in RU/KK (1,306 article-language records, 2,799 chunks). The original three-article run below is historical. Use `/data/processed/official-baseline` when restoring the current index. See [ingestion and difficult-question findings](qa_frontend.md) before presenting: source retrieval failed on several paraphrases, and generation produced substantive errors despite valid citation markers. Do not claim reliable arbitrary legal reasoning.
+
 ## Before presenting
 
 Open http://127.0.0.1:5173 and confirm **Live API**. Select RU.
