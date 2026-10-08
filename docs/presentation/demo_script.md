@@ -1,50 +1,85 @@
-# Frontend presentation: three minutes
+# Live presentation: three minutes
 
 ## Before presenting
 
-1. In `frontend/`, run `npm run dev` and open `http://127.0.0.1:5173`.
-2. Keep mock mode selected unless the team has rehearsed the complete live stack.
-3. Select RU. Use browser zoom appropriate for the projector.
-4. Keep `frontend-home.png`, `frontend-results.png`, and `frontend-compare.png` from
-   `docs/presentation/img/` available as backup slides. A backup video has not been recorded.
+Open http://127.0.0.1:5173 and confirm **Live API**. Select RU.
+Generator: Groq `openai/gpt-oss-120b`, using a secret in ignored `.env.localtest`.
+Corpus: official Adilet Labor Code snapshot downloaded 2026-10-08, articles 68, 88 and 113 in RU/KK. This is a three-article demonstration, not coverage of all legislation. Revision dates remain unknown rather than invented.
+Search still uses bootstrap hash/BM25/lexical retrieval. The LLM generates from the retrieved official text; it is not a fine-tuned project model.
 
-## 0:00–0:30: problem and scope
+## Tested questions
 
-Explain that people ask questions in everyday language while legal texts use formal terminology.
-Identify the visible demo banner: this frontend demonstration uses synthetic documents and
-scripted answers, not real statutes or a measured trained model.
+| Question | Source | Expected source fact |
+|---|---|---|
+| Какова нормальная продолжительность рабочего времени в неделю? | 68 | Normal working time must not exceed 40 hours per week. |
+| Какова продолжительность основного оплачиваемого ежегодного трудового отпуска? | 88 | 24 calendar days unless a longer period is provided by the Code, other legal acts, contracts or employer acts. |
+| Какие сроки выплаты заработной платы? Что происходит, если день выплаты совпадает с выходным? | 113 | At least monthly, no later than the first ten days of the following month; contractual payday; payment before a coinciding weekend/holiday. |
+| Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат? | 68 KK | No more than 40 hours weekly. |
 
-## 0:30–1:05: search
+All four generated answers passed source-fact and citation checks. Six RU/KK retrieval questions ranked the expected article first. These smoke tests are not an evaluation benchmark; model output can vary.
 
-Click **Мне не платят зарплату**. Show the retrieved documents, article numbers, revision dates,
-and status labels. Explain that the interface is wired to a typed REST API and can switch to
-live mode when the backend and real corpus are ready.
+Official sources: [RU](https://old.adilet.zan.kz/rus/docs/K1500000414), [KK](https://old.adilet.zan.kz/kaz/docs/K1500000414). Article anchors such as `#z88` were checked in downloaded HTML.
 
-## 1:05–1:50: answer and provenance
+## Walkthrough
 
-Click **Сформировать ответ**. Sources arrive first and answer text streams afterward.
-Click **[1]** in the answer to open its article. Show the preserved paragraph numbering.
-Click **Открыть на другом языке** to show the parallel Kazakh article. Press Escape to close.
-Point out the disclaimer and explain why answers and source text have distinct visual treatments.
+1. **0:00–0:30:** explain source retrieval plus cited generation; state the small corpus and external Groq model.
+2. **0:30–1:00:** click **Сколько дней ежегодного отпуска?**. Show article 88 ranked first.
+3. **1:00–2:00:** generate the answer; open citation [1]. Show the official paragraph, including the exceptions allowing longer leave. Switch to Kazakh and back. Open the official link if internet is available.
+4. **2:00–2:30:** click **Когда должны выплачивать зарплату?** and generate an answer. Show article 113 and payment before a coinciding weekend/holiday.
+5. **2:30–3:00:** explain React → FastAPI → PostgreSQL/Qdrant → ML service → Groq. Mention the disclaimer, citation checks and limited coverage. Comparison is an interaction demonstration, not proof that the bootstrap retriever beats a baseline.
 
-## 1:50–2:30: comparison
+Live example buttons submit the tested RU questions, or corresponding KK questions with KK UI. EN UI submits RU questions; no English statutory sources are indexed. Avoid the old ecology and dismissal examples, which are outside this corpus. Kazakh wording needs human review.
 
-Open **Сравнение** and click the salary example again. Show the two columns.
-Explain that demo ranking is a local illustration of the interaction: it is not evidence that
-a semantic model outperforms a lexical baseline. Actual model quality belongs in the AI teammate's
-evaluation with a labelled dataset.
+## Start and restore
 
-## 2:30–3:00: contribution and boundaries
+From repository root in PowerShell:
 
-State the frontend contribution: responsive search UI, typed API integration, SSE streaming,
-clickable provenance, bilingual article drawer, comparison, failure/cancellation states, tests.
-The backend owns API and storage; the AI teammate owns corpus, models, and evaluation.
-Describe what the team has actually integrated live, separately from this local demonstration.
+```powershell
+docker compose -p adilet-localtest --env-file .env.localtest --profile ml up -d --wait
+```
 
-## If asked about limitations
+From `frontend` in a separate terminal:
 
-- Synthetic fixtures are not legal advice or current legislation.
-- Kazakh UI translations require review by a Kazakh speaker.
-- Admin and deployment were deferred for the same-day frontend MVP.
-- Local automated checks do not establish real model quality or deployed latency.
-- The latest backend handoff lists `/answer` as implemented with fake-ML tests; the frontend's live integration and real model output remain unverified.
+```powershell
+$env:VITE_API_MODE='live'
+$env:API_PROXY_TARGET='http://127.0.0.1:18000'
+npm run dev
+```
+
+The generated corpus is preserved in ignored `data/processed/demo-official/`. Database volumes survive restarts. Restore this index with:
+
+```powershell
+docker compose -p adilet-localtest --env-file .env.localtest --profile ml exec -T backend python -m indexer --data-dir /data/processed/demo-official
+```
+
+Regenerate only when intentionally choosing a new official snapshot; rerun demo checks afterward:
+
+```powershell
+docker cp frontend/scripts/build-official-demo.py adilet-localtest-ml-service-1:/tmp/build-official-demo.py
+docker compose -p adilet-localtest --env-file .env.localtest --profile ml exec -T ml-service python /tmp/build-official-demo.py
+docker cp adilet-localtest-ml-service-1:/tmp/official-demo/. data/processed/demo-official
+```
+
+## Groq configuration
+
+In ignored root `.env.localtest`:
+
+```dotenv
+ADILET_ML_GENERATOR_MODE=openai
+LLM_BASE_URL=https://api.groq.com/openai
+LLM_MODEL=openai/gpt-oss-120b
+ANSWER_MAX_TOKENS=1024
+```
+
+Keep `LLM_API_KEY` secret, outside the frontend. The existing engine appends `/v1/chat/completions`; do not append `/v1` to this base URL. Recreate backend/ML with Compose after environment changes. No new SDK or dependency is needed. Questions and retrieved public text are sent to Groq.
+
+[Free-tier limits](https://console.groq.com/docs/rate-limits) vary by account; a 429 means wait for quota reset. The free table currently lists this model at 30 requests/minute, 1,000/day, 8,000 tokens/minute and 200,000/day. Do not upgrade billing for this demo. If deliberately reverting to extractive `fallback`, disclose it.
+
+## Evidence and backup
+
+- Four real Groq answer checks passed with expected facts and valid source references; individual completion times were about 1.2–1.4 seconds, not a load benchmark.
+- Live Edge browser passed generation, citation opening, official source link, KK switch and comparison; no page errors.
+- Build/lint and 12 frontend unit tests passed.
+- Local ignored evidence: `frontend/test-results/official-retrieval.json`, `groq-report.json`, `groq-live-answer.png`, `official-article.png`.
+- Corpus includes extracted article JSON and raw-page SHA-256 provenance. Source wording is preserved with paragraph separation; amendment notes are separate. It is an educational snapshot, not a guarantee of current legal completeness.
+- Record a backup video before presenting. Groq and official links need internet. Public HTTPS deployment remains separate work.

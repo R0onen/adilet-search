@@ -2,7 +2,7 @@ import { ArrowRight, Search, SlidersHorizontal } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { documents } from '../api/client';
+import { apiMode, documents } from '../api/client';
 import type { SearchRequest } from '../api/types';
 import { Button } from './ui/button';
 
@@ -38,7 +38,7 @@ export function SearchForm({
       date_to: null,
     },
   });
-  const examples =
+  const mockExamples =
     i18n.language === 'kk'
       ? [
           'Жалақымды төлемейді',
@@ -46,6 +46,23 @@ export function SearchForm({
           'Ауаны ластағаны үшін айыппұл',
         ]
       : ['Мне не платят зарплату', 'Меня увольняют по сокращению', 'Штраф за загрязнение воздуха'];
+  const liveExamples =
+    i18n.language === 'kk'
+      ? [
+          'Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат?',
+          'Жыл сайынғы ақы төленетін негізгі еңбек демалысының ұзақтығы қандай?',
+          'Жалақы төлеудің тәртібі мен мерзімдері қандай?',
+        ]
+      : [
+          'Какова нормальная продолжительность рабочего времени в неделю?',
+          'Какова продолжительность основного оплачиваемого ежегодного трудового отпуска?',
+          'Какие сроки выплаты заработной платы? Что происходит, если день выплаты совпадает с выходным?',
+        ];
+  const examples = apiMode === 'live' ? liveExamples : mockExamples;
+  const exampleKeys =
+    apiMode === 'live'
+      ? ['exampleHours', 'exampleLeave', 'examplePayment']
+      : ['exampleSalary', 'exampleDismissal', 'exampleEco'];
   return (
     <div className={`search-area ${compact ? 'compact' : ''}`}>
       <form
@@ -128,7 +145,7 @@ export function SearchForm({
                 onSearch(makeRequest(example));
               }}
             >
-              {t(['exampleSalary', 'exampleDismissal', 'exampleEco'][index])}
+              {t(exampleKeys[index])}
               <ArrowRight size={13} />
             </button>
           ))}
