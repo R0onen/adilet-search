@@ -1,43 +1,44 @@
 {
-  "pipeline_version": "0.1.0-bootstrap",
-  "created_at": "2026-10-08",
-  "index_compat_id": "hash-bm25-ch1",
+  "pipeline_version": "0.2.0",
+  "created_at": "2026-11-11",
+  "index_compat_id": "e5base-bm25st-ch1",
   "embedder": {
-    "id": "hash-e5-compatible-bootstrap",
+    "id": "multilingual-e5-base-zs",
     "hf_repo": "intfloat/multilingual-e5-base",
-    "revision": "to-pin-after-fetch",
+    "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
     "dim": 768,
     "distance": "cosine",
     "max_seq_len": 512,
     "query_prefix": "query: ",
     "passage_prefix": "passage: ",
-    "runtime": "hash-dev; set ADILET_ML_EMBEDDER_BACKEND=sentence-transformers for real e5"
+    "runtime": "sentence-transformers"
   },
   "sparse": {
-    "id": "bm25-hash-ru-kk-v1",
+    "id": "bm25-snowball-ru-kk-v2",
     "type": "bm25",
     "qdrant_idf_modifier": true,
     "params": {
       "k1": 1.2,
       "b": 0.75,
-      "avgdl": 142.3
+      "avgdl": 113.0
     }
   },
   "reranker": {
-    "id": "lexical-overlap-bootstrap",
+    "id": "mmarco-mMiniLMv2-L12-H384-zs",
     "hf_repo": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
-    "revision": "to-pin-after-fetch",
-    "max_seq_len": 512,
-    "runtime": "python-overlap; cross-encoder hook planned"
+    "revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "max_seq_len": 384,
+    "runtime": "cross-encoder"
   },
   "generator": {
-    "id": "extractive-fallback-bootstrap",
+    "id": "openai-compatible-llm",
     "base_model": null,
     "adapter": null,
     "gguf": null,
-    "served_model_name": "adilet-generator",
+    "served_model_name": "set by LLM_MODEL",
     "prompt_template": "prompts/answer_v1.md",
-    "max_context_tokens": 6000
+    "max_context_tokens": 6000,
+    "runtime": "ADILET_ML_GENERATOR_MODE: openai (LLM_BASE_URL) | fallback (extractive)"
   },
   "retrieval": {
     "dense_limit": 50,
@@ -47,7 +48,7 @@
       "dense": 1.0,
       "sparse": 1.0
     },
-    "rerank_top_n": 30,
+    "rerank_top_n": 20,
     "default_top_k": 10,
     "context_top_k": 5,
     "max_chars_per_context": 4000
@@ -57,7 +58,7 @@
     "max_chunk_tokens": 400,
     "tokenizer": "intfloat/multilingual-e5-base"
   },
-  "corpus_version": "2026.10.08-bootstrap",
+  "corpus_version": "2026.09.17",
   "eval": {
     "dataset": null,
     "ndcg@10": null,

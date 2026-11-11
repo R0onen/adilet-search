@@ -9,13 +9,12 @@ from fastapi.testclient import TestClient
 from adilet_ml.schemas import EmbedResponse, GenerateDone, MlHealth, RerankResponse
 from adilet_ml.serving.app import app
 
-MANIFEST = Path(__file__).parents[1] / "models/model_manifest.json"
+MANIFEST = Path(__file__).parents[1] / "models/model_manifest.bootstrap.json"
 
 
 @pytest.fixture
 def client(monkeypatch: pytest.MonkeyPatch) -> Iterator[TestClient]:
     monkeypatch.setenv("MODEL_MANIFEST_PATH", str(MANIFEST))
-    monkeypatch.setenv("ADILET_ML_EMBEDDER_BACKEND", "hash")
     with TestClient(app) as test_client:
         yield test_client
 
@@ -33,7 +32,7 @@ def test_health_and_version(client: TestClient) -> None:
     assert health.status == "ok"
     assert health.components["embedder"] == "ok"
     manifest = client.get("/version").json()
-    assert manifest["pipeline_version"] == "0.1.0-bootstrap"
+    assert manifest["pipeline_version"] == "0.2.0-bootstrap"
     assert manifest["embedder"]["dim"] == 768
 
 

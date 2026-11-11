@@ -42,7 +42,9 @@ def embedding_header(short_title: str, number: str | None, title: str | None, la
     clean_title = title or ""
     if number is None:
         return f"{short_title}. {clean_title}".strip()
-    marker = f"Article {number}" if lang not in {"ru", "kk"} else (
-        f"Статья {number}" if lang == "ru" else f"{number}-бап"
+    marker = (
+        f"Article {number}"
+        if lang not in {"ru", "kk"}
+        else (f"Статья {number}" if lang == "ru" else f"{number}-бап")
     )
     return f"{short_title}. {marker}. {clean_title}".strip()

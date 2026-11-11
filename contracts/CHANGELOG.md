@@ -12,6 +12,17 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-11-11 · model manifest (ml_service.md unchanged) · pipeline 0.2.0 · no (reindex required) · Backend
+
+ML pipeline `0.2.0`. No endpoint or schema changed; the manifest content did:
+- `index_compat_id` is now `e5base-bm25st-ch1` (real E5 embedder; sparse tokens are stemmed for Russian). Existing indexes are refused until `python -m indexer` is run again.
+- `embedder.runtime` / `reranker.runtime` select the implementation (`sentence-transformers` / `cross-encoder`, or the offline `hash` / `lexical`). Both models have pinned revisions.
+- `retrieval.rerank_top_n` is 20 (was 30), to fit the cross-encoder into the latency budget on CPU.
+- `ml/models/model_manifest.bootstrap.json` is the offline variant for tests and CI (`index_compat_id` `hash-bm25st-ch1`).
+- `data/sample/` is now the complete official Labor Code; `corpus_version` is `2026.09.17`. `data/sample/sample_articles.json` is removed.
+
+---
+
 ## 2026-10-08 · openapi.json (api.md unchanged) · v1 · no · Frontend (regenerate types), ML (FYI)
 
 Real adilet document codes can end in an underscore (e.g. `K940001000_`, the Civil Code, General Part; `K030000442_`, the Land Code). The backend's `article_id` pattern rejected them, which `data_schema.md` §2 never required. The pattern is now `^[A-Za-z0-9_]+:(ru|kk):[a-z0-9-]+$`, and the indexer accepts such `doc_id`s. This is a relaxation, so nothing that was valid becomes invalid.

@@ -1,5 +1,7 @@
 # ML Assignment Status
 
+> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
+
 Date: 2026-10-08
 
 ## Completed In Repo

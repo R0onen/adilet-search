@@ -1,13 +1,19 @@
-"""dev/import_adiletcodex.py: AdiletCodex rows -> data_schema.md Parquet (tiny synthetic CSV)."""
+"""ingest/adiletcodex.py: AdiletCodex rows -> data_schema.md Parquet (tiny synthetic CSV)."""
 
 import csv
 import gzip
 from pathlib import Path
 
+import pyarrow.parquet as pq
 import pytest
 
-from dev.import_adiletcodex import chunk_paragraphs, convert, read_rows, split_notes, write
-from indexer.corpus import load_corpus
+from adilet_ml.ingest.adiletcodex import (
+    chunk_paragraphs,
+    convert,
+    read_rows,
+    split_notes,
+    write,
+)
 
 FIELDS = [
     "doc_id", "doc_type", "slug", "lang", "title", "status", "doc_date", "doc_number", "act_form",
@@ -93,13 +99,15 @@ def test_converted_corpus_is_schema_valid(csv_path: Path, tmp_path: Path) -> Non
     documents, articles, chunks = convert(read_rows(csv_path), acts=None)
     out = tmp_path / "processed"
     write(out, documents, articles, chunks)
-    corpus = load_corpus(out)  # the indexer's strict validator
-    assert {(d["doc_id"], d["lang"]) for d in corpus.documents} == {
+    columns = ["doc_id", "lang", "status", "corpus_version"]  # write() validated every row
+    stored = pq.read_table(out / "documents.parquet", columns=columns).to_pylist()
+    assert {(d["doc_id"], d["lang"]) for d in stored} == {
         ("K030000442_", "ru"),
         ("K030000442_", "kk"),
     }  # English is not part of the product
-    assert all(d["status"] == "in_force" for d in corpus.documents)
-    assert corpus.corpus_version == "2026.09.17"
+    assert all(d["status"] == "in_force" for d in stored)
+    assert {d["corpus_version"] for d in stored} == {"2026.09.17"}
+    assert pq.read_table(out / "chunks.parquet").num_rows == len(chunks)
 
 
 def test_footnotes_move_to_amendment_notes_and_text_stays_verbatim(csv_path: Path) -> None:

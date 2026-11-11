@@ -3,6 +3,8 @@ marp: true
 title: A4 Embeddings to Fine-Tuning
 ---
 
+> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
+
 # A4: Relevance Classification
 
 Task: classify query-article pairs for reranking.

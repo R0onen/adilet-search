@@ -1,4 +1,4 @@
-corpus_version: "2026.10.08-bootstrap"
+corpus_version: "2026.09.17"
 acts:
   - key: labor_code
     doc_id: K1500000414

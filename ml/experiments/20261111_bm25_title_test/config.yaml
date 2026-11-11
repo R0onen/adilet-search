@@ -1,0 +1,7 @@
+model: bm25_snowball
+tokenizer: lowercase + stopwords; Russian Snowball stemming; Kazakh unstemmed
+data_dir: data/processed (AdiletCodex v1.0, Tier-1, corpus_version 2026.09.17)
+split: test (data/eval/splits.json, splits_v2_title)
+top_k: 50
+k1: 1.2
+b: 0.75

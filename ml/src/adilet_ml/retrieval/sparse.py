@@ -7,6 +7,9 @@ import re
 import zlib
 from collections import Counter
 from dataclasses import dataclass
+from functools import lru_cache
+
+import Stemmer
 
 from adilet_ml.schemas import SparseVector
 
@@ -45,11 +48,26 @@ KK_STOPWORDS = {
 }
 
 
+_RU_STEMMER = Stemmer.Stemmer("russian")
+
+
+@lru_cache(maxsize=200_000)
+def _stem_ru(token: str) -> str:
+    return _RU_STEMMER.stemWord(token)
+
+
 def tokenize(text: str, lang: str | None = None) -> list[str]:
-    """Lowercase tokenization with lightweight RU/KK stopword handling."""
+    """Lowercase tokenization with RU/KK stopwords and Russian Snowball stemming.
+
+    Russian inflects heavily («зарплаты», «зарплату»), so `lang="ru"` tokens are stemmed and a
+    query matches every form. There is no Snowball stemmer for Kazakh: `kk` tokens stay as they
+    are, and Kazakh morphology is left to the dense embedder. Without `lang`, tokens are only
+    lowercased.
+    """
     stopwords = KK_STOPWORDS if lang == "kk" else RU_STOPWORDS if lang == "ru" else set()
-    tokens = [token.strip("-_").lower() for token in TOKEN_RE.findall(text)]
-    return [token for token in tokens if token and token not in stopwords]
+    tokens = [token.strip("-_").lower().replace("ё", "е") for token in TOKEN_RE.findall(text)]
+    tokens = [token for token in tokens if token and token not in stopwords]
+    return [_stem_ru(token) for token in tokens] if lang == "ru" else tokens
 
 
 def stable_index(token: str) -> int:

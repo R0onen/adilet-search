@@ -12,6 +12,7 @@ dependencies = [
     "prometheus-client>=0.21",
     "pyarrow>=18",
     "pydantic>=2.9",
+    "pystemmer>=3.0",
     "pyyaml>=6.0",
     "uvicorn[standard]>=0.32",
 ]
@@ -22,13 +23,12 @@ dev = [
     "ruff>=0.8",
 ]
 models = [
-    "sentence-transformers>=3.3",
-    "torch>=2.5",
-    "transformers>=4.46",
+    "sentence-transformers==6.1.0",
+    "torch==2.14.1",
+    "transformers==5.19.0",
 ]
 
 [project.scripts]
-adilet-ml-build-sample = "adilet_ml.data.sample_builder:main"
 adilet-ml-bench-latency = "adilet_ml.scripts.bench_latency:main"
 
 [build-system]
@@ -48,7 +48,6 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"src/adilet_ml/data/sample_builder.py" = ["E501"]
 "src/adilet_ml/ingest/adilet.py" = ["S310"]
 "tests/**" = ["S101", "S603"]
 

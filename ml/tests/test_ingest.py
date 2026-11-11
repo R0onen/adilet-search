@@ -14,9 +14,7 @@ def test_parse_ru_article_markers() -> None:
     assert parsed.title == "Трудовой кодекс Республики Казахстан"
     assert [article.unit_number for article in parsed.articles] == ["52", "53", "113-1"]
     assert parsed.articles[1].unit_status == "excluded"
-    assert parsed.articles[2].amendment_notes == [
-        "Сноска. Статья 113-1 с изменениями для теста."
-    ]
+    assert parsed.articles[2].amendment_notes == ["Сноска. Статья 113-1 с изменениями для теста."]
     assert "Сноска" not in parsed.articles[2].text
 
 

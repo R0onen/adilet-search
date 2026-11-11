@@ -1,15 +1,13 @@
-# Data Layout
+# Data layout
 
-Data follows `contracts/data_schema.md`.
+Data follows `contracts/data_schema.md`. Source: **AdiletCodex v1.0** (CC BY 4.0,
+https://doi.org/10.5281/zenodo.22812626), the official texts of the codes and laws of Kazakhstan
+parsed from adilet.zan.kz. Texts are stored verbatim.
 
-- `data/raw/adilet/{ru,kk}/`: cached source HTML from Adilet. Git-ignored.
-- `data/sample/`: small committed integration sample for Backend and Frontend.
-- `data/processed/`: full processed corpus. Git-ignored; publish through the private HF dataset.
-- `data/eval/`: seed evaluation queries, qrels, splits and labelling instructions.
-- `data/index/`: precomputed embeddings. Git-ignored; publish through the private HF dataset.
-- `data/MANIFEST.json`: checksums and row counts for the latest committed sample or release.
-
-The current sample is a bootstrap fixture for integration. It has the final schema, includes RU and
-KK articles, parallel ids, an excluded article, amendment notes and a long split article. Replace it
-with scraped Adilet text before reporting quality metrics. The committed eval set is a baseline
-wiring check, not a real benchmark.
+- `data/raw/adiletcodex/`: the downloaded source file. Git-ignored.
+- `data/sample/`: committed sample for integration and CI: the complete Labor Code, RU + KK
+  (2 documents, 454 articles, 805 chunks).
+- `data/processed/`: the full corpus: the 8 Tier-1 codes, RU + KK (16 documents, 9,259 articles,
+  16,264 chunks). Git-ignored; rebuild with `python ml/scripts/download_data.py`.
+- `data/eval/`: evaluation queries, relevance labels and splits (see its README).
+- `data/MANIFEST.json`: checksums and row counts.

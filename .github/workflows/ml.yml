@@ -1,0 +1,35 @@
+name: ml
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "ml/**"
+      - "data/sample/**"
+      - "data/eval/**"
+      - ".github/workflows/ml.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ml-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-test:
+    name: lint and tests (offline stand-in models)
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.11.13"
+          enable-cache: true
+          cache-dependency-glob: ml/uv.lock
+      - run: uv sync --locked --extra dev
+      - run: uv run ruff check src tests scripts
+      - run: uv run ruff format --check src tests scripts
+      - run: uv run pytest

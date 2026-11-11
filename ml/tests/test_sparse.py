@@ -31,3 +31,18 @@ def test_overlap_score_prefers_shared_terms() -> None:
     bad = lexical_overlap_score(query, "экологический штраф")
     assert good > bad
     assert math.isclose(lexical_overlap_score("", "text"), 0.0)
+
+
+def test_russian_tokens_are_stemmed_so_inflected_forms_match() -> None:
+    query = tokenize("задержка зарплаты", "ru")
+    passage = tokenize("ответственность за задержку зарплату", "ru")
+    assert set(query) <= set(passage)
+    encoder = SparseEncoder()
+    assert set(encoder.encode_query("задержка зарплаты", "ru").indices) <= set(
+        encoder.encode_passage("ответственность за задержку зарплату", "ru").indices
+    )
+
+
+def test_kazakh_and_unknown_language_tokens_are_not_stemmed() -> None:
+    assert tokenize("жалақыны кешіктіру", "kk") == ["жалақыны", "кешіктіру"]
+    assert tokenize("Зарплаты") == ["зарплаты"]

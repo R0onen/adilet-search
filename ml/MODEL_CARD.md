@@ -1,101 +1,42 @@
-# Model Card: Adilet Search Bootstrap ML Pipeline
+# Model card: Adilet Search pipeline 0.2.0
 
-Version: `0.1.0-bootstrap`  
-Date: 2026-10-08  
-Manifest: `ml/models/model_manifest.json`
+Manifest: `ml/models/model_manifest.json` · `index_compat_id`: `e5base-bm25st-ch1` · 2026-11-11
 
-## Purpose
+## What it does
 
-Adilet Search is a retrieval and RAG pipeline for Russian and Kazakh legislation from Kazakhstan.
-This bootstrap pipeline is intended to unblock backend/frontend integration and local assignment
-experiments. It is not the final legal-quality model.
+Retrieves articles of Kazakhstan legislation for a question in Russian or Kazakh, and writes a short
+answer that cites the retrieved articles. It is a search aid, not legal advice.
 
 ## Components
 
-| Component | Current implementation | Intended final path |
+| Stage | Model | Training |
 |---|---|---|
-| Dense embedder | deterministic hash vectors, E5-compatible shape | `intfloat/multilingual-e5-base`, then fine-tuned bi-encoder |
-| Sparse encoder | BM25-style hashed sparse vectors | same interface, tuned on full corpus |
-| Reranker | lexical overlap fallback | multilingual cross-encoder, then fine-tuned reranker |
-| Generator | extractive citation fallback or OpenAI-compatible endpoint | QLoRA/GGUF or GPU endpoint behind the same API |
-| Prompt | `ml/prompts/answer_v1.md` | versioned prompt with evaluated citation/refusal behavior |
-
-## Inputs
-
-- `/embed`: 1-128 query or passage strings, RU/KK/mixed text, max 8000 characters.
-- `/rerank`: one query and candidate passages/articles.
-- `/generate`: a question, language code and numbered sources.
-
-The service rejects empty text, over-limit payloads and non-string values through FastAPI/Pydantic
-validation. Long model inputs are truncated to the configured max sequence length.
-
-## Outputs
-
-- `/embed`: dense vectors of length 768, sparse indices/values, truncation flags and model version.
-- `/rerank`: candidate ids with scores, sorted descending.
-- `/generate`: SSE events or one JSON response with cited text and final usage metadata.
+| Dense embedder | `intfloat/multilingual-e5-base` @ `d1287505` | pretrained, zero-shot (not fine-tuned on our data) |
+| Sparse encoder | BM25 term weights; Russian Snowball stemming; Kazakh unstemmed | no training |
+| Fusion | weighted reciprocal-rank fusion, `k = 60`, weights 1:1 (in the backend) | no training |
+| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` @ `1427fd65` | pretrained on mMARCO (14 languages, Russian included, Kazakh not), zero-shot |
+| Generator | an OpenAI-compatible LLM chosen at deployment (`LLM_MODEL`) with `prompts/answer_v1.md` | not trained by us |
 
 ## Data
 
-Committed data is a bootstrap sample:
+AdiletCodex v1.0 (CC BY 4.0, doi:10.5281/zenodo.22812626), parsed from adilet.zan.kz: the 8 Tier-1
+codes in Russian and Kazakh, 9,259 articles, 16,264 chunks of about 400 tokens. Texts are verbatim;
+amendment footnotes are stored separately. The corpus is a snapshot (`corpus_version` 2026.09.17):
+later amendments are not in it.
 
-- `data/sample/documents.parquet`: 2 rows
-- `data/sample/articles.parquet`: 30 rows
-- `data/sample/chunks.parquet`: 33 rows
-- `data/eval/queries.jsonl`: 10 seed synthetic queries
-- `data/eval/qrels.jsonl`: seed graded qrels
-- `data/eval/splits.json`: deterministic seed split
+## Evaluation
 
-The sample follows `contracts/data_schema.md`, but it is educational bootstrap text, not the final
-official Adilet corpus.
+Only proxy numbers exist so far (`ml/reports/results.csv`). On the title-query test split (1,318
+queries, searching article bodies), the BM25 stage alone reaches nDCG@10 0.730 (RU 0.753, KK 0.708)
+and Recall@50 0.938. The dense, hybrid and reranked stages have not been measured on a fair set
+yet: title queries are unfair to them in one direction (legislator's wording) and too easy through
+the product index (the title is in every chunk header). There is no human gold set.
 
-## Metrics
+## Known limits
 
-All numbers below come from `ml/experiments/*/metrics.json` and are aggregated in
-`ml/reports/results.csv`.
-
-| Run | nDCG@10 | Recall@10 | Recall@50 | MRR@10 | Notes |
-|---|---:|---:|---:|---:|---|
-| `20261008_bm25_seed` | 0.8796 | 0.8889 | 0.9444 | 0.9000 | lexical baseline |
-| `20261008_hash_dense_seed` | 0.7872 | 0.9444 | 1.0000 | 0.8167 | offline dense-path baseline |
-| `20261008_tfidf_logreg_seed` | 0.8198 | 1.0000 | 1.0000 | 0.8500 | tiny learned reranker baseline |
-
-Classification metrics for `20261008_tfidf_logreg_seed`:
-
-- `roc_auc`: 0.9072
-- `f1`: 0.4898
-- `pr_auc`: 0.7118
-
-These are seed-set wiring numbers only. They must not be presented as production quality.
-
-## Latency
-
-Measured locally on Windows CPU with the hash bootstrap service:
-
-| Call | p50 | p95 |
-|---|---:|---:|
-| `/embed`, 1 query | 3.0 ms | 3.9 ms |
-| `/rerank`, 30 candidates | 3.6 ms | 4.6 ms |
-
-Real sentence-transformer and cross-encoder latency still needs a model download and CPU/GPU run.
-
-## Limitations
-
-- Not legal advice; generated answers must be treated as informational assistance only.
-- Full Tier-1 official corpus is not yet scraped, reviewed or uploaded.
-- Kazakh quality is not human-reviewed.
-- The current dense encoder is deterministic hashing, not semantic embeddings.
-- The current generator is extractive/fallback, not a fine-tuned LLM.
-- Seed qrels are tiny and synthetic; real gold labels are required before quality claims.
-
-## Reproduction
-
-```bash
-python -m pip install -e "ml[dev]"
-python ml/scripts/create_splits.py
-python ml/scripts/run_bm25_baseline.py
-python ml/scripts/run_hash_dense_baseline.py
-python ml/scripts/run_tfidf_logreg_baseline.py
-python ml/scripts/aggregate_results.py
-python -m pytest ml/tests
-```
+- Zero-shot models: nothing is tuned to legal Kazakh or Russian.
+- Kazakh keyword matching is weaker (no stemmer), and the reranker never saw Kazakh in training.
+- Articles longer than the encoders' context are split into chunks; a chunk can miss context.
+- The generator can still misread a source. The backend removes citations to sources that were not
+  provided, but cannot check that a cited source supports the claim.
+- Only 8 codes are indexed by default; questions about other acts get weak results.

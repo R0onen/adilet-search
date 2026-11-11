@@ -9,7 +9,7 @@ from pathlib import Path
 import pyarrow as pa
 import pyarrow.parquet as pq
 from bs4 import BeautifulSoup
-from adilet_ml.data.sample_builder import DOCUMENT_SCHEMA, ARTICLE_SCHEMA, CHUNK_SCHEMA
+from adilet_ml.data.schema import ARTICLE_SCHEMA, CHUNK_SCHEMA, DOCUMENT_SCHEMA
 from adilet_ml.chunking.chunker import embedding_header, iter_text_chunks
 
 out = Path('/tmp/official-demo')

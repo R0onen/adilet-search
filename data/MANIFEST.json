@@ -1,16 +1,26 @@
 {
-  "corpus_version": "2026.10.08-bootstrap",
-  "scraped_at": "2026-10-08T00:00:00+00:00",
+  "corpus_version": "2026.09.17",
+  "source": "AdiletCodex v1.0, https://doi.org/10.5281/zenodo.22812626 (CC BY 4.0), parsed from adilet.zan.kz",
+  "source_md5": "bde74683987a1e52c16d339ba14953a6",
+  "built_by": "python ml/scripts/download_data.py --docs K1500000414 --out data/sample",
   "row_counts": {
     "documents": 2,
-    "articles": 30,
-    "chunks": 33
+    "articles": 454,
+    "chunks": 805
   },
   "sha256": {
-    "sample/documents.parquet": "b034f143e6328699ca285a5a6b2f18a815afaa9677c6c33f08580943d15b6117",
-    "sample/articles.parquet": "309e085caddcb5884427a99dcaca66eed3bdc870492f9bff9a2e251153d78f1c",
-    "sample/chunks.parquet": "d029da720deb6b606cffc3e8532567526bdd69006949fc440b31ef8e2cfd9bb5",
-    "sample/sample_articles.json": "d1cb6c01c21fb7d3297ec63a31373c976d53f549987cef40b3de87948299b59e"
+    "sample/documents.parquet": "bf62de7904cf5231689a3eb3aa4a69fbad74eea9ed112020a1c46bc77ad64376",
+    "sample/articles.parquet": "10e975531e18142e9a4723fea7a5528476199aeed2cdfcf2b10a5138e93e7ee3",
+    "sample/chunks.parquet": "d5611d135911b25852dbedbe6e45ddfa763b064a9fcc13bc935bd00a91c8d7ee"
   },
-  "notes": "Bootstrap integration sample; replace with scraped Adilet text before evaluation."
+  "full_corpus": {
+    "built_by": "python ml/scripts/download_data.py",
+    "path": "data/processed (git-ignored)",
+    "row_counts": {
+      "documents": 16,
+      "articles": 9259,
+      "chunks": 16264
+    }
+  },
+  "notes": "data/sample is the complete Labor Code (RU + KK), official text. data/processed holds the 8 Tier-1 codes."
 }

@@ -1,5 +1,7 @@
 # A4 Report: Query-Article Relevance Classification
 
+> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
+
 ## Task Framing
 
 The A4 task is query-article relevance classification for reranking search candidates.
