@@ -2613,16 +2613,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
@@ -2699,16 +2689,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "summary": "Exchange admin credentials for a JWT",
@@ -2931,16 +2911,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
@@ -3145,16 +3115,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
@@ -3233,16 +3193,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
@@ -3258,6 +3208,7 @@
     },
     "/api/v1/admin/reindex": {
       "post": {
+        "description": "Builds a new collection in the background and switches the alias only on success: the\ncurrent index keeps serving while the job runs and if it fails.",
         "operationId": "reindex_api_v1_admin_reindex_post",
         "requestBody": {
           "content": {
@@ -3320,7 +3271,7 @@
             },
             "description": "Internal error"
           },
-          "501": {
+          "503": {
             "content": {
               "application/json": {
                 "schema": {
@@ -3328,7 +3279,7 @@
                 }
               }
             },
-            "description": "Not implemented yet (stub)"
+            "description": "A required upstream component is unavailable"
           }
         },
         "security": [
@@ -3344,6 +3295,7 @@
     },
     "/api/v1/admin/stats": {
       "get": {
+        "description": "Days are UTC days; both bounds are inclusive.",
         "operationId": "stats_api_v1_admin_stats_get",
         "parameters": [
           {
@@ -3421,16 +3373,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
@@ -3477,16 +3419,6 @@
               }
             },
             "description": "Internal error"
-          },
-          "501": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                }
-              }
-            },
-            "description": "Not implemented yet (stub)"
           }
         },
         "security": [
