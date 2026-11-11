@@ -6,6 +6,7 @@ import json
 import time
 import uuid
 from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -28,20 +29,25 @@ LATENCY = Histogram("ml_request_duration_seconds", "ML request latency", ["endpo
 BATCH_SIZE = Histogram("ml_batch_size", "ML batch size", ["endpoint"])
 TTFT = Histogram("ml_generate_ttft_seconds", "ML generation time to first token")
 
-app = FastAPI(title="Adilet ML service", version="0.1.0")
 _engine: MlEngine | None = None
 _load_error: str | None = None
 
 
-@app.on_event("startup")
-async def startup() -> None:
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Load the models once. A failed load (no network for the first download, a bad manifest)
+    keeps the process up, so /health can report it instead of the container crash-looping."""
     global _engine, _load_error
     try:
         _engine = MlEngine(load_manifest())
         _load_error = None
-    except EngineLoadError as exc:
+    except Exception as exc:
         _engine = None
-        _load_error = str(exc)
+        _load_error = f"{type(exc).__name__}: {exc}"
+    yield
+
+
+app = FastAPI(title="Adilet ML service", version="0.2.0", lifespan=lifespan)
 
 
 def engine() -> MlEngine:

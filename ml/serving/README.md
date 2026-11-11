@@ -1,93 +1,53 @@
-# ML Service
+# ML service
 
-Run locally from the repository root:
+Implements `contracts/ml_service.md`: `/health`, `/version`, `/metrics`, `/embed`, `/rerank`,
+`/generate` (SSE or JSON).
+
+## Run
+
+In Docker, from the repository root (the real models; ~1.6 GB of weights download into the
+`ml-model-cache` volume on the first start, which can take several minutes):
 
 ```bash
-python -m uvicorn adilet_ml.serving.app:app --app-dir ml/src --host 0.0.0.0 --port 8001
+ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
 ```
 
-By default this service uses deterministic local embeddings and overlap reranking. To run the real
-zero-shot embedder after fetching weights, set:
+Offline stand-ins instead of the models (no download; used by CI):
 
 ```bash
-ADILET_ML_EMBEDDER_BACKEND=sentence-transformers
-MODEL_CACHE_DIR=.cache/models
+ML_MODEL_MANIFEST_PATH=/app/models/model_manifest.bootstrap.json ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
 ```
 
-## Curl Examples
+Switching between the two needs a reindex: the backend refuses an index built with other models.
+
+## Configuration
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `MODEL_MANIFEST_PATH` | `/app/models/model_manifest.json` | which pipeline to run (in compose: `ML_MODEL_MANIFEST_PATH`) |
+| `MODEL_CACHE_DIR`, `HF_HOME` | `/models`, `/models/hf` | where model weights are cached |
+| `ADILET_ML_BATCH_SIZE` | `32` | embed/rerank batch size |
+| `ADILET_ML_GENERATOR_MODE` | `fallback` | `openai` calls `LLM_BASE_URL`; `fallback` returns the first sentence of the top source |
+| `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | — | an OpenAI-compatible endpoint. The base URL is given **without** `/v1`: the service appends `/v1/chat/completions` |
+| `MODEL_PROMPT_PATH` | `prompts/answer_v1.md` | the answer prompt (system rules + user template) |
+
+If the models cannot be loaded (for example no network on the first start), the process stays up
+and `/health` reports `down` with the reason, instead of crash-looping.
+
+## Examples
 
 ```bash
 curl http://localhost:8001/health
-curl http://localhost:8001/version
-curl http://localhost:8001/metrics
 ```
 
 ```bash
-curl -X POST http://localhost:8001/embed \
-  -H "Content-Type: application/json" \
-  -d '{"texts":["Ответственность работодателя за задержку зарплаты"],"kind":"query"}'
+curl -X POST http://localhost:8001/embed -H "Content-Type: application/json" -d '{"texts":["Ответственность работодателя за задержку зарплаты"],"kind":"query"}'
 ```
 
 ```bash
-curl -X POST http://localhost:8001/rerank \
-  -H "Content-Type: application/json" \
-  -d '{"query":"задержка зарплаты","candidates":[{"id":"K1500000414:ru:a113","text":"зарплата выплачивается работнику"}]}'
+curl -X POST http://localhost:8001/rerank -H "Content-Type: application/json" -d '{"query":"задержка зарплаты","candidates":[{"id":"K1500000414:ru:a113","text":"Заработная плата выплачивается не реже одного раза в месяц."}]}'
 ```
 
 ```bash
-curl -N -X POST http://localhost:8001/generate \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Что с зарплатой?","lang":"ru","sources":[{"ref":1,"article_id":"K1500000414:ru:a113","title":"Статья 113","text":"Заработная плата выплачивается работнику не реже одного раза в месяц."}],"stream":true}'
-```
-
-## OpenAI-Compatible LLM
-
-Set these env vars to use llama.cpp, vLLM or a hosted OpenAI-compatible endpoint:
-
-```bash
-ADILET_ML_GENERATOR_MODE=openai
-LLM_BASE_URL=http://llm:8002
-LLM_MODEL=adilet-generator
-LLM_API_KEY=
-```
-
-If `ADILET_ML_GENERATOR_MODE` is omitted, `/generate` returns a deterministic extractive fallback
-answer with valid `[n]` citations. This keeps the backend walking skeleton alive without a local LLM.
-
-## Compose Snippet
-
-Backend owns `docker-compose.yml`; paste this there when wiring the real stack:
-
-```yaml
-  ml-service:
-    build:
-      context: ./ml
-      dockerfile: serving/Dockerfile
-    environment:
-      MODEL_MANIFEST_PATH: /app/models/model_manifest.json
-      MODEL_CACHE_DIR: /models
-      ADILET_ML_EMBEDDER_BACKEND: hash
-      ADILET_ML_GENERATOR_MODE: fallback
-      LLM_BASE_URL: http://llm:8002
-      LLM_MODEL: adilet-generator
-      LLM_API_KEY: ${LLM_API_KEY:-}
-    volumes:
-      - ./ml/models:/app/models:ro
-      - ml-model-cache:/models
-    ports:
-      - "8001:8001"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-
-  llm:
-    image: ghcr.io/ggerganov/llama.cpp:server
-    profiles: ["llm"]
-    command: ["-m", "/models/adilet-generator.gguf", "--host", "0.0.0.0", "--port", "8002"]
-    volumes:
-      - ./ml/models:/models:ro
-    ports:
-      - "8002:8002"
+curl -N -X POST http://localhost:8001/generate -H "Content-Type: application/json" -d '{"question":"Как часто выплачивается зарплата?","lang":"ru","sources":[{"ref":1,"article_id":"K1500000414:ru:a113","title":"Статья 113","text":"Заработная плата выплачивается не реже одного раза в месяц."}],"stream":true}'
 ```

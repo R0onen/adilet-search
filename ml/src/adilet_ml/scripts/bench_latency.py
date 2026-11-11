@@ -31,13 +31,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     query = "Ответственность работодателя за задержку заработной платы"
     candidates = [
-        {"id": f"a{i}", "text": f"заработная плата задержка работодатель {i}"}
-        for i in range(30)
+        {"id": f"a{i}", "text": f"заработная плата задержка работодатель {i}"} for i in range(30)
     ]
     with httpx.Client(base_url=args.url, timeout=30) as client:
         embed = [
-            _post(client, "/embed", {"texts": [query], "kind": "query"})
-            for _ in range(args.n)
+            _post(client, "/embed", {"texts": [query], "kind": "query"}) for _ in range(args.n)
         ]
         rerank = [
             _post(client, "/rerank", {"query": query, "candidates": candidates})

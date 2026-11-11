@@ -163,6 +163,9 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       ML_SERVICE_URL: http://ml-service:8001
+      # Offline stand-ins (hash embedder, lexical reranker): no model download in CI. The real
+      # models are the same code path with another manifest.
+      ML_MODEL_MANIFEST_PATH: /app/models/model_manifest.bootstrap.json
     steps:
       - uses: actions/checkout@v6
       - uses: astral-sh/setup-uv@v7
@@ -187,7 +190,7 @@ jobs:
       - name: search and answer end to end
         run: |
           set -euo pipefail
-          manifest_version=$(jq -r .pipeline_version ml/models/model_manifest.json)
+          manifest_version=$(jq -r .pipeline_version ml/models/model_manifest.bootstrap.json)
           curl -fsS localhost:8000/api/v1/version \
             | jq -e --arg v "$manifest_version" '.pipeline_version == $v'
           curl -fsS -X POST localhost:8000/api/v1/search -H 'Content-Type: application/json' \

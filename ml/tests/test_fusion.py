@@ -38,9 +38,7 @@ def test_modes_and_rerank() -> None:
         "K1:ru:a2",
         "K1:ru:a3",
     ]
-    assert ids(fuse("keyword", dense, sparse, k=60, w_dense=1.0, w_sparse=1.0)) == [
-        "K1:ru:a4"
-    ]
+    assert ids(fuse("keyword", dense, sparse, k=60, w_dense=1.0, w_sparse=1.0)) == ["K1:ru:a4"]
     candidates = fuse("semantic", dense, [], k=60, w_dense=1.0, w_sparse=1.0)
     out = apply_rerank(candidates, {"K1:ru:a2": 0.9, "K1:ru:a1": 0.1}, top_n=3)
     assert ids(out) == ["K1:ru:a2", "K1:ru:a1", "K1:ru:a3"]

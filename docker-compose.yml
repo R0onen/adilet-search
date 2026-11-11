@@ -145,43 +145,14 @@ services:
     profiles: ["ml"]
     restart: unless-stopped
     environment:
-      MODEL_MANIFEST_PATH: /app/models/model_manifest.json
+      # The manifest selects the models. Default: the real pipeline (E5 + cross-encoder; the
+      # weights, ~1.6 GB, download into the ml-model-cache volume on the first start).
+      # /app/models/model_manifest.bootstrap.json runs offline stand-ins (tests, CI).
+      MODEL_MANIFEST_PATH: ${ML_MODEL_MANIFEST_PATH:-/app/models/model_manifest.json}
       MODEL_CACHE_DIR: /models
-      # hash | sentence-transformers (real E5; downloads the model into MODEL_CACHE_DIR)
-      ADILET_ML_EMBEDDER_BACKEND: ${ADILET_ML_EMBEDDER_BACKEND:-hash}
+      ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
       # fallback (extractive, no LLM) | openai (calls LLM_BASE_URL)
       ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
-      LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002}
-      LLM_MODEL: ${LLM_MODEL:-adilet-generator}
-      LLM_API_KEY: ${LLM_API_KEY:-}
-    volumes:
-      - ./ml/models:/app/models:ro
-      - ml-model-cache:/models
-    ports:
-      - "127.0.0.1:${ML_SERVICE_PORT:-8001}:8001"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-
-  # ml-service with the real multilingual E5 embedder (backend overlay on ML's image, see
-  # infra/ml-e5/Dockerfile). Its manifest says "-e5", so an index built with the hash embedder must
-  # be rebuilt first. The model (~1.1 GB) is downloaded into the ml-model-cache volume on first start.
-  #   docker compose --profile ml build ml-service
-  #   ML_SERVICE_URL=http://ml-service-e5:8001 docker compose --profile ml-e5 up -d --build
-  ml-service-e5:
-    build:
-      context: ./infra/ml-e5
-      args:
-        BASE_IMAGE: adilet-ml-service:dev
-    image: adilet-ml-service-e5:dev
-    profiles: ["ml-e5"]
-    restart: unless-stopped
-    environment:
-      MODEL_CACHE_DIR: /models
-      ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
-      ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
       LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002}
       LLM_MODEL: ${LLM_MODEL:-adilet-generator}
       LLM_API_KEY: ${LLM_API_KEY:-}

@@ -74,19 +74,25 @@ class HashEmbedder:
 class SentenceTransformerEmbedder:
     """Optional real embedder backend, activated by env when dependencies are installed."""
 
-    def __init__(self, model_name: str, dim: int, max_seq_len: int = 512) -> None:
+    def __init__(
+        self, model_name: str, dim: int, max_seq_len: int = 512, revision: str | None = None
+    ) -> None:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError as exc:
             raise EngineLoadError(
                 "sentence-transformers is not installed; install adilet-ml[models]"
             ) from exc
-        self.model = SentenceTransformer(model_name, cache_folder=os.getenv("MODEL_CACHE_DIR"))
+        self.model = SentenceTransformer(
+            model_name, revision=revision, cache_folder=os.getenv("MODEL_CACHE_DIR"), device="cpu"
+        )
+        self.model.max_seq_length = max_seq_len
         self.dim = dim
         self.max_seq_len = max_seq_len
 
     def encode(self, texts: list[str], prefixes: list[str]) -> tuple[list[list[float]], list[bool]]:
         prepared = [prefix + text for text, prefix in zip(texts, prefixes, strict=True)]
+        # Whitespace tokens are a lower bound on subword tokens: this flags sure truncations.
         truncated = [len(tokenize(text)) > self.max_seq_len for text in prepared]
         vectors = self.model.encode(
             prepared,
@@ -98,19 +104,78 @@ class SentenceTransformerEmbedder:
         return vectors.astype(np.float32).tolist(), truncated
 
 
+def _runtime(info: Any) -> str:
+    """The manifest says which implementation serves a model (`runtime`), so the manifest and the
+    running models cannot drift apart. The bootstrap manifest uses `hash` / `lexical`."""
+    return str(getattr(info, "runtime", "") or "").lower()
+
+
+def _revision(info: Any) -> str | None:
+    revision = getattr(info, "revision", None)
+    return revision if revision and len(revision) == 40 else None
+
+
 def _build_embedder(manifest: Manifest) -> HashEmbedder | SentenceTransformerEmbedder:
-    backend = os.getenv("ADILET_ML_EMBEDDER_BACKEND", "hash").lower()
-    max_seq_len = manifest.embedder.max_seq_len or 512
-    if backend in {"sentence-transformers", "st"}:
-        model_name = manifest.embedder.hf_repo or manifest.embedder.id
-        return SentenceTransformerEmbedder(model_name, manifest.embedder.dim, max_seq_len)
-    return HashEmbedder(manifest.embedder.dim, max_seq_len)
+    info = manifest.embedder
+    max_seq_len = info.max_seq_len or 512
+    if _runtime(info) == "sentence-transformers":
+        return SentenceTransformerEmbedder(
+            info.hf_repo or info.id, info.dim, max_seq_len, _revision(info)
+        )
+    return HashEmbedder(info.dim, max_seq_len)
+
+
+class LexicalReranker:
+    """Word-overlap scores: offline stand-in used by the bootstrap manifest and the tests."""
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        return [lexical_overlap_score(query, text) for text in texts]
+
+
+class CrossEncoderReranker:
+    """A pretrained (or fine-tuned) cross-encoder: reads the query and the passage together."""
+
+    def __init__(self, model_name: str, max_seq_len: int = 512, revision: str | None = None):
+        try:
+            from sentence_transformers import CrossEncoder
+        except ImportError as exc:
+            raise EngineLoadError(
+                "sentence-transformers is not installed; install adilet-ml[models]"
+            ) from exc
+        self.model = CrossEncoder(
+            model_name,
+            revision=revision,
+            max_length=max_seq_len,
+            device="cpu",
+            cache_folder=os.getenv("MODEL_CACHE_DIR"),
+        )
+
+    def score(self, query: str, texts: list[str]) -> list[float]:
+        if not texts:
+            return []
+        scores = self.model.predict(
+            [(query, text) for text in texts],
+            batch_size=int(os.getenv("ADILET_ML_BATCH_SIZE", "32")),
+            show_progress_bar=False,
+        )
+        return [round(float(score), 6) for score in scores]
+
+
+def _build_reranker(manifest: Manifest) -> LexicalReranker | CrossEncoderReranker:
+    info = manifest.reranker
+    if _runtime(info) == "cross-encoder":
+        max_seq_len = getattr(info, "max_seq_len", None) or 512
+        return CrossEncoderReranker(
+            getattr(info, "hf_repo", None) or info.id, max_seq_len, _revision(info)
+        )
+    return LexicalReranker()
 
 
 class MlEngine:
     def __init__(self, manifest: Manifest) -> None:
         self.manifest = manifest
         self.embedder = _build_embedder(manifest)
+        self.reranker = _build_reranker(manifest)
         sparse_params = manifest.sparse.params
         self.sparse = SparseEncoder(
             k1=float(sparse_params.get("k1", 1.2)),
@@ -158,9 +223,10 @@ class MlEngine:
     def rerank(
         self, query: str, candidates: list[tuple[str, str]], top_n: int | None
     ) -> list[RerankScore]:
+        scores = self.reranker.score(query, [text for _, text in candidates])
         scored = [
-            RerankScore(id=cid, score=lexical_overlap_score(query, text))
-            for cid, text in candidates
+            RerankScore(id=cid, score=score)
+            for (cid, _), score in zip(candidates, scores, strict=True)
         ]
         scored.sort(key=lambda item: item.score, reverse=True)
         return scored if top_n is None else scored[:top_n]
@@ -236,11 +302,10 @@ class MlEngine:
         if not self.llm_base_url or not self.llm_model:
             yield "error", {"code": "llm_unavailable", "message": "LLM endpoint is not configured"}
             return
-        prompt = build_prompt(body)
         headers = {"Authorization": f"Bearer {self.llm_api_key}"} if self.llm_api_key else {}
         payload = {
             "model": self.llm_model,
-            "messages": [{"role": "user", "content": prompt}],
+            "messages": build_messages(body),
             "temperature": body.temperature,
             "max_tokens": body.max_tokens,
             "stream": True,
@@ -306,13 +371,25 @@ def refusal_text(lang: str) -> str:
     return "В предоставленных источниках нет ответа."
 
 
-def build_prompt(body: GenerateRequest) -> str:
+PROMPT_PATH = Path(__file__).resolve().parents[3] / "prompts" / "answer_v1.md"
+
+
+@lru_cache(maxsize=1)
+def _prompt_template() -> tuple[str, str]:
+    """(system, user) parts of prompts/answer_v1.md; MODEL_PROMPT_PATH overrides the file."""
+    text = Path(os.getenv("MODEL_PROMPT_PATH", str(PROMPT_PATH))).read_text(encoding="utf-8")
+    system, _, user = text.partition("# User")
+    return system.replace("# System", "", 1).strip(), user.strip()
+
+
+def build_messages(body: GenerateRequest) -> list[dict[str, str]]:
+    system, user = _prompt_template()
     sources = "\n\n".join(
         f"[{source.ref}] {source.title}\n{source.text}" for source in body.sources
     )
-    lang_name = "Kazakh" if body.lang == "kk" else "Russian"
-    return (
-        "Answer only from the numbered sources. Cite every factual claim with [n]. "
-        "If the sources do not answer, say that plainly. Do not give personal legal advice.\n\n"
-        f"Language: {lang_name}\nQuestion: {body.question}\n\nSources:\n{sources}"
+    user = (
+        user.replace("{{ language }}", "Kazakh" if body.lang == "kk" else "Russian")
+        .replace("{{ question }}", body.question)
+        .replace("{{ sources }}", sources)
     )
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
