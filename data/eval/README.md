@@ -1,17 +1,15 @@
-# Retrieval Evaluation Data
+# Evaluation data
 
-This folder starts the ML evaluation track for Adilet Search.
+Built by `python ml/scripts/build_title_eval.py` from `data/processed/`.
 
-The committed files are a tiny seed set over `data/sample/` so the retrieval tooling can be run
-end to end before the real Tier-1 corpus and human labels exist.
+- `queries.jsonl`: 8,735 queries. Each is the official title of an article (`source: "title"`).
+- `qrels.jsonl`: the article the title belongs to is relevant (3). Nothing else is labelled.
+- `splits.json`: 70/15/15 by `doc_id:unit_key` (the RU and KK versions of an article stay in the
+  same subset), stratified by document, seed 42, with the SHA-256 of both files.
 
-- `queries.jsonl`: query id, language and user-style query text.
-- `qrels.jsonl`: graded article relevance. Use `3` for directly answers, `2` for strongly
-  related, `1` for weak/supporting context and `0` for judged non-relevant.
-- `labeling/GUIDE.md`: instructions for expanding labels after official Adilet scraping.
+These are **proxy labels**, not human judgements. Titles use the legislator's words, so they favour
+keyword methods, and the product index embeds the title in every chunk header. Report numbers from
+this set as "title-query (proxy) evaluation" and evaluate against article bodies.
 
-Run the lexical baseline from the repository root:
-
-```bash
-python ml/scripts/run_bm25_baseline.py --data-dir data/sample --queries data/eval/queries.jsonl --qrels data/eval/qrels.jsonl
-```
+`labeling/GUIDE.md` describes the human gold set (plain-language questions with graded relevance),
+which does not exist yet.
