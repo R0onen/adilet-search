@@ -39,8 +39,12 @@ jobs:
       - run: uv sync --locked
       - run: uv run ruff check .
       - run: uv run ruff format --check .
-      - run: uv run mypy app dev
+      - run: uv run mypy app dev indexer
       - run: uv run pytest --cov=app --cov-report=term-missing:skip-covered
+      - name: dependency audit (known vulnerabilities in the locked runtime dependencies)
+        run: |
+          uv export --no-hashes --no-emit-project --no-dev -o /tmp/requirements.txt
+          uvx pip-audit==2.9.0 -r /tmp/requirements.txt
       - name: openapi drift check
         run: |
           uv run python -m app.export_openapi
@@ -112,10 +116,11 @@ jobs:
           health=$(curl -fsS localhost:8000/api/v1/health)
           echo "$health" | jq -e '.status == "ok" and .pipeline_version == "0.0.0-fake"'
           curl -fsS localhost:8000/api/v1/version | jq -e '.git_sha == "${{ github.sha }}"'
-          # Before any index exists, search answers 503 upstream_unavailable.
-          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST localhost:8000/api/v1/search \
-            -H 'Content-Type: application/json' -d '{"query": "зарплата"}')
-          test "$code" = "503"
+          # Before any index exists, search answers through the full-text fallback (degraded).
+          curl -fsS -X POST localhost:8000/api/v1/search \
+            -H 'Content-Type: application/json' -d '{"query": "зарплата"}' \
+            | jq -e '.degraded == ["semantic"] and .results == []'
+          curl -fsS localhost:8000/metrics | grep -q '^search_requests_total'
       - name: index the synthetic corpus inside the backend container
         run: >-
           docker compose exec -T backend sh -c
