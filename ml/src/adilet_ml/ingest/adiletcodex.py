@@ -1,12 +1,12 @@
 """Convert the public AdiletCodex corpus into the contracts/data_schema.md Parquet files.
 
-    python -m dev.import_adiletcodex --csv data/raw/adiletcodex/adiletcodex.csv.gz \
-        --out data/processed [--corpus-config ../ml/configs/corpus.yaml] [--all-acts]
+    python -m adilet_ml.ingest.adiletcodex --csv data/raw/adiletcodex/adiletcodex.csv.gz \
+        --out data/processed [--all-acts] [--docs DOC_ID ...]
 
 AdiletCodex v1.0 (Mukhsimbayev, Pak, Kuralbayev; CC-BY-4.0; https://zenodo.org/records/22812626)
 is an article-level corpus of the in-force codes and laws of Kazakhstan parsed from
-adilet.zan.kz, in Kazakh, Russian and English. This bridge gives the project a real corpus until
-ML's own scraper (ML-01) ships; ML may adopt or replace it.
+adilet.zan.kz, in Kazakh, Russian and English. It is the project's corpus source: the texts are
+the official ones, and using the published dataset avoids scraping adilet.zan.kz ourselves.
 
 - Only `ru` and `kk` are kept (ISO 639-1; the English rows are not part of the product).
 - By default only the Tier-1 acts of `ml/configs/corpus.yaml` are converted (PROJECT_PLAN §6);
@@ -32,7 +32,13 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from dev.sample_corpus import ARTICLE_SCHEMA, CHUNK_SCHEMA, DOCUMENT_SCHEMA
+from adilet_ml.data.schema import (
+    ARTICLE_SCHEMA,
+    CHUNK_SCHEMA,
+    DOCUMENT_SCHEMA,
+    CorpusTables,
+    validate_rows,
+)
 
 LANGS = {"rus": "ru", "kaz": "kk"}
 # The dataset's publication date on Zenodo stands in for the scrape date.
@@ -244,6 +250,7 @@ def convert(
 
 
 def write(out: Path, documents: list[Any], articles: list[Any], chunks: list[Any]) -> None:
+    validate_rows(CorpusTables(documents=documents, articles=articles, chunks=chunks))
     out.mkdir(parents=True, exist_ok=True)
     for name, rows, schema in (
         ("documents", documents, DOCUMENT_SCHEMA),
@@ -257,11 +264,18 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--csv", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--corpus-config", type=Path, default=Path("../ml/configs/corpus.yaml"))
+    default_config = Path(__file__).resolve().parents[3] / "configs" / "corpus.yaml"
+    parser.add_argument("--corpus-config", type=Path, default=default_config)
     parser.add_argument("--all-acts", action="store_true", help="convert every act, not Tier-1")
+    parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these Tier-1 acts")
     args = parser.parse_args(argv)
 
     acts = None if args.all_acts else load_tier1(args.corpus_config)
+    if args.docs and acts is not None:
+        unknown = set(args.docs) - set(acts)
+        if unknown:
+            parser.error(f"not in {args.corpus_config.name}: {sorted(unknown)}")
+        acts = {doc_id: acts[doc_id] for doc_id in args.docs}
     documents, articles, chunks = convert(read_rows(args.csv), acts)
     write(args.out, documents, articles, chunks)
     excluded = sum(a["unit_status"] == "excluded" for a in articles)
@@ -269,7 +283,7 @@ def main(argv: list[str] | None = None) -> int:
     linked = sum(a["parallel_article_id"] is not None for a in articles)
     print(
         f"wrote {len(documents)} documents, {len(articles)} articles ({excluded} excluded, "
-        f"{noted} with amendment notes, {linked} RU↔KK linked), {len(chunks)} chunks "
+        f"{noted} with amendment notes, {linked} linked RU-KK), {len(chunks)} chunks "
         f"to {args.out} (corpus_version {CORPUS_VERSION})"
     )
     return 0
