@@ -27,68 +27,31 @@ Stop with `docker compose --profile dev down` (add `-v` to delete the database a
 
 **Port 5432 already taken?** If a native PostgreSQL runs on your machine, set `POSTGRES_PORT=55432` in `.env`. Only the host-side port changes; containers still use 5432 internally.
 
-## Run the whole project (real ml-service + ML's data + UI)
+## Run the whole project (real models, real corpus, UI)
 
-Use the real ml-service (profile `ml`, built from `ml/`) instead of the fake one, and point the backend at it. In bash:
-
-```bash
-docker compose --profile dev stop fake-ml
-```
-
-```bash
-ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
-```
-
-In PowerShell, set the variable first (`$env:ML_SERVICE_URL = "http://ml-service:8001"`) and then run `docker compose --profile ml up -d --build`. Index ML's sample with ML's models:
-
-```bash
-docker compose exec backend python -m indexer --data-dir /data/sample
-```
-
-(In Git Bash, prefix that command with `MSYS_NO_PATHCONV=1`, otherwise `/data/sample` is rewritten into a Windows path.) Until the reindex, search answers 503 "reindex required", because the old index was built with other models.
-
-The UI comes from `frontend/` in live mode (`VITE_API_MODE=live`); Vite proxies `/api` to the backend:
-
-```bash
-cd frontend && npm ci && VITE_API_MODE=live npm run dev
-```
-
-Then open `http://127.0.0.1:5173`. The real-ML checks are `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` (from `backend/`). CI runs the same chain in the `ml-stack` job.
-
-## Demo on the real corpus (AdiletCodex + E5)
-
-The relevant-results demo uses real law and a real embedder:
-
-1. Get AdiletCodex v1.0 (CC BY 4.0, 34 MB) into the git-ignored `data/raw/`:
+1. Build the corpus: the 8 Tier-1 codes, RU + KK, from the public AdiletCodex dataset (34 MB download, MD5-checked), into the git-ignored `data/processed/`:
 
    ```bash
-   mkdir -p data/raw/adiletcodex && curl -L -o data/raw/adiletcodex/adiletcodex.csv.gz https://zenodo.org/api/records/22812626/files/adiletcodex.csv.gz/content
+   cd ml && uv run python scripts/download_data.py
    ```
 
-   Check its MD5: `bde74683987a1e52c16d339ba14953a6`.
-2. Convert the Tier-1 codes (RU + KK) to the `data_schema.md` files in `data/processed/`. This gives about 9,260 articles and 16,260 chunks; add `--all-acts` for all 343 acts.
+2. Start the stack with the real ml-service (profile `ml`) instead of the fake one. The model weights (~1.6 GB) download into a Docker volume on the first start, which can take several minutes.
 
    ```bash
-   cd backend && uv run python -m dev.import_adiletcodex --csv ../data/raw/adiletcodex/adiletcodex.csv.gz --out ../data/processed
+   ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
    ```
 
-3. Start the stack with the E5 ml-service. `infra/ml-e5/` adds the real embedder on top of ML's image, and the model (~1.1 GB) downloads into a volume on first start. `SEARCH_RERANK_TOP_N=0` skips ML's bootstrap word-overlap reranker, which worsens semantic results.
+   In PowerShell, set the variable first: `$env:ML_SERVICE_URL = "http://ml-service:8001"`.
 
-   ```bash
-   docker compose --profile ml build ml-service
-   ```
-
-   ```bash
-   ML_SERVICE_URL=http://ml-service-e5:8001 SEARCH_RERANK_TOP_N=0 docker compose --profile ml-e5 up -d --build
-   ```
-
-4. Index the corpus. On a CPU this takes about 40 minutes for 16k chunks.
+3. Index the corpus. On a laptop CPU this takes about 45 minutes for 16k chunks; `/data/sample` (the Labor Code only) takes about 3.
 
    ```bash
    docker compose exec backend python -m indexer --data-dir /data/processed
    ```
 
-5. For a generated answer, point the ml-service at any OpenAI-compatible LLM in `.env`. Without this, the answer is ML's extractive fallback: the first sentence of the top source. For example, Groq:
+   In Git Bash, prefix the command with `MSYS_NO_PATHCONV=1`, otherwise `/data/processed` is rewritten into a Windows path. Until the index is built with the current models, search answers 503 "reindex required".
+
+4. For generated answers, point the ml-service at any OpenAI-compatible LLM in `.env`, then recreate it (`docker compose --profile ml up -d ml-service`, not during indexing). Without this, the answer is an extractive fallback: the first sentence of the top source. For example, Groq:
 
    ```
    ADILET_ML_GENERATOR_MODE=openai
@@ -97,11 +60,17 @@ The relevant-results demo uses real law and a real embedder:
    LLM_API_KEY=<your key>
    ```
 
-   Then recreate the service (not during indexing): `docker compose --profile ml-e5 up -d ml-service-e5`.
+5. Start the UI in live mode; Vite proxies `/api` to the backend. Then open `http://127.0.0.1:5173`.
+
+   ```bash
+   cd frontend && npm ci && VITE_API_MODE=live npm run dev
+   ```
+
+For a quick stack without model downloads (CI does this), add `ML_MODEL_MANIFEST_PATH=/app/models/model_manifest.bootstrap.json`: the ml-service then runs offline stand-ins. The real-ML checks are `TEST_ML_SERVICE_URL=http://127.0.0.1:8001 uv run pytest -m ml` (from `backend/`).
 
 ## Index data and search
 
-Search needs an index. Until ML publishes `data/sample/`, index the **synthetic** test corpus (invented texts, clearly marked; not legislation):
+Search needs an index. With the fake ML service, index the **synthetic** test corpus (invented texts, clearly marked; not legislation):
 
 ```bash
 docker compose exec backend sh -c "python -m dev.sample_corpus /tmp/sample && python -m indexer --data-dir /tmp/sample"

@@ -3,6 +3,8 @@ marp: true
 title: A2 Data Preparation and Baseline
 ---
 
+> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
+
 # A2: Data and Baseline
 
 - Contract-shaped corpus sample
