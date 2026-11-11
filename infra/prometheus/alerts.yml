@@ -1,0 +1,32 @@
+groups:
+  - name: adilet
+    rules:
+      - alert: SearchLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le) (rate(search_stage_latency_seconds_bucket{stage="total"}[5m]))) > 2
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "Search p95 is above 2 s"
+          description: "The /search p95 has been {{ $value | printf \"%.2f\" }} s for 5 minutes (target: 2 s)."
+
+      - alert: ServerErrorRateHigh
+        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / clamp_min(sum(rate(http_requests_total[5m])), 0.001) > 0.05
+        for: 5m
+        labels: {severity: critical}
+        annotations:
+          summary: "More than 5% of requests fail with 5xx"
+
+      - alert: DegradedResponsesHigh
+        expr: sum(rate(degraded_responses_total[5m])) / clamp_min(sum(rate(search_requests_total[5m])), 0.001) > 0.10
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "More than 10% of responses are degraded"
+          description: "Search is falling back (full-text or no rerank). Check the ML service and Qdrant."
+
+      - alert: ComponentDown
+        expr: up == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.job }} is not answering Prometheus scrapes"
