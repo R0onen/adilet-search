@@ -30,7 +30,8 @@ class FtsFallback:
         strict = func.websearch_to_tsquery(config, query)
         # websearch_to_tsquery ANDs the words; rewrite its `&` into `|` to rank partial matches.
         loose = func.to_tsquery(config, func.replace(cast(strict, Text), "&", "|"))
-        rank = func.ts_rank_cd(Article.tsv, loose, 32).label("rank")
+        # 1 | 32: damp long articles (they match many words) and scale the rank into 0..1.
+        rank = func.ts_rank_cd(Article.tsv, loose, 33).label("rank")
         stmt = (
             select(Article, Document, rank)
             .join(Document, (Document.doc_id == Article.doc_id) & (Document.lang == Article.lang))
