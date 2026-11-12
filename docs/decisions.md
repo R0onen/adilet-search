@@ -128,3 +128,39 @@ Format:
   promote hash-dense to exercise the dense path (not semantic evidence).
 - **Revisit if:** the gold set, real dense embeddings, cross-encoder and fine-tuned checkpoints show
   a statistically meaningful improvement under the latency budget.
+
+
+## D-019: Use the real pretrained pipeline for the final prototype, with measured limits
+- 2026-11-12 · local prototype choice · final preparation
+- **Decision:** demonstrate pipeline `0.2.0` (pinned multilingual E5, BM25, weighted RRF and
+  multilingual cross-encoder), rather than the superseded hash/bootstrap runtime. The current
+  CPU demo reranks 3 fused candidates with 4 bounded inference workers and 1 CPU thread per call.
+  The manifest retains its full 20-candidate configuration; the override is recorded separately.
+- **Evidence:** real-model inference and isolated indexing/API tests pass. In the current six
+  source-derived RU/KK rehearsal, hybrid puts the expected article first in 6/6 cases, semantic
+  in 5/6 and keyword in 4/6. These are diagnostic cases, not independent gold relevance labels.
+  The current generator is the externally pretrained `openai/gpt-oss-120b`, configured locally;
+  a fresh checkout uses explicitly labelled extractive fallback.
+- **Limits:** this is an operational prototype choice, not a statistically established best
+  model or a completed fine-tuning result. D-018's old seed numbers are superseded. The only
+  current offline baseline is the title-query BM25 run in `ml/reports/results.csv`. Quote load
+  results including failures and degraded responses from `docs/report/final_load.json`; do not
+  infer that the p95 target passed from a fast subset.
+- **Revisit when:** common-split model comparisons, project-specific training artifacts where
+  required, a human RU/KK benchmark and full-corpus deployment measurements are available.
+
+## D-020: Retain the hybrid candidate after a matched recent-model proxy study
+- 2026-11-12 · accepted for the course prototype · ML / final research
+- **Decision:** retain the E5/BM25/RRF/cross-encoder pipeline; keep Qwen3, BGE-M3,
+  EmbeddingGemma 2 and LLM rewriting as reproducible research candidates, without changing
+  the served model or rebuilding the product index automatically.
+- **Evidence:** on the full body-only frozen study, hybrid has validation nDCG@10 0.856 and
+  test 0.846; BGE-M3 has 0.830/0.822, E5 0.706/0.703, Qwen3 0.539/0.548 and
+  EmbeddingGemma 2 0.710/0.716. Removing the reranker gives 0.778/0.770.
+  Selection uses validation; paired test uncertainty and RU/KK results are reported in
+  `docs/report/RESEARCH_FINDINGS.md`. Saved rankings independently reproduce all 180 metrics.
+- **Limits:** title-derived proxy labels, different tokenizers and supported precisions,
+  local BM25 IDF instead of Qdrant, no project fine-tuning. The LLM rewrite is a separate
+  small matched pilot. These are not general legal accuracy or API latency claims.
+- **Revisit if:** independent native-speaker relevance judgments, longer-context experiments
+  or validation-only prompt tuning establish a stronger alternative on a fresh test cohort.

@@ -1,6 +1,9 @@
 import json
 import math
+import threading
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -90,3 +93,52 @@ def test_metrics(client: TestClient) -> None:
     client.get("/health")
     metrics = client.get("/metrics").text
     assert "ml_requests_total" in metrics
+
+
+def test_health_remains_responsive_during_inference(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    serving = import_module("adilet_ml.serving.app")
+    original = serving.engine().embed
+    entered = threading.Event()
+    release = threading.Event()
+
+    def blocked_embed(*args, **kwargs):
+        entered.set()
+        assert release.wait(5), "test did not release the inference worker"
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(serving.engine(), "embed", blocked_embed)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        inference = pool.submit(client.post, "/embed", json={"texts": ["test"], "kind": "query"})
+        try:
+            assert entered.wait(2)
+            health = pool.submit(client.get, "/health")
+            assert health.result(timeout=1).status_code == 200
+        finally:
+            release.set()
+        assert inference.result(timeout=3).status_code == 200
+
+
+def test_cuda_warmup_finishes_before_service_is_ready(monkeypatch: pytest.MonkeyPatch) -> None:
+    serving = import_module("adilet_ml.serving.app")
+    stages = []
+
+    class FakeEngine:
+        def __init__(self, manifest):
+            self.manifest = manifest
+            self.pipeline_version = manifest.pipeline_version
+            self.llm_base_url = None
+
+        def embed(self, *args, **kwargs):
+            stages.append("embed")
+
+        def rerank(self, *args, **kwargs):
+            stages.append("rerank")
+
+    monkeypatch.setenv("MODEL_MANIFEST_PATH", str(MANIFEST))
+    monkeypatch.setenv("ADILET_ML_DEVICE", "cuda")
+    monkeypatch.setattr(serving, "MlEngine", FakeEngine)
+    with TestClient(app) as api:
+        assert stages == ["embed", "rerank"]
+        assert api.get("/health").status_code == 200

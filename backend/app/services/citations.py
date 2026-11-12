@@ -15,6 +15,7 @@ from dataclasses import dataclass
 
 # "[1]", "[1, 3]", "[ 2 ;4 ]"
 _MARKER = re.compile(r"\[\s*\d{1,3}(?:\s*[,;]\s*\d{1,3})*\s*\]")
+_UNICODE_MARKER = re.compile(r"[【［](\s*\d{1,3}(?:\s*[,;]\s*\d{1,3})*\s*)[】］]")
 _SPACE_BEFORE_PUNCT = re.compile(r"[ \t]+([.,;:!?])")
 _DOUBLE_SPACES = re.compile(r"[ \t]{2,}")
 
@@ -64,6 +65,9 @@ def is_refusal(text: str) -> bool:
 
 
 def process_citations(text: str, valid_refs: Collection[int]) -> CitationResult:
+    # Some generators use Unicode citation brackets despite the prompt. Normalise only
+    # numeric references; quoted statute text in the source records is never modified.
+    text = _UNICODE_MARKER.sub(lambda match: f"[{match[1]}]", text)
     valid = set(valid_refs)
     invalid = 0
 

@@ -22,7 +22,7 @@ dependencies = [
     "pyjwt>=2.9",
     "bcrypt>=4.2",
     "cachetools>=5.5",
-    "prometheus-client>=0.21",
+    "prometheus-client>=0.21,<1",
 ]
 
 [dependency-groups]

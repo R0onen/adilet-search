@@ -1,0 +1,16 @@
+# Optional NVIDIA inference. Add after docker-compose.yml and docker-compose.final.yml.
+services:
+  ml-service:
+    image: adilet-ml-service:gpu
+    build:
+      args:
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cu130
+        TORCH_VERSION: 2.14.1+cu130
+        ML_EXTRAS: models,research
+    gpus: all
+    environment:
+      ADILET_ML_DEVICE: cuda
+      ADILET_ML_INFERENCE_WORKERS: ${ADILET_ML_GPU_WORKERS:-1}
+  backend:
+    environment:
+      SEARCH_RERANK_TOP_N: ${GPU_RERANK_TOP_N:-20}

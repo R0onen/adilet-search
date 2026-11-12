@@ -1,0 +1,13 @@
+{
+  "targets": [
+    {
+      "job": "backend",
+      "health": "up"
+    },
+    {
+      "job": "ml",
+      "health": "up"
+    }
+  ],
+  "grafanaDashboard": "adilet-final"
+}

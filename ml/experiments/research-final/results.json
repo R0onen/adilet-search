@@ -1,0 +1,407 @@
+{
+  "precision": "Per-method supported dtype; inspect dtype/run_precision",
+  "confidence_interval_resampling_unit": "article family; paired RU/KK kept together",
+  "scope": "Full frozen validation/test split; title-derived proxy labels; body-only corpus",
+  "pilot_per_language": 0,
+  "corpus_sha256": "7984a9f574590325c3ebfcdfeac15c4ff42c4b0765a7b69c991add7713fa8766",
+  "queries_sha256": "b1d6d7987283aa63aec8a779eb8b64b92c7bf7ae186d8463a933a63512d091a5",
+  "torch": "2.14.1+cu130",
+  "device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "methods": {
+    "e5": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.025224826999874495,
+      "corpus_vector_cache_hit": true,
+      "query_and_ranking_seconds": 21.70682120399988,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.7056590691949791,
+          "recall@10": 0.851258581235698,
+          "recall@50": 0.9397406559877955,
+          "mrr@10": 0.6589023888222972
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.8093910936809097,
+          "recall@10": 0.926605504587156,
+          "recall@50": 0.9770642201834863,
+          "mrr@10": 0.771242294063395
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.6024007069213132,
+          "recall@10": 0.776255707762557,
+          "recall@50": 0.9025875190258752,
+          "mrr@10": 0.5470754511850402
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.7034252683043521,
+          "recall@10": 0.8444613050075872,
+          "recall@50": 0.9347496206373292,
+          "mrr@10": 0.6581975455837368
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8023359351969523,
+          "recall@10": 0.9194528875379939,
+          "recall@50": 0.9726443768996961,
+          "mrr@10": 0.7638135041250543
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.6048143307053658,
+          "recall@10": 0.7696969696969697,
+          "recall@50": 0.896969696969697,
+          "mrr@10": 0.5529016354016354
+        }
+      },
+      "run_precision": "FP16 model weights; FP32 normalized stored vectors and cosine scores"
+    },
+    "current_hybrid_reranker": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.025224826999874495,
+      "corpus_vector_cache_hit": true,
+      "query_and_ranking_seconds": 337.7630275820002,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.8562950815101888,
+          "recall@10": 0.9420289855072463,
+          "recall@50": 0.973302822273074,
+          "mrr@10": 0.8281845919145691
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.8732857694635942,
+          "recall@10": 0.9617737003058104,
+          "recall@50": 0.9892966360856269,
+          "mrr@10": 0.8441926362797922
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.839381976606799,
+          "recall@10": 0.9223744292237442,
+          "recall@50": 0.9573820395738204,
+          "mrr@10": 0.8122496436423378
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.8457278349822479,
+          "recall@10": 0.9339908952959028,
+          "recall@50": 0.9650986342943855,
+          "mrr@10": 0.8166103644290291
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8550335294586985,
+          "recall@10": 0.939209726443769,
+          "recall@50": 0.9772036474164134,
+          "mrr@10": 0.8271131856998118
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.8364503395799685,
+          "recall@10": 0.9287878787878788,
+          "recall@50": 0.953030303030303,
+          "mrr@10": 0.80613936988937
+        }
+      },
+      "run_precision": "FP16 model weights; FP32 normalized stored vectors and cosine scores"
+    },
+    "hybrid_no_reranker": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.025224826999874495,
+      "corpus_vector_cache_hit": true,
+      "query_and_ranking_seconds": 119.53270360600027,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.7782531389211897,
+          "recall@10": 0.9176201372997712,
+          "recall@50": 0.973302822273074,
+          "mrr@10": 0.7333959899749374
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.8253647131820467,
+          "recall@10": 0.944954128440367,
+          "recall@50": 0.9892966360856269,
+          "mrr@10": 0.7865340274743944
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.7313566860039895,
+          "recall@10": 0.8904109589041096,
+          "recall@50": 0.9573820395738204,
+          "mrr@10": 0.680500591916117
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.7701600558318276,
+          "recall@10": 0.9119878603945372,
+          "recall@50": 0.9650986342943855,
+          "mrr@10": 0.7246128092106848
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8160790665743708,
+          "recall@10": 0.9361702127659575,
+          "recall@50": 0.9772036474164134,
+          "mrr@10": 0.7773586384908573
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.724380193606686,
+          "recall@10": 0.8878787878787879,
+          "recall@50": 0.953030303030303,
+          "mrr@10": 0.6720268157768158
+        }
+      },
+      "run_precision": "FP16 model weights; FP32 normalized stored vectors and cosine scores"
+    },
+    "qwen3": {
+      "repo": "Qwen/Qwen3-Embedding-0.6B",
+      "revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+      "max_tokens": 512,
+      "query_prefix": "Instruct: Retrieve Kazakhstan legislation passages answering the question.\nQuery:",
+      "passage_prefix": "",
+      "corpus_encoding_seconds_or_cache_load": 0.060335203999784426,
+      "corpus_vector_cache_hit": true,
+      "query_and_ranking_seconds": 43.33242117999998,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.5388302901715295,
+          "recall@10": 0.7246376811594203,
+          "recall@50": 0.8527841342486652,
+          "mrr@10": 0.48021926797670506
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.6448188191012593,
+          "recall@10": 0.8333333333333334,
+          "recall@50": 0.9418960244648318,
+          "mrr@10": 0.5850280326197758
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.43332572712732365,
+          "recall@10": 0.6164383561643836,
+          "recall@50": 0.7640791476407914,
+          "mrr@10": 0.37588908216762096
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.5482762433652625,
+          "recall@10": 0.7215477996965098,
+          "recall@50": 0.8558421851289834,
+          "mrr@10": 0.4934879085675747
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.6673100366907837,
+          "recall@10": 0.8480243161094225,
+          "recall@50": 0.9437689969604863,
+          "mrr@10": 0.6098766102185554
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.42960315850436404,
+          "recall@10": 0.5954545454545455,
+          "recall@50": 0.7681818181818182,
+          "mrr@10": 0.3774518999519
+        }
+      },
+      "run_precision": "FP16 model weights; FP32 normalized stored vectors and cosine scores"
+    },
+    "bge_m3": {
+      "repo": "BAAI/bge-m3",
+      "revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "max_tokens": 512,
+      "query_prefix": "",
+      "passage_prefix": "",
+      "corpus_encoding_seconds_or_cache_load": 0.08655872000008458,
+      "corpus_vector_cache_hit": true,
+      "query_and_ranking_seconds": 29.14962437400027,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.8297443499699209,
+          "recall@10": 0.9458428680396643,
+          "recall@50": 0.9824561403508771,
+          "mrr@10": 0.7923247127480537
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.8493158587584608,
+          "recall@10": 0.9617737003058104,
+          "recall@50": 0.9923547400611621,
+          "mrr@10": 0.8131006989951943
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.8102622088014199,
+          "recall@10": 0.9299847792998478,
+          "recall@50": 0.9726027397260274,
+          "mrr@10": 0.7716435940180232
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.8221990075720874,
+          "recall@10": 0.9408194233687405,
+          "recall@50": 0.9757207890743551,
+          "mrr@10": 0.7832481272731653
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8325746807432589,
+          "recall@10": 0.9483282674772037,
+          "recall@50": 0.9817629179331308,
+          "mrr@10": 0.7944450475225551
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.8118547758347682,
+          "recall@10": 0.9333333333333333,
+          "recall@50": 0.9696969696969697,
+          "mrr@10": 0.772085137085137
+        }
+      },
+      "run_precision": "FP16 model weights; FP32 normalized stored vectors and cosine scores"
+    },
+    "embeddinggemma2": {
+      "repo": "google/embeddinggemma-2",
+      "dtype": "torch.bfloat16",
+      "revision": "f9972ac22e696a105c482202646979e33e4b5a1e",
+      "max_tokens": 512,
+      "query_prefix": "task: search result | query: ",
+      "passage_prefix": "title: none | text: ",
+      "corpus_encoding_seconds_or_cache_load": 275.6528716879998,
+      "corpus_vector_cache_hit": false,
+      "query_and_ranking_seconds": 44.26674195600026,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.7097838978893886,
+          "recall@10": 0.8573607932875668,
+          "recall@50": 0.9397406559877955,
+          "mrr@10": 0.6621084716622474
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.808635666288128,
+          "recall@10": 0.926605504587156,
+          "recall@50": 0.9785932721712538,
+          "mrr@10": 0.7698072909082083
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.6113835074285429,
+          "recall@10": 0.7884322678843226,
+          "recall@50": 0.9010654490106544,
+          "mrr@10": 0.5549014278466333
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.7160206246574061,
+          "recall@10": 0.877845220030349,
+          "recall@50": 0.9484066767830045,
+          "mrr@10": 0.6643971144350507
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8018056896641833,
+          "recall@10": 0.9452887537993921,
+          "recall@50": 0.9832826747720365,
+          "mrr@10": 0.7553577459352535
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.6304955143930737,
+          "recall@10": 0.8106060606060606,
+          "recall@50": 0.9136363636363637,
+          "mrr@10": 0.5737121212121212
+        }
+      },
+      "run_precision": "Per-method supported dtype; FP32 stored vectors and cosine scores"
+    }
+  },
+  "validation_winner": "current_hybrid_reranker",
+  "input_runs": [
+    "ml\\experiments\\research-full\\results.json",
+    "ml\\experiments\\research-gemma2\\results.json"
+  ],
+  "paired_test_ndcg10_delta_vs_e5": {
+    "current_hybrid_reranker": {
+      "mean": 0.14230256667789576,
+      "ci95": [
+        0.12298292793474712,
+        0.16183837333918427
+      ]
+    },
+    "hybrid_no_reranker": {
+      "mean": 0.06673478752747544,
+      "ci95": [
+        0.05219937651325371,
+        0.08161939251810983
+      ]
+    },
+    "qwen3": {
+      "mean": -0.15514902493908972,
+      "ci95": [
+        -0.18022632626388593,
+        -0.12909665442692933
+      ]
+    },
+    "bge_m3": {
+      "mean": 0.1187737392677353,
+      "ci95": [
+        0.1003754848036405,
+        0.13789351826014323
+      ]
+    },
+    "embeddinggemma2": {
+      "mean": 0.01259535635305398,
+      "ci95": [
+        -0.006168421605357658,
+        0.03132147859409432
+      ]
+    }
+  },
+  "exploratory_pairwise_test_deltas": {
+    "current_hybrid_reranker_vs_bge_m3": {
+      "mean": 0.023528827410160463,
+      "ci95": [
+        0.006758044831089488,
+        0.039624734995594234
+      ]
+    },
+    "current_hybrid_reranker_vs_hybrid_no_reranker": {
+      "mean": 0.07556777915042032,
+      "ci95": [
+        0.0594610406750968,
+        0.09095503474199187
+      ]
+    }
+  },
+  "postrun_verification": {
+    "metric_values_recomputed": 180,
+    "qrels_sha256": "9d380b621f366cd48b759735965e133a700ae307ee00c014628e458efa5e3e74",
+    "splits_sha256": "8d68bcbfe09edf53d83df0b652fc142a86b50dc1a93ae7f1e2f1da1e3c27b990",
+    "note": "Post-run fingerprints; independently recomputed every saved split metric"
+  }
+}

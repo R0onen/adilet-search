@@ -4,9 +4,22 @@ Semantic search and source-cited answers over the legislation of the Republic of
 
 Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 
+## Final project preparation (12 November 2026)
+
+The current local prototype runs the real pretrained E5/cross-encoder pipeline, with a production
+frontend and Prometheus/Grafana. Start with [the final-project run guide](docs/tech/final_project.md)
+and [the readiness report](docs/report/final_readiness.md). The [10-slide presentation](docs/presentation/final_deck.md)
+and [speaker guide](docs/presentation/final_speaker_guide.md) distinguish measured results from
+remaining model-selection, training and public-deployment work. Older bootstrap reports are
+superseded and must not supply final numerical claims.
+
 Three AI coding agents develop this repository: **ML**, **Backend** and **Frontend**. Each one is driven by a teammate. This README is for the humans.
 
 ## Start here
+
+The final research study compares the project pipeline with recent pretrained embeddings:
+[findings](docs/report/RESEARCH_FINDINGS.md), [executed notebook](ml/notebooks/Final_Research_Comparison.ipynb),
+and [reproduction instructions](docs/tech/research_benchmark.md).
 
 | File | What it is |
 |---|---|

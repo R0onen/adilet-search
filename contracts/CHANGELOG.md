@@ -102,3 +102,12 @@ Open items to settle by G0:
 - **Backend:** confirm that the `/answer` SSE event shapes are implementable as written with sse-starlette.
 - **ML:** confirm the `text_for_embedding` header format after seeing real KK pages, and whether adilet article anchors are stable enough for `source_url`.
 - **Frontend:** confirm that the `/admin/stats` fields cover the dashboard design.
+
+
+## 2026-11-12 — Final prototype citation formatting
+- Backend accepts numeric references emitted in Unicode brackets (`【1】`, `［1］`) and
+  normalises them to the existing canonical `[1]` output before validating source IDs.
+- Why: generated answers could otherwise show non-clickable citations despite referring to a
+  supplied source. Non-numeric bracketed text and stored legal source text remain unchanged.
+- Breaking: no. Public response schemas and citation reference semantics are unchanged.
+- Frontend: no type changes required; existing canonical citation rendering handles the output.

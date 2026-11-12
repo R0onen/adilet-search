@@ -161,8 +161,13 @@ services:
       # weights, ~1.6 GB, download into the ml-model-cache volume on the first start).
       # /app/models/model_manifest.bootstrap.json runs offline stand-ins (tests, CI).
       MODEL_MANIFEST_PATH: ${ML_MODEL_MANIFEST_PATH:-/app/models/model_manifest.json}
+      MODEL_PROMPT_PATH: /app/prompts/answer_v1.md
       MODEL_CACHE_DIR: /models
       ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
+      # Bound parallel model calls and CPU threads; inference must not block health/metrics.
+      ADILET_ML_INFERENCE_WORKERS: ${ADILET_ML_INFERENCE_WORKERS:-2}
+      OMP_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
+      MKL_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
       # fallback (extractive, no LLM) | openai (calls LLM_BASE_URL)
       ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
       LLM_BASE_URL: ${LLM_BASE_URL:-http://llm:8002}

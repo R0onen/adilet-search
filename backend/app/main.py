@@ -5,16 +5,18 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic.json_schema import models_json_schema
+from starlette.responses import Response
 
 from app.api.v1 import API_PREFIX
 from app.api.v1 import router as v1_router
 from app.core.config import Settings, get_settings
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
+from app.core.metrics import HttpMetrics, MetricsMiddleware
 from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.schemas.answer import SSE_EVENTS
 from app.startup import startup_tasks
@@ -85,6 +87,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         redoc_url=None,
     )
     register_error_handlers(app)
+    metrics = HttpMetrics()
+    app.state.metrics = metrics
+
+    @app.get("/metrics", include_in_schema=False)
+    async def prometheus_metrics() -> Response:
+        return Response(
+            generate_latest(metrics.registry) + generate_latest(),
+            headers={"Content-Type": CONTENT_TYPE_LATEST},
+        )
+
+    app.add_middleware(MetricsMiddleware, metrics=metrics)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
@@ -102,11 +115,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Added last = outermost: every response, including CORS preflights and 500s, gets an id.
     app.add_middleware(RequestContextMiddleware, max_body_bytes=settings.max_body_bytes)
     app.include_router(v1_router)
-
-    @app.get("/metrics", include_in_schema=False)
-    async def prometheus_metrics() -> Response:
-        """Prometheus scrape target. Internal: the reverse proxy does not route it."""
-        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     default_openapi = app.openapi
 

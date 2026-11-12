@@ -1,27 +1,39 @@
 # syntax=docker/dockerfile:1.7
+FROM ghcr.io/astral-sh/uv:0.12.24 AS uv
 FROM python:3.12-slim-bookworm
+COPY --from=uv /uv /usr/local/bin/uv
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     MODEL_CACHE_DIR=/models \
     HF_HOME=/models/hf \
-    MODEL_MANIFEST_PATH=/app/models/model_manifest.json
+    MODEL_MANIFEST_PATH=/app/models/model_manifest.json \
+    MODEL_PROMPT_PATH=/app/prompts/answer_v1.md
 
 WORKDIR /app
 
 RUN useradd --create-home --shell /usr/sbin/nologin appuser
 
-# CPU-only torch from the PyTorch index: the default PyPI wheel bundles CUDA (several GB).
+# CPU by default; the optional GPU overlay selects the pinned CUDA wheel explicitly.
+ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
+ARG TORCH_VERSION=2.14.1+cpu
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.1+cpu
+    pip install --index-url "${TORCH_INDEX_URL}" "torch==${TORCH_VERSION}"
 
-COPY pyproject.toml README.md ./
+COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 COPY models ./models
 COPY prompts ./prompts
+ARG ML_EXTRAS=models
 
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install ".[models]" \
+    case ",${ML_EXTRAS}," in \
+         *,research,*) pip install --no-deps --index-url "${TORCH_INDEX_URL}" "torchvision==0.29.1" ;; \
+         *) true ;; \
+       esac \
+    && uv export --frozen --extra models --extra research --no-dev --no-emit-project --no-hashes \
+        --no-annotate --output-file /tmp/constraints.txt \
+    && pip install --constraint /tmp/constraints.txt ".[${ML_EXTRAS}]" \
     && mkdir -p /models \
     && chown -R appuser:appuser /models /app
 

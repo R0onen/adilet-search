@@ -26,11 +26,33 @@ later amendments are not in it.
 
 ## Evaluation
 
-Only proxy numbers exist so far (`ml/reports/results.csv`). On the title-query test split (1,318
-queries, searching article bodies), the BM25 stage alone reaches nDCG@10 0.730 (RU 0.753, KK 0.708)
-and Recall@50 0.938. The dense, hybrid and reranked stages have not been measured on a fair set
-yet: title queries are unfair to them in one direction (legislator's wording) and too easy through
-the product index (the title is in every chunk header). There is no human gold set.
+The full body-only frozen proxy study now compares pretrained models and project ablations:
+
+| Configuration | Validation nDCG@10 | Test nDCG@10 |
+|---|---:|---:|
+| E5 dense | 0.706 | 0.703 |
+| Project hybrid + reranker | 0.856 | 0.846 |
+| Hybrid without reranker | 0.778 | 0.770 |
+| Qwen3-Embedding-0.6B | 0.539 | 0.548 |
+| BGE-M3 | 0.830 | 0.822 |
+| EmbeddingGemma 2, text-only | 0.710 | 0.716 |
+
+All use the same 16,264 body-only chunks, 1,311 validation and 1,318 test queries. The hybrid
+configuration is selected by validation; its paired test difference from dense E5 is +0.142,
+with an article-family bootstrap 95% interval [+0.123, +0.162]. It reproduces the project stages
+offline using local BM25; its IDF differs from Qdrant. The optional LLM rewrite has only a
+separate eight-test-query pilot and establishes no benefit.
+
+Queries remain title-derived known-item proxies. Body-only indexing avoids direct title-header
+overlap, but there is no independent human-gold set. These scores do not establish general
+natural-language legal accuracy. Encoder precision is FP16 except Gemma's supported BF16;
+this evaluates practical configurations, not architecture alone. Checkpoints, fingerprints,
+per-language scores, rankings and limits are in
+[research findings](../docs/report/RESEARCH_FINDINGS.md) and
+[run artifacts](experiments/research-final/results.json).
+
+The earlier article-body BM25 baseline (`ml/reports/results.csv`, test nDCG@10 0.730) uses a
+different retrieval unit. Keep it separate from this matched chunk-based comparison.
 
 ## Known limits
 

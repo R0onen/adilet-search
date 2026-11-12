@@ -1,6 +1,9 @@
 """Prometheus metrics. Scraped at `/metrics` (root path; not exposed through the reverse proxy)."""
 
-from prometheus_client import Counter, Histogram
+import time
+
+from prometheus_client import CollectorRegistry, Counter, Histogram
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 STAGE_BUCKETS = (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0)
 ANSWER_BUCKETS = (0.25, 0.5, 1.0, 2.0, 4.0, 8.0, 15.0, 30.0, 60.0, 120.0)
@@ -41,3 +44,52 @@ def observe_search(mode: str, lang: str, timing_ms: dict[str, int], degraded: li
         DEGRADED.labels(component).inc()
     if zero_results:
         SEARCH_ZERO.inc()
+
+
+class HttpMetrics:
+    def __init__(self) -> None:
+        self.registry = CollectorRegistry()
+        self.requests = Counter(
+            "adilet_http_requests_total",
+            "Completed HTTP requests",
+            ["method", "route", "status"],
+            registry=self.registry,
+        )
+        self.duration = Histogram(
+            "adilet_http_request_duration_seconds",
+            "HTTP duration including streaming",
+            ["method", "route"],
+            buckets=(0.05, 0.1, 0.25, 0.5, 1, 2, 3, 5, 10, 30, 90),
+            registry=self.registry,
+        )
+
+
+class MetricsMiddleware:
+    def __init__(self, app: ASGIApp, metrics: HttpMetrics) -> None:
+        self.app = app
+        self.metrics = metrics
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or scope.get("path") == "/metrics":
+            await self.app(scope, receive, send)
+            return
+        started = time.perf_counter()
+        status = 500
+
+        async def observed_send(message: Message) -> None:
+            nonlocal status
+            if message["type"] == "http.response.start":
+                status = message["status"]
+            await send(message)
+
+        try:
+            await self.app(scope, receive, observed_send)
+        finally:
+            route = getattr(scope.get("route"), "path", "unmatched")
+            method = (
+                scope["method"]
+                if scope["method"] in {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
+                else "OTHER"
+            )
+            self.metrics.requests.labels(method, route, str(status)).inc()
+            self.metrics.duration.labels(method, route).observe(time.perf_counter() - started)

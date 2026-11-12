@@ -72,7 +72,8 @@ test('answer cancellation and backend failures preserve retrieved sources', asyn
   await page.goto('/');
   await page.getByRole('button', { name: 'Мне не платят зарплату' }).click();
   await page.getByRole('button', { name: 'Сформировать ответ' }).click();
-  await expect(page.locator('.citation').first()).toBeVisible();
+  // Sources arrive before tokens; a late citation can arrive after generation has finished.
+  await expect(page.locator('.answer-sources')).toBeVisible();
   await page.getByRole('button', { name: 'Остановить', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Генерация остановлена');
   await expect(page.locator('.result-card')).toHaveCount(2);

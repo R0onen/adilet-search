@@ -1,0 +1,75 @@
+{
+  "created_at": "2026-11-11T21:49:29.754948+00:00",
+  "git_head": "4ee11903e472dd06a4748ed1e0b304842684ef0c",
+  "git_branch": "final/prototype-and-defense",
+  "uncommitted_changes": true,
+  "settings": {
+    "ml-service": {
+      "ADILET_ML_INFERENCE_WORKERS": "4",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "ADILET_ML_GENERATOR_MODE": "openai",
+      "LLM_MODEL": "openai/gpt-oss-120b"
+    },
+    "backend": {
+      "SEARCH_RERANK_TOP_N": "3",
+      "SEARCH_EMBED_TIMEOUT_S": "2",
+      "SEARCH_RERANK_TIMEOUT_S": "1.5"
+    }
+  },
+  "health": {
+    "status": "ok",
+    "components": {
+      "database": "ok",
+      "qdrant": "ok",
+      "ml_service": "ok",
+      "llm": "ok"
+    },
+    "pipeline_version": "0.2.0",
+    "app_version": "0.1.0"
+  },
+  "version": {
+    "app_version": "0.1.0",
+    "git_sha": "dev",
+    "pipeline_version": "0.2.0",
+    "index_collection": "legal_chunks__0.2.0"
+  },
+  "ml_health": {
+    "status": "ok",
+    "components": {
+      "embedder": "ok",
+      "sparse": "ok",
+      "reranker": "ok",
+      "generator": "ok"
+    },
+    "pipeline_version": "0.2.0"
+  },
+  "qdrant": {
+    "status": "green",
+    "points_count": 805,
+    "indexed_vectors_count": 805
+  },
+  "monitoring": [
+    {
+      "job": "backend",
+      "health": "up"
+    },
+    {
+      "job": "ml",
+      "health": "up"
+    }
+  ],
+  "image_ids": {
+    "backend": "sha256:807fd461eb5daf9bb145aa0ca15f9f6661c4e3d68e0499de8e4df7df2ebe018a",
+    "ml-service": "sha256:943c4240b31819ea8e13c2562eab535ee5e5babffef9ddd7f1ea831032a1fea9",
+    "frontend": "sha256:47becd75f516f6eae19a31bbc8b7c342b0633bab9fa7a262d29490da75190db4",
+    "prometheus": "sha256:6927e0919a144aa7616fd0137d4816816d42f6b816de3af269ab065250859a62",
+    "grafana": "sha256:62d2b9d20a19714ebfe48d1bb405086081bc602aa053e28cf6d73c7537640dfb"
+  },
+  "file_sha256": {
+    "ml/models/model_manifest.json": "b87be7589af1aef08afeeaa90b888da6f24554a56c5e02d9ca72181434f24773",
+    "ml/uv.lock": "7491fc6c40c87243e7058027d62b7e2c01847ce51b88c2230006e59003338eb2",
+    "backend/uv.lock": "4b18d9b96d07cc7c149d85d5800c9573cdbc4334ea5128370d461a09ce4c1cde",
+    "frontend/package-lock.json": "fa6593ce89af10c4512e80052a15c2619bec57d8bc07f39ef4813a6ead080e9d"
+  }
+}

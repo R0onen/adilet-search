@@ -1,0 +1,171 @@
+{
+  "scope": "title-derived proxy labels; body-only corpus; pilot is not confirmatory",
+  "pilot_per_language": 4,
+  "corpus_sha256": "7984a9f574590325c3ebfcdfeac15c4ff42c4b0765a7b69c991add7713fa8766",
+  "queries_sha256": "97efa747167693d8af8e0273afd5143c61dc28e5b6554de5c4d0d2f7953ad616",
+  "torch": "2.14.1+cu130",
+  "device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "methods": {
+    "e5": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.03275106099999903,
+      "query_and_ranking_seconds": 6.505996676999985,
+      "splits": {
+        "val:all": {
+          "queries": 8,
+          "ndcg@10": 0.6163345697591741,
+          "recall@10": 0.75,
+          "recall@50": 0.875,
+          "mrr@10": 0.5729166666666666
+        },
+        "val:ru": {
+          "queries": 4,
+          "ndcg@10": 0.75,
+          "recall@10": 0.75,
+          "recall@50": 1.0,
+          "mrr@10": 0.75
+        },
+        "val:kk": {
+          "queries": 4,
+          "ndcg@10": 0.4826691395183483,
+          "recall@10": 0.75,
+          "recall@50": 0.75,
+          "mrr@10": 0.3958333333333333
+        },
+        "test:all": {
+          "queries": 8,
+          "ndcg@10": 0.7150232675709843,
+          "recall@10": 0.875,
+          "recall@50": 1.0,
+          "mrr@10": 0.6678571428571428
+        },
+        "test:ru": {
+          "queries": 4,
+          "ndcg@10": 0.75,
+          "recall@10": 0.75,
+          "recall@50": 1.0,
+          "mrr@10": 0.75
+        },
+        "test:kk": {
+          "queries": 4,
+          "ndcg@10": 0.6800465351419688,
+          "recall@10": 1.0,
+          "recall@50": 1.0,
+          "mrr@10": 0.5857142857142857
+        }
+      }
+    },
+    "current_hybrid_reranker": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.03275106099999903,
+      "query_and_ranking_seconds": 3.670636648999789,
+      "splits": {
+        "val:all": {
+          "queries": 8,
+          "ndcg@10": 0.875,
+          "recall@10": 0.875,
+          "recall@50": 0.875,
+          "mrr@10": 0.875
+        },
+        "val:ru": {
+          "queries": 4,
+          "ndcg@10": 1.0,
+          "recall@10": 1.0,
+          "recall@50": 1.0,
+          "mrr@10": 1.0
+        },
+        "val:kk": {
+          "queries": 4,
+          "ndcg@10": 0.75,
+          "recall@10": 0.75,
+          "recall@50": 0.75,
+          "mrr@10": 0.75
+        },
+        "test:all": {
+          "queries": 8,
+          "ndcg@10": 0.875,
+          "recall@10": 0.875,
+          "recall@50": 1.0,
+          "mrr@10": 0.875
+        },
+        "test:ru": {
+          "queries": 4,
+          "ndcg@10": 0.75,
+          "recall@10": 0.75,
+          "recall@50": 1.0,
+          "mrr@10": 0.75
+        },
+        "test:kk": {
+          "queries": 4,
+          "ndcg@10": 1.0,
+          "recall@10": 1.0,
+          "recall@50": 1.0,
+          "mrr@10": 1.0
+        }
+      }
+    },
+    "e5_llm_rewrite": {
+      "repo": "intfloat/multilingual-e5-base",
+      "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+      "max_tokens": 512,
+      "query_prefix": "query: ",
+      "passage_prefix": "passage: ",
+      "corpus_encoding_seconds_or_cache_load": 0.03275106099999903,
+      "query_and_ranking_seconds": 0.08276170799990723,
+      "splits": {
+        "val:all": {
+          "queries": 8,
+          "ndcg@10": 0.6774993224861682,
+          "recall@10": 0.875,
+          "recall@50": 0.875,
+          "mrr@10": 0.6166666666666667
+        },
+        "val:ru": {
+          "queries": 4,
+          "ndcg@10": 0.8222662065794719,
+          "recall@10": 1.0,
+          "recall@50": 1.0,
+          "mrr@10": 0.775
+        },
+        "val:kk": {
+          "queries": 4,
+          "ndcg@10": 0.5327324383928644,
+          "recall@10": 0.75,
+          "recall@50": 0.75,
+          "mrr@10": 0.4583333333333333
+        },
+        "test:all": {
+          "queries": 8,
+          "ndcg@10": 0.625,
+          "recall@10": 0.625,
+          "recall@50": 1.0,
+          "mrr@10": 0.625
+        },
+        "test:ru": {
+          "queries": 4,
+          "ndcg@10": 0.75,
+          "recall@10": 0.75,
+          "recall@50": 1.0,
+          "mrr@10": 0.75
+        },
+        "test:kk": {
+          "queries": 4,
+          "ndcg@10": 0.5,
+          "recall@10": 0.5,
+          "recall@50": 1.0,
+          "mrr@10": 0.5
+        }
+      },
+      "llm": "openai/gpt-oss-120b",
+      "rewrite_prompt": "rewrite-v1; no corpus/qrels in prompt"
+    }
+  }
+}
