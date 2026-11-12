@@ -1,55 +1,85 @@
 # Adilet Search
 
-Semantic search and source-cited answers over the legislation of the Republic of Kazakhstan, built as the AI module of **Legal Service** (Tehsnab Group, https://test.tehprof.kz/legal).
+Semantic search and source-cited answers over the legislation of the Republic of Kazakhstan, in Russian and Kazakh. Built as the AI module of **Legal Service** (Tehsnab Group, https://test.tehprof.kz/legal).
 
 Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 
-## Final project preparation (12 November 2026)
+## What it does
 
-The current local prototype runs the real pretrained E5/cross-encoder pipeline, with a production
-frontend and Prometheus/Grafana. Start with [the final-project run guide](docs/tech/final_project.md)
-and [the readiness report](docs/report/final_readiness.md). The [10-slide presentation](docs/presentation/final_deck.md)
-and [speaker guide](docs/presentation/final_speaker_guide.md) distinguish measured results from
-remaining model-selection, training and public-deployment work. Older bootstrap reports are
-superseded and must not supply final numerical claims.
+- **Search in plain language.** Ask "мне не платят зарплату" and get the Labor Code articles about wage payment, not only articles that contain those words. Dense embeddings and keyword matching are combined, then a reranker reorders the top results.
+- **Answers with citations.** An LLM writes a short answer from the retrieved articles only and cites them as `[1]`, `[2]`; every citation opens the article.
+- **Official texts.** The corpus is the public AdiletCodex dataset (parsed from adilet.zan.kz): 8 codes, 9,259 articles, in both languages, stored verbatim.
+- **Admin panel.** Usage statistics, the query log, system health, reindexing.
+- **Keeps working when parts fail.** If the models or the vector index are down, search falls back to keyword search in the database.
 
-Three AI coding agents develop this repository: **ML**, **Backend** and **Frontend**. Each one is driven by a teammate. This README is for the humans.
+## Final project (submission 23 November 2026)
 
-## Start here
+- [Run guide for the final prototype](docs/tech/final_project.md) (`infra/start-final.ps1`: real models, production UI, Prometheus and Grafana on local ports) and the [readiness report](docs/report/final_readiness.md).
+- [10-slide presentation](docs/presentation/final_deck.md) and [speaker guide](docs/presentation/final_speaker_guide.md).
+- Research comparison of the pipeline with recent pretrained embedding models: [findings](docs/report/RESEARCH_FINDINGS.md), [executed notebook](ml/notebooks/Final_Research_Comparison.ipynb), [how to reproduce](docs/tech/research_benchmark.md).
 
-The final research study compares the project pipeline with recent pretrained embeddings:
-[findings](docs/report/RESEARCH_FINDINGS.md), [executed notebook](ml/notebooks/Final_Research_Comparison.ipynb),
-and [reproduction instructions](docs/tech/research_benchmark.md).
+Older bootstrap reports are superseded and must not supply final numbers.
 
-| File | What it is |
+## Quick start (fake models, no downloads)
+
+Needs Docker Desktop and Git. From the repository root:
+
+```bash
+cp .env.example .env
+```
+
+```bash
+docker compose --profile dev up -d --build
+```
+
+```bash
+docker compose exec backend sh -c "python -m dev.sample_corpus /tmp/sample && python -m indexer --data-dir /tmp/sample"
+```
+
+```bash
+cd frontend && npm ci && VITE_API_MODE=live npm run dev
+```
+
+Open `http://127.0.0.1:5173`. This stack uses a stand-in for the models and an invented test corpus: it shows that everything is wired together, not search quality. In PowerShell, set the variable first: `$env:VITE_API_MODE = "live"; npm run dev`.
+
+## The real thing (real models, real laws)
+
+See [backend/README.md](backend/README.md) → "Run the whole project". In short: build the corpus, start the stack with the `ml` profile (the models download once, about 1.6 GB), index the corpus (about 45 minutes on a laptop CPU), and add an LLM key for generated answers.
+
+## Where things are
+
+| Path | What |
 |---|---|
-| [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | The master plan: scope, architecture, timeline, gates, deliverables. Everyone reads it. |
-| [agents/README.md](agents/README.md) | How to run the three agents, and which prompt to send at each phase. |
-| [contracts/](contracts/) | The interfaces between the three parts (public API, internal ML service, data schema). Changes follow a process. |
-| [docs/status/](docs/status/) | One status file per agent. This is the agents' shared memory and their handoff channel. |
-| [docs/decisions.md](docs/decisions.md) | Decision log: why we chose what we chose. It feeds the "model selection rationale" parts of the reports. |
-| [CLAUDE.md](CLAUDE.md) | Shared rules that every agent loads automatically. |
+| [backend/](backend/README.md) | the public API (FastAPI), the indexer, tests, the load test |
+| [ml/](ml/README.md) | the corpus importer, the ML service (embedder, reranker, generator), evaluation, notebooks |
+| [frontend/](frontend/README.md) | the web UI and the admin panel (React) |
+| [contracts/](contracts/) | the interfaces between the parts: public API, ML service, data schema, changelog |
+| [infra/](infra/) | reverse proxy, Prometheus, Grafana |
+| [docs/tech/](docs/tech/) | architecture, deployment, runbook, security, integration guide |
+| [docs/status/](docs/status/) | the current state of each part |
+| [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | the original plan: scope, architecture, phases |
+| `docker-compose.yml`, `docker-compose.final.yml`, `docker-compose.prod.yml` | the development stack, the final-prototype overlay (local ports) and the public stack behind a reverse proxy |
 
-## Before the first agent session (one-time, ~1 hour)
+## Checks
 
-1. **Move the repo** out of OneDrive and out of any path with Cyrillic characters, for example to `C:\dev\adilet-search` or, better, into WSL2 (`~/adilet-search`). OneDrive will try to sync `node_modules`, virtualenvs and multi-GB model files, and several Python/Node tools break on non-ASCII paths.
-2. Run `git init`, create a **private** GitHub repo, push this skeleton to `main`, and invite the two teammates.
-3. Install Docker Desktop (WSL2 backend), Python 3.12 with [uv](https://docs.astral.sh/uv/), Node.js LTS (22+), Git and Claude Code.
-4. Create accounts:
-   - **Hugging Face:** a shared org/namespace for private models and datasets, with one write token per person.
-   - **Google Colab and/or Kaggle:** free GPUs for training.
-   - **GitHub.**
-5. ~~Ask Tehsnab Group for a DB export and a test VM.~~ Settled: they provide neither (decision D-012). We scrape adilet.zan.kz and rent our own VPS.
-6. Fill in the owner names and gate dates in `docs/PROJECT_PLAN.md` §10.
-7. Follow [agents/README.md](agents/README.md) to start the agents.
-
-## Repository layout
-
-See `docs/PROJECT_PLAN.md` §5. Until the agents scaffold their parts, only the planning files exist:
-
+```bash
+cd backend && uv run pytest && uv run ruff check . && uv run mypy app dev indexer
 ```
-CLAUDE.md, README.md, .gitignore
-docs/      PROJECT_PLAN.md, decisions.md, status/
-contracts/ api.md, ml_service.md, data_schema.md, CHANGELOG.md
-agents/    README.md, ml/, backend/, frontend/, shared/
+
+```bash
+cd ml && uv run --extra dev pytest
 ```
+
+```bash
+cd frontend && npm run lint && npm test && npm run build
+```
+
+CI runs these on every pull request, plus integration tests on real PostgreSQL and Qdrant and a full-stack smoke test in Docker.
+
+## Limits
+
+- The models are pretrained and not yet fine-tuned on legal text; quality numbers so far come from automatic (proxy) labels, not from human judgement. See [ml/MODEL_CARD.md](ml/MODEL_CARD.md).
+- Only 8 codes are indexed by default.
+- The system is a search aid, not legal advice.
+
+How this repository was developed (three role briefs, shared rules, phase prompts) is described in [agents/README.md](agents/README.md) and [CLAUDE.md](CLAUDE.md).
