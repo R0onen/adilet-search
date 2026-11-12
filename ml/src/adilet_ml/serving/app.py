@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
 from prometheus_client import Counter, Histogram, generate_latest
@@ -139,7 +140,10 @@ async def metrics() -> bytes:
 async def embed(body: EmbedRequest, request: Request) -> Any:
     BATCH_SIZE.labels("/embed").observe(len(body.texts))
     try:
-        dense, sparse, truncated = engine().embed(
+        # Model inference is CPU-bound: run it in a worker thread so the event loop keeps
+        # answering /health and other requests (for example searches during a reindex).
+        dense, sparse, truncated = await run_in_threadpool(
+            engine().embed,
             body.texts,
             body.kind,
             return_dense=body.return_dense,
@@ -159,7 +163,8 @@ async def embed(body: EmbedRequest, request: Request) -> Any:
 @app.post("/rerank", response_model=RerankResponse)
 async def rerank(body: RerankRequest) -> RerankResponse:
     BATCH_SIZE.labels("/rerank").observe(len(body.candidates))
-    results = engine().rerank(
+    results = await run_in_threadpool(
+        engine().rerank,
         body.query,
         [(candidate.id, candidate.text) for candidate in body.candidates],
         body.top_n,

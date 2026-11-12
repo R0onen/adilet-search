@@ -5,8 +5,9 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import structlog
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic.json_schema import models_json_schema
 
 from app.api.v1 import API_PREFIX
@@ -16,6 +17,7 @@ from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.schemas.answer import SSE_EVENTS
+from app.startup import startup_tasks
 from app.state import Resources
 
 log = structlog.get_logger(__name__)
@@ -60,6 +62,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.resources = Resources.create(settings)
+        await startup_tasks(app.state.resources)
         log.info(
             "startup",
             app_version=settings.app_version,
@@ -97,8 +100,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_age=600,
     )
     # Added last = outermost: every response, including CORS preflights and 500s, gets an id.
-    app.add_middleware(RequestContextMiddleware)
+    app.add_middleware(RequestContextMiddleware, max_body_bytes=settings.max_body_bytes)
     app.include_router(v1_router)
+
+    @app.get("/metrics", include_in_schema=False)
+    async def prometheus_metrics() -> Response:
+        """Prometheus scrape target. Internal: the reverse proxy does not route it."""
+        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
     default_openapi = app.openapi
 

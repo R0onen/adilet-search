@@ -6,21 +6,25 @@ from pathlib import Path
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+from app.core.breaker import CircuitBreaker
 from app.core.config import Settings
+from app.core.ratelimit import RateLimiter
 from app.db import repositories as repo
 from app.db.models import Article, Document
 from app.db.session import create_engine, create_sessionmaker
+from app.services.admin import AdminService
 from app.services.answer import AnswerConfig, AnswerService
 from app.services.answer_store import AnswerStore
 from app.services.background import BackgroundRunner
 from app.services.feedback import FeedbackService
+from app.services.fts_fallback import FtsFallback
 from app.services.health import HealthService
 from app.services.index_info import IndexInfoProvider
 from app.services.manifest import ManifestProvider
 from app.services.ml_client import MlClient
 from app.services.qdrant_store import QdrantStore
 from app.services.query_log import QueryLogWriter
-from app.services.search import SearchBudgets, SearchService
+from app.services.search import Resilience, SearchBudgets, SearchService
 
 
 @dataclass
@@ -38,6 +42,8 @@ class Resources:
     feedback: FeedbackService
     query_log: QueryLogWriter
     background: BackgroundRunner
+    admin: AdminService
+    rate_limiter: RateLimiter
     started_at: float = field(default_factory=time.monotonic)
 
     @classmethod
@@ -61,6 +67,9 @@ class Resources:
         )
         index_info = IndexInfoProvider(qdrant, sessionmaker, settings.index_state_ttl_s)
 
+        def breaker(name: str) -> CircuitBreaker:
+            return CircuitBreaker(name, settings.breaker_failures, settings.breaker_reset_s)
+
         async def lookup(article_ids: list[str]) -> dict[str, tuple[Article, Document]]:
             async with sessionmaker() as session:
                 return await repo.fetch_articles(session, article_ids)
@@ -76,6 +85,14 @@ class Resources:
                 retrieve_s=settings.search_retrieve_timeout_s,
                 rerank_s=settings.search_rerank_timeout_s,
                 rerank_top_n=settings.search_rerank_top_n,
+            ),
+            resilience=Resilience(
+                fts=FtsFallback(sessionmaker),
+                ml_breaker=breaker("ml_embed"),
+                rerank_breaker=breaker("ml_rerank"),
+                store_breaker=breaker("qdrant"),
+                cache_ttl_s=settings.cache_ttl_s,
+                cache_size=settings.cache_size,
             ),
         )
         background = BackgroundRunner()
@@ -105,6 +122,8 @@ class Resources:
             feedback=FeedbackService(sessionmaker),
             query_log=QueryLogWriter(sessionmaker),
             background=background,
+            admin=AdminService(sessionmaker),
+            rate_limiter=RateLimiter(),
         )
 
     async def aclose(self) -> None:

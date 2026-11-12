@@ -15,10 +15,15 @@ def test_cors_origins_from_comma_list(monkeypatch: pytest.MonkeyPatch) -> None:
     ]
 
 
-def test_prod_rejects_dev_session_salt() -> None:
+def test_prod_rejects_dev_secrets() -> None:
     with pytest.raises(ValidationError, match="SESSION_SALT"):
-        make_settings(environment="prod")
-    assert make_settings(environment="prod", session_salt="s3cret-from-env").environment == "prod"
+        make_settings(environment="prod", jwt_secret="jwt-from-env")
+    with pytest.raises(ValidationError, match="JWT_SECRET"):
+        make_settings(environment="prod", session_salt="s3cret-from-env")
+    prod = make_settings(
+        environment="prod", session_salt="s3cret-from-env", jwt_secret="jwt-from-env"
+    )
+    assert prod.environment == "prod"
 
 
 def test_query_is_trimmed_and_nfc_normalised() -> None:

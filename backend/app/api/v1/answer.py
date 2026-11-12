@@ -1,9 +1,17 @@
-from fastapi import APIRouter, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.api.context import request_context
-from app.api.deps import AnswerServiceDep, BackgroundDep, QueryLogDep, SettingsDep
+from app.api.deps import (
+    AnswerServiceDep,
+    BackgroundDep,
+    QueryLogDep,
+    SettingsDep,
+    rate_limit,
+)
 from app.api.responses import errors
 from app.schemas.answer import AnswerRequest
 from app.services.search import SearchError
@@ -49,6 +57,7 @@ async def answer(
     query_log: QueryLogDep,
     background: BackgroundDep,
     settings: SettingsDep,
+    _: Annotated[None, Depends(rate_limit("answer"))],
 ) -> EventSourceResponse:
     ctx = request_context(request, settings.session_salt, "answer")
     try:

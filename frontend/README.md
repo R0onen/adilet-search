@@ -81,3 +81,18 @@ reverse-proxy `/api/v1` and return `index.html` for SPA routes. No deployment is
 Admin, authentication, feedback UI, Docker image, exhaustive test coverage, and deployed performance
 are deferred. Kazakh UI strings and inherited synthetic Kazakh texts require human language review.
 API models are generated, not handwritten; runtime payload validation remains a backend responsibility.
+
+## Admin panel
+
+`/admin` (a separate lazy chunk; it is not in the public bundle). Russian only.
+
+| Page | What it shows |
+|---|---|
+| `/admin/login` | login; the token lives in memory and `sessionStorage` and is dropped on logout or on any `401` |
+| `/admin` | statistics for 7 / 30 days or a custom range (in the URL): KPI tiles, queries and search p95 per day, language and mode split, top queries and top zero-result queries |
+| `/admin/queries` | the query log: filters and page in the URL, a detail drawer (results, timing breakdown, answer, feedback), CSV export |
+| `/admin/system` | component health (refreshed every 30 s), models, index state, reindex with progress |
+
+In mock mode the login is `admin` / `demo` and the numbers are invented (`src/mocks/admin.ts`). In live mode the login is the one configured in the backend (`backend/README.md`, "Admin API").
+
+The public pages also have 👍 / 👎 buttons on each result and on the generated answer (live mode), a "try again in N s" message for `429`, and a notice when the search ran in a degraded mode.

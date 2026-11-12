@@ -84,26 +84,6 @@ def test_answer_context_top_k_range(client: TestClient) -> None:
     assert_error(client.post("/api/v1/answer", json=body), 422, "validation_error")
 
 
-STUBS: list[tuple[str, str, dict[str, Any] | None]] = [
-    ("POST", "/api/v1/admin/login", {"username": "admin", "password": "x"}),
-    ("GET", "/api/v1/admin/stats", None),
-    ("GET", "/api/v1/admin/queries?page=2&lang=kk&zero_results=true", None),
-    ("GET", "/api/v1/admin/queries/export", None),
-    ("GET", f"/api/v1/admin/queries/{QUERY_ID}", None),
-    ("GET", "/api/v1/admin/system", None),
-    ("POST", "/api/v1/admin/reindex", {"source": "sample"}),
-    ("GET", f"/api/v1/admin/jobs/{QUERY_ID}", None),
-]
-
-
-@pytest.mark.parametrize(("method", "path", "body"), STUBS)
-def test_stubs_return_501(
-    client: TestClient, method: str, path: str, body: dict[str, Any] | None
-) -> None:
-    response = client.request(method, path, json=body)
-    assert_error(response, 501, "not_implemented")
-
-
 def test_unhandled_exception_is_500_with_request_id(app: FastAPI) -> None:
     @app.get("/api/v1/_boom")
     async def boom() -> None:

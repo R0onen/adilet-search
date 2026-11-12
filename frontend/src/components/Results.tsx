@@ -2,13 +2,17 @@ import { ArrowUpRight, FileText, SearchX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { apiMode } from '../api/client';
 import type { SearchResult } from '../api/types';
+import { Feedback } from './Feedback';
 
 export function Results({
   results,
   onOpen,
+  queryId,
 }: {
   results: SearchResult[];
   onOpen: (id: string) => void;
+  /** With a query id, each result gets 👍 / 👎 buttons. */
+  queryId?: string;
 }) {
   const { t } = useTranslation();
   if (!results.length)
@@ -45,6 +49,9 @@ export function Results({
             <span>
               {t('revision')}: {result.doc.revision_date}
             </span>
+            {queryId && (
+              <Feedback queryId={queryId} target="result" articleId={result.article.article_id} />
+            )}
             <button className="text-button" onClick={() => onOpen(result.article.article_id)}>
               {t('open')} <span aria-hidden="true">→</span>
             </button>

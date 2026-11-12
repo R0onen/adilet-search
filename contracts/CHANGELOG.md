@@ -12,6 +12,20 @@ Breaking changes need the affected owner's OK before merging.
 
 ---
 
+## 2026-11-12 · api.md, openapi.json · v1 · no (one behaviour change, see below) · Frontend (regenerate types)
+
+Backend phase BE-04. Every `/admin/*` endpoint is live; their `501` responses are removed from `openapi.json`.
+- **Auth:** `POST /admin/login` returns a JWT (8 h). All other admin routes answer `401` without a valid `Authorization: Bearer` token. Login is limited to 5/min.
+- **Rate limits are enforced:** `/search` 60/min and `/answer` 10/min per session + IP; `429` with `Retry-After` in seconds. Show the user a "try again in N s" message.
+- **Behaviour change, `/search` and `/answer`:** when the ML service, Qdrant or the index is unavailable, the response is now `200` with `degraded: ["semantic"]` and results of `score_type: "fts"` (Postgres full-text fallback) instead of `503`. `503` remains only for "the fallback failed too". The UI should show a notice when `degraded` is not empty.
+- **New error:** `413 content_too_large` for bodies over 64 KB.
+- **`/admin/stats`:** days are UTC days, both bounds inclusive, at most 366 days. `by_day` lists every day of the range, with `queries: 0` and `null` rates for empty days.
+- **`/admin/queries`:** `q` is a case-insensitive substring of the normalised query. Newest first.
+- **`/admin/reindex`:** `422` if the chosen corpus is not on the server; `409` while a job runs. Poll `/admin/jobs/{id}`; a failed job's `message` holds the error.
+- **`/metrics`** (Prometheus) is served at the root path of the backend; it is not part of the public API.
+
+---
+
 ## 2026-11-11 · model manifest (ml_service.md unchanged) · pipeline 0.2.0 · no (reindex required) · Backend
 
 ML pipeline `0.2.0`. No endpoint or schema changed; the manifest content did:

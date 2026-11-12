@@ -1,5 +1,6 @@
 import { http, HttpResponse, delay } from 'msw';
 import fixtures from './articles';
+import { adminHandlers } from './admin';
 import type {
   ArticleDetail,
   Schemas,
@@ -215,5 +216,5 @@ export const handlers = [
       index_collection: null,
     } satisfies Schemas['VersionResponse']),
   ),
-  http.all('/api/v1/admin/*', () => error('Admin is outside the presentation MVP')),
+  ...adminHandlers,
 ];

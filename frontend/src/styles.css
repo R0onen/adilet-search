@@ -1175,6 +1175,40 @@ main {
   }
 }
 
+.feedback {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.feedback-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #cbd8ce;
+  border-radius: 7px;
+  background: #fff;
+  color: #4d625b;
+}
+.feedback-button[aria-pressed='true'] {
+  background: var(--green);
+  border-color: var(--green);
+  color: #fff;
+}
+.feedback-status {
+  font-size: 11px;
+  color: #4d625b;
+  min-width: 0;
+}
+.answer-feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #4d625b;
+  margin: 0 0 16px;
+}
 /* Maintain AA contrast for small metadata and secondary labels. */
 .search-filters,
 .examples > span,

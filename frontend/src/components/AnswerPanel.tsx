@@ -5,6 +5,7 @@ import { apiMode } from '../api/client';
 import { answer } from '../api/sse';
 import type { AnswerSource, SearchRequest } from '../api/types';
 import { Button } from './ui/button';
+import { Feedback } from './Feedback';
 
 export function AnswerPanel({
   request,
@@ -21,6 +22,8 @@ export function AnswerPanel({
   const [stopped, setStopped] = useState(false);
   const [grounded, setGrounded] = useState<boolean | null>(null);
   const [degraded, setDegraded] = useState<string[]>([]);
+  const [queryId, setQueryId] = useState<string | null>(null);
+  const [finished, setFinished] = useState(false);
   const controller = useRef<AbortController | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
   async function generate() {
@@ -34,18 +37,22 @@ export function AnswerPanel({
     setStopped(false);
     setGrounded(null);
     setDegraded([]);
+    setQueryId(null);
+    setFinished(false);
     try {
       await answer(
         request,
         {
           sources: (event) => {
             setSources(event.sources);
+            setQueryId(event.query_id);
             setDegraded(event.degraded || []);
           },
           token: (token) => setText((previous) => previous + token),
           done: (event) => {
             setText(event.text);
             setGrounded(event.grounded);
+            setFinished(true);
           },
         },
         current.signal,
@@ -107,6 +114,11 @@ export function AnswerPanel({
             </button>
           ))}
         </div>
+      )}
+      {finished && queryId && apiMode === 'live' && (
+        <p className="answer-feedback">
+          {t('feedbackAnswer')} <Feedback queryId={queryId} target="answer" />
+        </p>
       )}
       {grounded === false && (
         <p role="status" className="notice">

@@ -13,6 +13,7 @@ import httpx
 import structlog
 from pydantic import ValidationError
 
+from app.core import metrics
 from app.core.context import current_request_id
 from app.schemas.ml import (
     EmbedRequest,
@@ -35,6 +36,8 @@ class MlUnavailable(Exception):
         super().__init__(f"ml-service {endpoint}: {kind} {detail}".strip())
         self.endpoint = endpoint
         self.kind = kind
+        if kind != "circuit_open":  # a skipped call is not a failed call
+            metrics.ML_ERRORS.labels(endpoint, kind).inc()
 
 
 @dataclass(frozen=True, slots=True)
