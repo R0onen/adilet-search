@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from functools import partial
 from typing import Any
 
+from anyio import CapacityLimiter, to_thread
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse, StreamingResponse
@@ -34,12 +37,29 @@ _load_error: str | None = None
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     """Load the models once. A failed load (no network for the first download, a bad manifest)
     keeps the process up, so /health can report it instead of the container crash-looping."""
     global _engine, _load_error
+    application.state.inference_limiter = CapacityLimiter(
+        max(1, int(os.getenv("ADILET_ML_INFERENCE_WORKERS", "2")))
+    )
     try:
         _engine = MlEngine(load_manifest())
+        if os.getenv("ADILET_ML_DEVICE", "cpu") == "cuda":
+            # CUDA kernels can take tens of seconds to initialise on a new GPU architecture.
+            # Finish that work before health checks admit traffic with two-second budgets.
+            _engine.embed(
+                ["Нормальная продолжительность рабочего времени"],
+                "query",
+                return_dense=True,
+                return_sparse=False,
+            )
+            _engine.rerank(
+                "Продолжительность рабочего времени",
+                [("warmup", "Тестовый текст для подготовки модели к инференсу.")],
+                None,
+            )
         _load_error = None
     except Exception as exc:
         _engine = None
@@ -139,11 +159,15 @@ async def metrics() -> bytes:
 async def embed(body: EmbedRequest, request: Request) -> Any:
     BATCH_SIZE.labels("/embed").observe(len(body.texts))
     try:
-        dense, sparse, truncated = engine().embed(
-            body.texts,
-            body.kind,
-            return_dense=body.return_dense,
-            return_sparse=body.return_sparse,
+        dense, sparse, truncated = await to_thread.run_sync(
+            partial(
+                engine().embed,
+                body.texts,
+                body.kind,
+                return_dense=body.return_dense,
+                return_sparse=body.return_sparse,
+            ),
+            limiter=request.app.state.inference_limiter,
         )
     except ValueError as exc:
         return _error(422, "validation_error", str(exc), request)
@@ -157,12 +181,16 @@ async def embed(body: EmbedRequest, request: Request) -> Any:
 
 
 @app.post("/rerank", response_model=RerankResponse)
-async def rerank(body: RerankRequest) -> RerankResponse:
+async def rerank(body: RerankRequest, request: Request) -> RerankResponse:
     BATCH_SIZE.labels("/rerank").observe(len(body.candidates))
-    results = engine().rerank(
-        body.query,
-        [(candidate.id, candidate.text) for candidate in body.candidates],
-        body.top_n,
+    results = await to_thread.run_sync(
+        partial(
+            engine().rerank,
+            body.query,
+            [(candidate.id, candidate.text) for candidate in body.candidates],
+            body.top_n,
+        ),
+        limiter=request.app.state.inference_limiter,
     )
     return RerankResponse(results=results, model_version=engine().pipeline_version)
 

@@ -1,0 +1,1341 @@
+{
+  "created_at": "2026-11-11T22:03:11.045624+00:00",
+  "version": {
+    "app_version": "0.1.0",
+    "git_sha": "dev",
+    "pipeline_version": "0.2.0",
+    "index_collection": "legal_chunks__0.2.0"
+  },
+  "scope": "Six source-derived diagnostic questions; no human gold benchmark.",
+  "search": [
+    {
+      "mode": "keyword",
+      "lang": "ru",
+      "query": "Какова нормальная продолжительность рабочего времени?",
+      "expected": "K1500000414:ru:a68",
+      "status": 200,
+      "wall_ms": 28.24,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a68",
+        "K1500000414:ru:a67",
+        "K1500000414:ru:a75",
+        "K1500000414:ru:a70",
+        "K1500000414:ru:a69",
+        "K1500000414:ru:a74",
+        "K1500000414:ru:a73-1",
+        "K1500000414:ru:a72",
+        "K1500000414:ru:a1",
+        "K1500000414:ru:a138"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 4,
+        "retrieve": 10,
+        "fuse": 0,
+        "total": 24
+      }
+    },
+    {
+      "mode": "keyword",
+      "lang": "ru",
+      "query": "Сколько дней ежегодного оплачиваемого отпуска?",
+      "expected": "K1500000414:ru:a88",
+      "status": 200,
+      "wall_ms": 22.21,
+      "rank": 5,
+      "top_articles": [
+        "K1500000414:ru:a90",
+        "K1500000414:ru:a92",
+        "K1500000414:ru:a87",
+        "K1500000414:ru:a89",
+        "K1500000414:ru:a88",
+        "K1500000414:ru:a139",
+        "K1500000414:ru:a96",
+        "K1500000414:ru:a95",
+        "K1500000414:ru:a94",
+        "K1500000414:ru:a93"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 3,
+        "retrieve": 10,
+        "fuse": 0,
+        "total": 18
+      }
+    },
+    {
+      "mode": "keyword",
+      "lang": "ru",
+      "query": "В какие сроки выплачивается заработная плата?",
+      "expected": "K1500000414:ru:a113",
+      "status": 200,
+      "wall_ms": 23.49,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a113",
+        "K1500000414:ru:a103",
+        "K1500000414:ru:a159",
+        "K1500000414:ru:a161",
+        "K1500000414:ru:a133",
+        "K1500000414:ru:a114",
+        "K1500000414:ru:a124",
+        "K1500000414:ru:a41",
+        "K1500000414:ru:a102",
+        "K1500000414:ru:a48"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 3,
+        "retrieve": 10,
+        "fuse": 0,
+        "total": 20
+      }
+    },
+    {
+      "mode": "keyword",
+      "lang": "kk",
+      "query": "Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат?",
+      "expected": "K1500000414:kk:a68",
+      "status": 200,
+      "wall_ms": 24.46,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a68",
+        "K1500000414:kk:a69",
+        "K1500000414:kk:a106",
+        "K1500000414:kk:a67",
+        "K1500000414:kk:a75",
+        "K1500000414:kk:a135",
+        "K1500000414:kk:a1",
+        "K1500000414:kk:a74",
+        "K1500000414:kk:a73-1",
+        "K1500000414:kk:a99"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 3,
+        "retrieve": 10,
+        "fuse": 0,
+        "total": 21
+      }
+    },
+    {
+      "mode": "keyword",
+      "lang": "kk",
+      "query": "Жыл сайынғы ақы төленетін негізгі еңбек демалысының ұзақтығы қандай?",
+      "expected": "K1500000414:kk:a88",
+      "status": 200,
+      "wall_ms": 23.61,
+      "rank": 2,
+      "top_articles": [
+        "K1500000414:kk:a90",
+        "K1500000414:kk:a88",
+        "K1500000414:kk:a92",
+        "K1500000414:kk:a96",
+        "K1500000414:kk:a95",
+        "K1500000414:kk:a89",
+        "K1500000414:kk:a87",
+        "K1500000414:kk:a9",
+        "K1500000414:kk:a94",
+        "K1500000414:kk:a68"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 3,
+        "retrieve": 9,
+        "fuse": 0,
+        "total": 19
+      }
+    },
+    {
+      "mode": "keyword",
+      "lang": "kk",
+      "query": "Жалақы төлеудің тәртібі мен мерзімдері қандай?",
+      "expected": "K1500000414:kk:a113",
+      "status": 200,
+      "wall_ms": 23.66,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a113",
+        "K1500000414:kk:a102",
+        "K1500000414:kk:a132",
+        "K1500000414:kk:a7",
+        "K1500000414:kk:a5",
+        "K1500000414:kk:a22",
+        "K1500000414:kk:a138",
+        "K1500000414:kk:a137",
+        "K1500000414:kk:a97",
+        "K1500000414:kk:a189"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 3,
+        "retrieve": 10,
+        "fuse": 0,
+        "total": 19
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "ru",
+      "query": "Какова нормальная продолжительность рабочего времени?",
+      "expected": "K1500000414:ru:a68",
+      "status": 200,
+      "wall_ms": 299.1,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a68",
+        "K1500000414:ru:a88",
+        "K1500000414:ru:a78",
+        "K1500000414:ru:a67",
+        "K1500000414:ru:a71",
+        "K1500000414:ru:a83",
+        "K1500000414:ru:a69",
+        "K1500000414:ru:a75",
+        "K1500000414:ru:a76",
+        "K1500000414:ru:a135"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 56,
+        "retrieve": 8,
+        "fuse": 0,
+        "rerank": 227,
+        "total": 296
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "ru",
+      "query": "Сколько дней ежегодного оплачиваемого отпуска?",
+      "expected": "K1500000414:ru:a88",
+      "status": 200,
+      "wall_ms": 128.46,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a88",
+        "K1500000414:ru:a92",
+        "K1500000414:ru:a139",
+        "K1500000414:ru:a87",
+        "K1500000414:ru:a90",
+        "K1500000414:ru:a97",
+        "K1500000414:ru:a96",
+        "K1500000414:ru:a93",
+        "K1500000414:ru:a99",
+        "K1500000414:ru:a83"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 12,
+        "retrieve": 8,
+        "fuse": 0,
+        "rerank": 100,
+        "total": 125
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "ru",
+      "query": "В какие сроки выплачивается заработная плата?",
+      "expected": "K1500000414:ru:a113",
+      "status": 200,
+      "wall_ms": 121.78,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a113",
+        "K1500000414:ru:a161",
+        "K1500000414:ru:a88",
+        "K1500000414:ru:a92",
+        "K1500000414:ru:a159",
+        "K1500000414:ru:a114",
+        "K1500000414:ru:a111",
+        "K1500000414:ru:a69",
+        "K1500000414:ru:a103",
+        "K1500000414:ru:a127-3"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 12,
+        "retrieve": 8,
+        "fuse": 0,
+        "rerank": 93,
+        "total": 118
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "kk",
+      "query": "Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат?",
+      "expected": "K1500000414:kk:a68",
+      "status": 200,
+      "wall_ms": 138.68,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a68",
+        "K1500000414:kk:a78",
+        "K1500000414:kk:a71",
+        "K1500000414:kk:a69",
+        "K1500000414:kk:a73-1",
+        "K1500000414:kk:a135",
+        "K1500000414:kk:a75",
+        "K1500000414:kk:a67",
+        "K1500000414:kk:a83",
+        "K1500000414:kk:a84"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 14,
+        "retrieve": 10,
+        "fuse": 0,
+        "rerank": 106,
+        "total": 136
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "kk",
+      "query": "Жыл сайынғы ақы төленетін негізгі еңбек демалысының ұзақтығы қандай?",
+      "expected": "K1500000414:kk:a88",
+      "status": 200,
+      "wall_ms": 124.0,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a88",
+        "K1500000414:kk:a92",
+        "K1500000414:kk:a90",
+        "K1500000414:kk:a89",
+        "K1500000414:kk:a68",
+        "K1500000414:kk:a93",
+        "K1500000414:kk:a87",
+        "K1500000414:kk:a9",
+        "K1500000414:kk:a91",
+        "K1500000414:kk:a94"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 12,
+        "retrieve": 9,
+        "fuse": 0,
+        "rerank": 95,
+        "total": 120
+      }
+    },
+    {
+      "mode": "semantic",
+      "lang": "kk",
+      "query": "Жалақы төлеудің тәртібі мен мерзімдері қандай?",
+      "expected": "K1500000414:kk:a113",
+      "status": 200,
+      "wall_ms": 134.24,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a113",
+        "K1500000414:kk:a111",
+        "K1500000414:kk:a112",
+        "K1500000414:kk:a110",
+        "K1500000414:kk:a109",
+        "K1500000414:kk:a103",
+        "K1500000414:kk:a159",
+        "K1500000414:kk:a106",
+        "K1500000414:kk:a115",
+        "K1500000414:kk:a96"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 11,
+        "retrieve": 9,
+        "fuse": 0,
+        "rerank": 104,
+        "total": 130
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "ru",
+      "query": "Какова нормальная продолжительность рабочего времени?",
+      "expected": "K1500000414:ru:a68",
+      "status": 200,
+      "wall_ms": 152.02,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a68",
+        "K1500000414:ru:a78",
+        "K1500000414:ru:a67",
+        "K1500000414:ru:a71",
+        "K1500000414:ru:a83",
+        "K1500000414:ru:a69",
+        "K1500000414:ru:a75",
+        "K1500000414:ru:a135",
+        "K1500000414:ru:a70",
+        "K1500000414:ru:a73-1"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 13,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 118,
+        "total": 149
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "ru",
+      "query": "Сколько дней ежегодного оплачиваемого отпуска?",
+      "expected": "K1500000414:ru:a88",
+      "status": 200,
+      "wall_ms": 138.39,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a88",
+        "K1500000414:ru:a92",
+        "K1500000414:ru:a139",
+        "K1500000414:ru:a89",
+        "K1500000414:ru:a87",
+        "K1500000414:ru:a90",
+        "K1500000414:ru:a97",
+        "K1500000414:ru:a96",
+        "K1500000414:ru:a93",
+        "K1500000414:ru:a99"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 12,
+        "retrieve": 10,
+        "fuse": 0,
+        "rerank": 108,
+        "total": 135
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "ru",
+      "query": "В какие сроки выплачивается заработная плата?",
+      "expected": "K1500000414:ru:a113",
+      "status": 200,
+      "wall_ms": 130.83,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:ru:a113",
+        "K1500000414:ru:a161",
+        "K1500000414:ru:a159",
+        "K1500000414:ru:a114",
+        "K1500000414:ru:a103",
+        "K1500000414:ru:a124",
+        "K1500000414:ru:a112",
+        "K1500000414:ru:a102",
+        "K1500000414:ru:a97",
+        "K1500000414:ru:a131"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 14,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 95,
+        "total": 126
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "kk",
+      "query": "Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат?",
+      "expected": "K1500000414:kk:a68",
+      "status": 200,
+      "wall_ms": 135.39,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a68",
+        "K1500000414:kk:a78",
+        "K1500000414:kk:a71",
+        "K1500000414:kk:a69",
+        "K1500000414:kk:a73-1",
+        "K1500000414:kk:a135",
+        "K1500000414:kk:a75",
+        "K1500000414:kk:a67",
+        "K1500000414:kk:a83",
+        "K1500000414:kk:a88"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 13,
+        "retrieve": 10,
+        "fuse": 0,
+        "rerank": 103,
+        "total": 132
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "kk",
+      "query": "Жыл сайынғы ақы төленетін негізгі еңбек демалысының ұзақтығы қандай?",
+      "expected": "K1500000414:kk:a88",
+      "status": 200,
+      "wall_ms": 135.64,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a88",
+        "K1500000414:kk:a92",
+        "K1500000414:kk:a90",
+        "K1500000414:kk:a89",
+        "K1500000414:kk:a68",
+        "K1500000414:kk:a93",
+        "K1500000414:kk:a87",
+        "K1500000414:kk:a9",
+        "K1500000414:kk:a91",
+        "K1500000414:kk:a94"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 12,
+        "retrieve": 10,
+        "fuse": 0,
+        "rerank": 105,
+        "total": 132
+      }
+    },
+    {
+      "mode": "hybrid",
+      "lang": "kk",
+      "query": "Жалақы төлеудің тәртібі мен мерзімдері қандай?",
+      "expected": "K1500000414:kk:a113",
+      "status": 200,
+      "wall_ms": 131.3,
+      "rank": 1,
+      "top_articles": [
+        "K1500000414:kk:a113",
+        "K1500000414:kk:a111",
+        "K1500000414:kk:a112",
+        "K1500000414:kk:a102",
+        "K1500000414:kk:a114",
+        "K1500000414:kk:a109",
+        "K1500000414:kk:a103",
+        "K1500000414:kk:a131",
+        "K1500000414:kk:a96",
+        "K1500000414:kk:a97"
+      ],
+      "degraded": [],
+      "timing_ms": {
+        "embed": 11,
+        "retrieve": 11,
+        "fuse": 0,
+        "rerank": 101,
+        "total": 128
+      }
+    }
+  ],
+  "answers": [
+    {
+      "lang": "ru",
+      "status": 200,
+      "events": [
+        {
+          "event": "sources",
+          "data": {
+            "query_id": "2537b57f-af7c-407c-a69c-01c9a5168d34",
+            "lang": "ru",
+            "sources": [
+              {
+                "ref": 1,
+                "article": {
+                  "article_id": "K1500000414:ru:a68",
+                  "unit_type": "article",
+                  "number": "68",
+                  "title": "Нормальная продолжительность рабочего времени",
+                  "section_title": "РАЗДЕЛ 2. ТРУДОВЫЕ ОТНОШЕНИЯ",
+                  "chapter_title": "Глава 6. РАБОЧЕЕ ВРЕМЯ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414#z68"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Трудовой кодекс Республики Казахстан",
+                  "short_title": "Трудовой кодекс РК",
+                  "doc_type": "code",
+                  "number": "414-V ЗРК",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414"
+                },
+                "snippet": "Нормальная продолжительность рабочего времени не должна превышать 40 часов в неделю.\nВ трудовом договоре может предусматриваться меньшая продолжительность рабочего времени с оплатой как за нормальную продолжительность рабочего времени.…"
+              },
+              {
+                "ref": 2,
+                "article": {
+                  "article_id": "K1500000414:ru:a78",
+                  "unit_type": "article",
+                  "number": "78",
+                  "title": "Предельное количество сверхурочных работ",
+                  "section_title": "РАЗДЕЛ 2. ТРУДОВЫЕ ОТНОШЕНИЯ",
+                  "chapter_title": "Глава 6. РАБОЧЕЕ ВРЕМЯ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414#z78"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Трудовой кодекс Республики Казахстан",
+                  "short_title": "Трудовой кодекс РК",
+                  "doc_type": "code",
+                  "number": "414-V ЗРК",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414"
+                },
+                "snippet": "…Общая продолжительность сверхурочных работ не должна превышать двенадцать часов в месяц при четырехдневной, пятидневной и шестидневной рабочей неделе и сто двадцать часов в год – при установлении суммированного учета рабочего времени.…"
+              },
+              {
+                "ref": 3,
+                "article": {
+                  "article_id": "K1500000414:ru:a67",
+                  "unit_type": "article",
+                  "number": "67",
+                  "title": "Рабочее время и его виды",
+                  "section_title": "РАЗДЕЛ 2. ТРУДОВЫЕ ОТНОШЕНИЯ",
+                  "chapter_title": "Глава 6. РАБОЧЕЕ ВРЕМЯ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414#z67"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Трудовой кодекс Республики Казахстан",
+                  "short_title": "Трудовой кодекс РК",
+                  "doc_type": "code",
+                  "number": "414-V ЗРК",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414"
+                },
+                "snippet": "…Рабочее время может быть нормальной продолжительности, сокращенной продолжительности и неполным.…"
+              },
+              {
+                "ref": 4,
+                "article": {
+                  "article_id": "K1500000414:ru:a71",
+                  "unit_type": "article",
+                  "number": "71",
+                  "title": "Режим рабочего времени",
+                  "section_title": "РАЗДЕЛ 2. ТРУДОВЫЕ ОТНОШЕНИЯ",
+                  "chapter_title": "Глава 6. РАБОЧЕЕ ВРЕМЯ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414#z71"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Трудовой кодекс Республики Казахстан",
+                  "short_title": "Трудовой кодекс РК",
+                  "doc_type": "code",
+                  "number": "414-V ЗРК",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414"
+                },
+                "snippet": "Продолжительность ежедневной работы (рабочей смены), время начала и окончания ежедневной работы (рабочей смены), время перерывов в работе определяются с соблюдением условий, установленных правилами трудового распорядка, трудовым и коллективным договорами.…"
+              },
+              {
+                "ref": 5,
+                "article": {
+                  "article_id": "K1500000414:ru:a83",
+                  "unit_type": "article",
+                  "number": "83",
+                  "title": "Продолжительность ежедневного (междусменного)отдыха",
+                  "section_title": "РАЗДЕЛ 2. ТРУДОВЫЕ ОТНОШЕНИЯ",
+                  "chapter_title": "Глава 7. ВРЕМЯ ОТДЫХА",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414#z83"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Трудовой кодекс Республики Казахстан",
+                  "short_title": "Трудовой кодекс РК",
+                  "doc_type": "code",
+                  "number": "414-V ЗРК",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/rus/docs/K1500000414"
+                },
+                "snippet": "Продолжительность ежедневного (междусменного) отдыха работника между окончанием работы и ее началом на следующий день (рабочую смену) не может быть менее двенадцати часов."
+              }
+            ],
+            "degraded": []
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "Н"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "орм"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "альная"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " продолж"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ительность"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " рабочего"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " времени"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " не"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " должна"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " превыш"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ать"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "40"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "час"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ов"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " в"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " неделю"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "["
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "1"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "]."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " При"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " пяти"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "д"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "нев"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ной"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " рабоч"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ей"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " нед"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "еле"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " продолж"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ительность"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ежеднев"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ной"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " работы"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ("
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "смен"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ы"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": ")"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " не"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " может"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " превыш"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ать"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "8"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "час"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ов"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "["
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "4"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "]."
+          }
+        },
+        {
+          "event": "done",
+          "data": {
+            "answer_id": "5abde2a0-33a3-48bf-97ba-18dce2d60ec6",
+            "text": "Нормальная продолжительность рабочего времени не должна превышать 40 часов в неделю [1]. При пятидневной рабочей неделе продолжительность ежедневной работы (смены) не может превышать 8 часов [4].",
+            "citations": [
+              1,
+              4
+            ],
+            "invalid_citations_removed": 0,
+            "grounded": true,
+            "finish_reason": "stop",
+            "timing_ms": {
+              "search": 132,
+              "ttft": 808,
+              "total": 884
+            },
+            "pipeline_version": "0.2.0"
+          }
+        }
+      ]
+    },
+    {
+      "lang": "kk",
+      "status": 200,
+      "events": [
+        {
+          "event": "sources",
+          "data": {
+            "query_id": "1ae40241-c368-425e-8f49-4a7bd463048b",
+            "lang": "kk",
+            "sources": [
+              {
+                "ref": 1,
+                "article": {
+                  "article_id": "K1500000414:kk:a68",
+                  "unit_type": "article",
+                  "number": "68",
+                  "title": "Жұмыс уақытының қалыпты ұзақтығы",
+                  "section_title": "2-БӨЛІМ. ЕҢБЕК ҚАТЫНАСТАРЫ",
+                  "chapter_title": "6-тарау. ЖҰМЫС УАҚЫТЫ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414#z68"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Қазақстан Республикасының Еңбек кодексі",
+                  "short_title": "ҚР Еңбек кодексі",
+                  "doc_type": "code",
+                  "number": "414-V",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414"
+                },
+                "snippet": "Жұмыс уақытының қалыпты ұзақтығы аптасына 40 сағаттан аспауға тиіс.\nЕңбек шартында жұмыс уақытының қалыпты ұзақтығы үшін төленетіндей төлемақымен ұзақтығы азырақ жұмыс уақыты көзделуі мүмкін.…"
+              },
+              {
+                "ref": 2,
+                "article": {
+                  "article_id": "K1500000414:kk:a78",
+                  "unit_type": "article",
+                  "number": "78",
+                  "title": "Үстеме жұмыстардың шекті саны",
+                  "section_title": "2-БӨЛІМ. ЕҢБЕК ҚАТЫНАСТАРЫ",
+                  "chapter_title": "6-тарау. ЖҰМЫС УАҚЫТЫ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414#z78"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Қазақстан Республикасының Еңбек кодексі",
+                  "short_title": "ҚР Еңбек кодексі",
+                  "doc_type": "code",
+                  "number": "414-V",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414"
+                },
+                "snippet": "…Үстеме жұмыстардың жалпы ұзақтығы жұмыс уақытын жиынтық есепке алуды белгілеу кезінде төрт күндік, бес күндік және алты күндік жұмыс аптасында айына он екі сағаттан және жылына бір жүз жиырма сағаттан аспауға тиіс.…"
+              },
+              {
+                "ref": 3,
+                "article": {
+                  "article_id": "K1500000414:kk:a71",
+                  "unit_type": "article",
+                  "number": "71",
+                  "title": "Жұмыс уақыты режимі",
+                  "section_title": "2-БӨЛІМ. ЕҢБЕК ҚАТЫНАСТАРЫ",
+                  "chapter_title": "6-тарау. ЖҰМЫС УАҚЫТЫ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414#z71"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Қазақстан Республикасының Еңбек кодексі",
+                  "short_title": "ҚР Еңбек кодексі",
+                  "doc_type": "code",
+                  "number": "414-V",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414"
+                },
+                "snippet": "Жұмыскерлер үшін екі демалыс күні бар бес күндік жұмыс аптасы белгіленеді. Бес күндік жұмыс аптасы кезінде күнделікті жұмыстың (ауысымның) ұзақтығы жұмыстың ерекшелігі ескеріле және жұмыс аптасының белгіленген ұзақтығы сақтала отырып, жұмыс берушінің актісінде айқындалады.…"
+              },
+              {
+                "ref": 4,
+                "article": {
+                  "article_id": "K1500000414:kk:a69",
+                  "unit_type": "article",
+                  "number": "69",
+                  "title": "Жұмыскерлердің жекелеген санаттары үшін жұмыс уақытының қысқартылған ұзақтығы",
+                  "section_title": "2-БӨЛІМ. ЕҢБЕК ҚАТЫНАСТАРЫ",
+                  "chapter_title": "6-тарау. ЖҰМЫС УАҚЫТЫ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414#z69"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Қазақстан Республикасының Еңбек кодексі",
+                  "short_title": "ҚР Еңбек кодексі",
+                  "doc_type": "code",
+                  "number": "414-V",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414"
+                },
+                "snippet": "…Бірінші және екінші топтардағы мүгедектігі бар жұмыскерлерге аптасына 36 сағаттан аспайтын жұмыс уақытының қысқартылған ұзақтығы белгіленеді.\nЖұмыскерлерге жұмыс уақытының қысқартылған ұзақтығы белгіленген кезде олардың еңбегіне ақы төлеу осы Кодекске сәйкес жүргізіледі."
+              },
+              {
+                "ref": 5,
+                "article": {
+                  "article_id": "K1500000414:kk:a73-1",
+                  "unit_type": "article",
+                  "number": "73-1",
+                  "title": "Жылжымалы жұмыс кестесі",
+                  "section_title": "2-БӨЛІМ. ЕҢБЕК ҚАТЫНАСТАРЫ",
+                  "chapter_title": "6-тарау. ЖҰМЫС УАҚЫТЫ",
+                  "unit_status": "in_force",
+                  "has_amendments": false,
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414#z1778"
+                },
+                "doc": {
+                  "doc_id": "K1500000414",
+                  "title": "Қазақстан Республикасының Еңбек кодексі",
+                  "short_title": "ҚР Еңбек кодексі",
+                  "doc_type": "code",
+                  "number": "414-V",
+                  "adopted_date": "2015-11-23",
+                  "revision_date": "2026-09-06",
+                  "status": "in_force",
+                  "url": "https://old.adilet.zan.kz/kaz/docs/K1500000414"
+                },
+                "snippet": "Жұмыстың ерекшелігін ескере отырып, жұмыс беруші еңбек тәртіптемесінің қағидаларында жұмыскерлерге жұмыс уақытының жиынтық есебін қолдана отырып, жұмыс кестесінің күн сайынғы ұзақтығының 11 сағаттан аспайтын шектеулерін сақтай отырып, жұмыс кестесінің ұзақтығы әртүрлі аптаның әртүрлі күндеріндегі…"
+              }
+            ],
+            "degraded": []
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "Ж"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ұ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "мыс"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " у"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ақ"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ыты"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ның"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " қалып"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ты"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ұз"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ақты"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ғы"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " апт"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "асына"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " "
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "40"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " са"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ғат"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "тан"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " асп"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ау"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "ға"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " тиіс"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "."
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": " ["
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "1"
+          }
+        },
+        {
+          "event": "token",
+          "data": {
+            "text": "]"
+          }
+        },
+        {
+          "event": "done",
+          "data": {
+            "answer_id": "145639a8-aa5e-4b47-8236-b3e480e7ada3",
+            "text": "Жұмыс уақытының қалыпты ұзақтығы аптасына 40 сағаттан аспауға тиіс. [1]",
+            "citations": [
+              1
+            ],
+            "invalid_citations_removed": 0,
+            "grounded": true,
+            "finish_reason": "stop",
+            "timing_ms": {
+              "search": 131,
+              "ttft": 1343,
+              "total": 1346
+            },
+            "pipeline_version": "0.2.0"
+          }
+        }
+      ]
+    }
+  ]
+}

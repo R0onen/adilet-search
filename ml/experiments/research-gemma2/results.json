@@ -1,0 +1,68 @@
+{
+  "precision": "Per-method supported dtype; FP32 stored vectors and cosine scores",
+  "confidence_interval_resampling_unit": "article family (parallel RU/KK queries grouped)",
+  "scope": "title-derived proxy labels; body-only corpus; pilot is not confirmatory",
+  "pilot_per_language": 0,
+  "corpus_sha256": "7984a9f574590325c3ebfcdfeac15c4ff42c4b0765a7b69c991add7713fa8766",
+  "queries_sha256": "b1d6d7987283aa63aec8a779eb8b64b92c7bf7ae186d8463a933a63512d091a5",
+  "torch": "2.14.1+cu130",
+  "device": "NVIDIA GeForce RTX 5060 Laptop GPU",
+  "methods": {
+    "embeddinggemma2": {
+      "repo": "google/embeddinggemma-2",
+      "dtype": "torch.bfloat16",
+      "revision": "f9972ac22e696a105c482202646979e33e4b5a1e",
+      "max_tokens": 512,
+      "query_prefix": "task: search result | query: ",
+      "passage_prefix": "title: none | text: ",
+      "corpus_encoding_seconds_or_cache_load": 275.6528716879998,
+      "corpus_vector_cache_hit": false,
+      "query_and_ranking_seconds": 44.26674195600026,
+      "splits": {
+        "val:all": {
+          "queries": 1311,
+          "ndcg@10": 0.7097838978893886,
+          "recall@10": 0.8573607932875668,
+          "recall@50": 0.9397406559877955,
+          "mrr@10": 0.6621084716622474
+        },
+        "val:ru": {
+          "queries": 654,
+          "ndcg@10": 0.808635666288128,
+          "recall@10": 0.926605504587156,
+          "recall@50": 0.9785932721712538,
+          "mrr@10": 0.7698072909082083
+        },
+        "val:kk": {
+          "queries": 657,
+          "ndcg@10": 0.6113835074285429,
+          "recall@10": 0.7884322678843226,
+          "recall@50": 0.9010654490106544,
+          "mrr@10": 0.5549014278466333
+        },
+        "test:all": {
+          "queries": 1318,
+          "ndcg@10": 0.7160206246574061,
+          "recall@10": 0.877845220030349,
+          "recall@50": 0.9484066767830045,
+          "mrr@10": 0.6643971144350507
+        },
+        "test:ru": {
+          "queries": 658,
+          "ndcg@10": 0.8018056896641833,
+          "recall@10": 0.9452887537993921,
+          "recall@50": 0.9832826747720365,
+          "mrr@10": 0.7553577459352535
+        },
+        "test:kk": {
+          "queries": 660,
+          "ndcg@10": 0.6304955143930737,
+          "recall@10": 0.8106060606060606,
+          "recall@50": 0.9136363636363637,
+          "mrr@10": 0.5737121212121212
+        }
+      }
+    }
+  },
+  "validation_winner": "embeddinggemma2"
+}

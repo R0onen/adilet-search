@@ -19,6 +19,7 @@ dependencies = [
     "pyarrow>=18",
     "tzdata>=2026.5",
     "sse-starlette>=2.2",
+    "prometheus-client>=0.21,<1",
 ]
 
 [dependency-groups]

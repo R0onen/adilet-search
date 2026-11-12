@@ -27,6 +27,9 @@ Switching between the two needs a reindex: the backend refuses an index built wi
 | `MODEL_MANIFEST_PATH` | `/app/models/model_manifest.json` | which pipeline to run (in compose: `ML_MODEL_MANIFEST_PATH`) |
 | `MODEL_CACHE_DIR`, `HF_HOME` | `/models`, `/models/hf` | where model weights are cached |
 | `ADILET_ML_BATCH_SIZE` | `32` | embed/rerank batch size |
+| `ADILET_ML_INFERENCE_WORKERS` | `2` | bounded parallel CPU model calls, off the ASGI event loop |
+| `ADILET_ML_DEVICE` | `cpu` | `cpu` or explicit `cuda`; GPU image and NVIDIA runtime required for CUDA |
+| `ADILET_ML_CPU_THREADS` | `4` (Compose) | OpenMP/MKL threads per inference call; tune with concurrency |
 | `ADILET_ML_GENERATOR_MODE` | `fallback` | `openai` calls `LLM_BASE_URL`; `fallback` returns the first sentence of the top source |
 | `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | — | an OpenAI-compatible endpoint. The base URL is given **without** `/v1`: the service appends `/v1/chat/completions` |
 | `MODEL_PROMPT_PATH` | `prompts/answer_v1.md` | the answer prompt (system rules + user template) |

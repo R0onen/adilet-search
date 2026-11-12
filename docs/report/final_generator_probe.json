@@ -1,0 +1,8 @@
+{
+  "scope": "Direct generator probe, not end-to-end API verification",
+  "model": "openai/gpt-oss-120b",
+  "status": 200,
+  "text": "Нормальная продолжительность рабочего времени не должна превышать 40 часов в неделю [1]",
+  "contains40": true,
+  "hasCitation": true
+}

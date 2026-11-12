@@ -1,0 +1,579 @@
+{
+  "created_at": "2026-11-11T21:23:12.359712+00:00",
+  "client_platform": "Windows-11-10.0.26300-SP0",
+  "base_url": "http://127.0.0.1:18000",
+  "mode": "hybrid",
+  "users": 10,
+  "requests": 60,
+  "warmup_status": 200,
+  "version": {
+    "app_version": "0.1.0",
+    "git_sha": "dev",
+    "pipeline_version": "0.2.0",
+    "index_collection": "legal_chunks__0.2.0"
+  },
+  "elapsed_s": 13.866,
+  "requests_per_second": 4.327,
+  "http_errors": 44,
+  "degraded_responses": 16,
+  "empty_responses": 0,
+  "full_responses": 0,
+  "full_p50_ms": null,
+  "full_p95_ms": null,
+  "target_met": false,
+  "scope": "Repeated Labor Code diagnostic questions; not a relevance benchmark.",
+  "samples": [
+    {
+      "index": 0,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 28,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1556
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1576.6
+    },
+    {
+      "index": 1,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 32,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1555
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1594.63
+    },
+    {
+      "index": 2,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 103,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1632
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1672.81
+    },
+    {
+      "index": 3,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 96,
+        "retrieve": 24,
+        "fuse": 0,
+        "rerank": 1504,
+        "total": 1636
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1685.52
+    },
+    {
+      "index": 4,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 154,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1687
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1739.25
+    },
+    {
+      "index": 5,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 135,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1671
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1721.93
+    },
+    {
+      "index": 6,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 118,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1504,
+        "total": 1661
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1710.03
+    },
+    {
+      "index": 7,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2060.42
+    },
+    {
+      "index": 8,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 1098,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1503,
+        "total": 2624
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2674.51
+    },
+    {
+      "index": 9,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2050.78
+    },
+    {
+      "index": 10,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2023.71
+    },
+    {
+      "index": 11,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2011.77
+    },
+    {
+      "index": 12,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2029.28
+    },
+    {
+      "index": 13,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2023.93
+    },
+    {
+      "index": 14,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2029.2
+    },
+    {
+      "index": 15,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2026.23
+    },
+    {
+      "index": 16,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2017.72
+    },
+    {
+      "index": 17,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2021.23
+    },
+    {
+      "index": 18,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2020.46
+    },
+    {
+      "index": 19,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2013.53
+    },
+    {
+      "index": 20,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2016.57
+    },
+    {
+      "index": 21,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2016.5
+    },
+    {
+      "index": 22,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2018.03
+    },
+    {
+      "index": 23,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2016.79
+    },
+    {
+      "index": 24,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2017.45
+    },
+    {
+      "index": 25,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2023.67
+    },
+    {
+      "index": 26,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2023.27
+    },
+    {
+      "index": 27,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2022.87
+    },
+    {
+      "index": 28,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2022.33
+    },
+    {
+      "index": 29,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2013.74
+    },
+    {
+      "index": 30,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2015.64
+    },
+    {
+      "index": 31,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2013.96
+    },
+    {
+      "index": 32,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2015.9
+    },
+    {
+      "index": 33,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2014.74
+    },
+    {
+      "index": 34,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2012.22
+    },
+    {
+      "index": 35,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2020.68
+    },
+    {
+      "index": 36,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2019.77
+    },
+    {
+      "index": 37,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2021.39
+    },
+    {
+      "index": 38,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2020.52
+    },
+    {
+      "index": 39,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 1577,
+        "retrieve": 19,
+        "fuse": 0,
+        "rerank": 1503,
+        "total": 3112
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 3123.62
+    },
+    {
+      "index": 40,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 676,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 2209
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2222.48
+    },
+    {
+      "index": 41,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 697,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 2225
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2236.73
+    },
+    {
+      "index": 42,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 616,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 2149
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2162.53
+    },
+    {
+      "index": 43,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 634,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 2158
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2169.85
+    },
+    {
+      "index": 44,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 626,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 2157
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2169.4
+    },
+    {
+      "index": 45,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 1652,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 3180
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 3201.06
+    },
+    {
+      "index": 46,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 619,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 2149
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2162.13
+    },
+    {
+      "index": 47,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2027.63
+    },
+    {
+      "index": 48,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2012.51
+    },
+    {
+      "index": 49,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2015.02
+    },
+    {
+      "index": 50,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2024.46
+    },
+    {
+      "index": 51,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2020.13
+    },
+    {
+      "index": 52,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2021.47
+    },
+    {
+      "index": 53,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2015.31
+    },
+    {
+      "index": 54,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2015.91
+    },
+    {
+      "index": 55,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2015.38
+    },
+    {
+      "index": 56,
+      "lang": "ru",
+      "status": 503,
+      "wall_ms": 2031.73
+    },
+    {
+      "index": 57,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2017.77
+    },
+    {
+      "index": 58,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2013.47
+    },
+    {
+      "index": 59,
+      "lang": "kk",
+      "status": 503,
+      "wall_ms": 2015.92
+    }
+  ]
+}

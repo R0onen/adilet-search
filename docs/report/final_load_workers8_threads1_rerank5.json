@@ -1,0 +1,1065 @@
+{
+  "created_at": "2026-11-11T21:29:26.771460+00:00",
+  "client_platform": "Windows-11-10.0.26300-SP0",
+  "base_url": "http://127.0.0.1:18000",
+  "mode": "hybrid",
+  "users": 10,
+  "requests": 60,
+  "warmup_status": 200,
+  "version": {
+    "app_version": "0.1.0",
+    "git_sha": "dev",
+    "pipeline_version": "0.2.0",
+    "index_collection": "legal_chunks__0.2.0"
+  },
+  "elapsed_s": 11.542,
+  "requests_per_second": 5.198,
+  "http_errors": 0,
+  "degraded_responses": 39,
+  "empty_responses": 0,
+  "full_responses": 21,
+  "full_p50_ms": 1767.36,
+  "full_p95_ms": 1928.35,
+  "target_met": false,
+  "scope": "Repeated Labor Code diagnostic questions; not a relevance benchmark.",
+  "samples": [
+    {
+      "index": 0,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 135,
+        "retrieve": 11,
+        "fuse": 0,
+        "rerank": 1460,
+        "total": 1614
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1631.57
+    },
+    {
+      "index": 1,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 171,
+        "retrieve": 11,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1691
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1723.28
+    },
+    {
+      "index": 2,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 201,
+        "retrieve": 11,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1723
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1760.97
+    },
+    {
+      "index": 3,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 320,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1878
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1917.16
+    },
+    {
+      "index": 4,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 304,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1829
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1866.12
+    },
+    {
+      "index": 5,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 307,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1506,
+        "total": 1843
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1881.52
+    },
+    {
+      "index": 6,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 431,
+        "retrieve": 11,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1951
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1989.88
+    },
+    {
+      "index": 7,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 338,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1493,
+        "total": 1862
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1901.8
+    },
+    {
+      "index": 8,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 332,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 1382,
+        "total": 1736
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1777.87
+    },
+    {
+      "index": 9,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 464,
+        "retrieve": 13,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1987
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2025.0
+    },
+    {
+      "index": 10,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 285,
+        "retrieve": 20,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1818
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1828.05
+    },
+    {
+      "index": 11,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 322,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1843
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1852.89
+    },
+    {
+      "index": 12,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 301,
+        "retrieve": 13,
+        "fuse": 0,
+        "rerank": 1500,
+        "total": 1824
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1837.73
+    },
+    {
+      "index": 13,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 329,
+        "retrieve": 13,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1854
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1866.68
+    },
+    {
+      "index": 14,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 273,
+        "retrieve": 12,
+        "fuse": 0,
+        "rerank": 1469,
+        "total": 1764
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1796.1
+    },
+    {
+      "index": 15,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 329,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1854
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1891.51
+    },
+    {
+      "index": 16,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 355,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1882
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1909.45
+    },
+    {
+      "index": 17,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 392,
+        "retrieve": 13,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1915
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1933.23
+    },
+    {
+      "index": 18,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 374,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1899
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1906.67
+    },
+    {
+      "index": 19,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 354,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1503,
+        "total": 1883
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1891.27
+    },
+    {
+      "index": 20,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 311,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1273,
+        "total": 1609
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1620.46
+    },
+    {
+      "index": 21,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 215,
+        "retrieve": 20,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1748
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1757.36
+    },
+    {
+      "index": 22,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 323,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1851
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1860.53
+    },
+    {
+      "index": 23,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 312,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1839
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1858.07
+    },
+    {
+      "index": 24,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 315,
+        "retrieve": 22,
+        "fuse": 0,
+        "rerank": 1455,
+        "total": 1805
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1816.63
+    },
+    {
+      "index": 25,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 201,
+        "retrieve": 24,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1737
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1748.25
+    },
+    {
+      "index": 26,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 292,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1820
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1833.04
+    },
+    {
+      "index": 27,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 269,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1506,
+        "total": 1806
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1814.06
+    },
+    {
+      "index": 28,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 316,
+        "retrieve": 19,
+        "fuse": 0,
+        "rerank": 1503,
+        "total": 1853
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1863.43
+    },
+    {
+      "index": 29,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 289,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1504,
+        "total": 1820
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1833.13
+    },
+    {
+      "index": 30,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 477,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1440,
+        "total": 1939
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1952.47
+    },
+    {
+      "index": 31,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 316,
+        "retrieve": 20,
+        "fuse": 0,
+        "rerank": 1419,
+        "total": 1765
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1777.3
+    },
+    {
+      "index": 32,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 212,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1210,
+        "total": 1449
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1475.83
+    },
+    {
+      "index": 33,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 230,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1411,
+        "total": 1668
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1682.56
+    },
+    {
+      "index": 34,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 261,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1790
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1813.76
+    },
+    {
+      "index": 35,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 286,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1813
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1824.63
+    },
+    {
+      "index": 36,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 184,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1714
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1737.87
+    },
+    {
+      "index": 37,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 242,
+        "retrieve": 21,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1773
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1791.19
+    },
+    {
+      "index": 38,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 240,
+        "retrieve": 20,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1773
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1790.88
+    },
+    {
+      "index": 39,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 317,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1847
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1861.67
+    },
+    {
+      "index": 40,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 270,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1457,
+        "total": 1757
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1767.36
+    },
+    {
+      "index": 41,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 221,
+        "retrieve": 25,
+        "fuse": 0,
+        "rerank": 1459,
+        "total": 1711
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1721.53
+    },
+    {
+      "index": 42,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 214,
+        "retrieve": 19,
+        "fuse": 0,
+        "rerank": 1416,
+        "total": 1659
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1670.38
+    },
+    {
+      "index": 43,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 237,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1768
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1778.65
+    },
+    {
+      "index": 44,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 164,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1693
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1704.38
+    },
+    {
+      "index": 45,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 386,
+        "retrieve": 21,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1921
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1937.12
+    },
+    {
+      "index": 46,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 464,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1994
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2003.74
+    },
+    {
+      "index": 47,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 472,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1998
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2011.34
+    },
+    {
+      "index": 48,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 505,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 2034
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2046.62
+    },
+    {
+      "index": 49,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 509,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 2036
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 2046.98
+    },
+    {
+      "index": 50,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 152,
+        "retrieve": 14,
+        "fuse": 0,
+        "rerank": 1336,
+        "total": 1513
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1521.64
+    },
+    {
+      "index": 51,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 199,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1501,
+        "total": 1729
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1739.44
+    },
+    {
+      "index": 52,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 269,
+        "retrieve": 13,
+        "fuse": 0,
+        "rerank": 1477,
+        "total": 1768
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1777.69
+    },
+    {
+      "index": 53,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [
+        "rerank"
+      ],
+      "results": 10,
+      "timing_ms": {
+        "embed": 211,
+        "retrieve": 15,
+        "fuse": 0,
+        "rerank": 1502,
+        "total": 1735
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1745.44
+    },
+    {
+      "index": 54,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 206,
+        "retrieve": 17,
+        "fuse": 0,
+        "rerank": 1469,
+        "total": 1700
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1709.16
+    },
+    {
+      "index": 55,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 575,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1319,
+        "total": 1919
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1928.35
+    },
+    {
+      "index": 56,
+      "lang": "ru",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 574,
+        "retrieve": 21,
+        "fuse": 0,
+        "rerank": 1138,
+        "total": 1739
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1748.23
+    },
+    {
+      "index": 57,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 606,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1155,
+        "total": 1784
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1795.32
+    },
+    {
+      "index": 58,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 506,
+        "retrieve": 18,
+        "fuse": 0,
+        "rerank": 1187,
+        "total": 1720
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1728.19
+    },
+    {
+      "index": 59,
+      "lang": "kk",
+      "status": 200,
+      "degraded": [],
+      "results": 10,
+      "timing_ms": {
+        "embed": 449,
+        "retrieve": 16,
+        "fuse": 0,
+        "rerank": 1390,
+        "total": 1860
+      },
+      "pipeline_version": "0.2.0",
+      "wall_ms": 1867.48
+    }
+  ]
+}

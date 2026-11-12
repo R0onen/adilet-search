@@ -1,0 +1,9 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+  - job_name: backend
+    static_configs:
+      - targets: [backend:8000]
+  - job_name: ml
+    static_configs:
+      - targets: [ml-service:8001]

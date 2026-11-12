@@ -33,6 +33,13 @@ class EngineLoadError(RuntimeError):
     pass
 
 
+def _model_device() -> str:
+    device = os.getenv("ADILET_ML_DEVICE", "cpu")
+    if device not in {"cpu", "cuda"}:
+        raise EngineLoadError("ADILET_ML_DEVICE must be cpu or cuda")
+    return device
+
+
 def load_manifest(path: Path | None = None) -> Manifest:
     manifest_path = Path(os.getenv("MODEL_MANIFEST_PATH", str(path or DEFAULT_MANIFEST)))
     if not manifest_path.exists():
@@ -84,7 +91,10 @@ class SentenceTransformerEmbedder:
                 "sentence-transformers is not installed; install adilet-ml[models]"
             ) from exc
         self.model = SentenceTransformer(
-            model_name, revision=revision, cache_folder=os.getenv("MODEL_CACHE_DIR"), device="cpu"
+            model_name,
+            revision=revision,
+            cache_folder=os.getenv("MODEL_CACHE_DIR"),
+            device=_model_device(),
         )
         self.model.max_seq_length = max_seq_len
         self.dim = dim
@@ -146,7 +156,7 @@ class CrossEncoderReranker:
             model_name,
             revision=revision,
             max_length=max_seq_len,
-            device="cpu",
+            device=_model_device(),
             cache_folder=os.getenv("MODEL_CACHE_DIR"),
         )
 

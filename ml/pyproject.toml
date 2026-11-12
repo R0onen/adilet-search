@@ -5,6 +5,7 @@ description = "Adilet Search ML package: corpus tooling, retrieval experiments, 
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [
+    "anyio>=4,<5",
     "beautifulsoup4>=4.12",
     "fastapi>=0.115",
     "httpx>=0.28",
@@ -26,6 +27,10 @@ models = [
     "sentence-transformers==6.1.0",
     "torch==2.14.1",
     "transformers==5.19.0",
+]
+research = [
+    "pillow>=11,<14",
+    "torchvision==0.29.1",
 ]
 
 [project.scripts]

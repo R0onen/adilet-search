@@ -1,7 +1,9 @@
 """The two manifests and the answer prompt that the service ships with."""
 
 import json
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -11,10 +13,32 @@ from adilet_ml.serving.engine import (
     CrossEncoderReranker,
     HashEmbedder,
     LexicalReranker,
+    SentenceTransformerEmbedder,
     build_messages,
 )
 
 MODELS = Path(__file__).parents[1] / "models"
+
+
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+def test_both_neural_stages_use_the_explicit_device(
+    device: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    devices = []
+
+    class FakeModel:
+        def __init__(self, *args, **kwargs):
+            devices.append(kwargs["device"])
+
+    monkeypatch.setenv("ADILET_ML_DEVICE", device)
+    monkeypatch.setitem(
+        sys.modules,
+        "sentence_transformers",
+        SimpleNamespace(SentenceTransformer=FakeModel, CrossEncoder=FakeModel),
+    )
+    SentenceTransformerEmbedder("test", 768)
+    CrossEncoderReranker("test")
+    assert devices == [device, device]
 
 
 def load(name: str) -> Manifest:
