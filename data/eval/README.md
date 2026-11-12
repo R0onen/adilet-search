@@ -13,3 +13,14 @@ this set as "title-query (proxy) evaluation" and evaluate against article bodies
 
 `labeling/GUIDE.md` describes the human gold set (plain-language questions with graded relevance),
 which does not exist yet.
+
+## Synthetic questions (`synthetic/`)
+
+803 plain-language questions written by an LLM for 400 sampled articles (one everyday question
+and one that uses the legal terms, per article), in Russian and Kazakh. The source article is the
+only labelled relevant document, so the labels are **automatic, not human-checked**; any number
+computed on this set must be reported as "synthetic queries". Splits follow the article splits of
+`splits.json` (no article is in two splits). Built by `ml/scripts/build_synthetic_eval.py`
+(prompt `synthetic_queries_v2`, seed 42; models are listed in `synthetic/meta.json`).
+
+Used by `ml/notebooks/A3_training_finetuning.ipynb` and by the load test.

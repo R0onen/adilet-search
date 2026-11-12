@@ -1,0 +1,27 @@
+{
+ "prompt_version": "synthetic_queries_v2",
+ "models": [
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-safeguard-20b"
+ ],
+ "seed": 42,
+ "articles_sampled": 400,
+ "articles_done": 400,
+ "queries": 803,
+ "by_split_lang_type": {
+  "train/ru/plain": 150,
+  "train/ru/term": 150,
+  "train/kk/plain": 96,
+  "train/kk/term": 93,
+  "val/ru/plain": 36,
+  "val/ru/term": 35,
+  "val/kk/plain": 24,
+  "val/kk/term": 24,
+  "test/ru/plain": 60,
+  "test/ru/term": 56,
+  "test/kk/plain": 40,
+  "test/kk/term": 39
+ },
+ "notes": "LLM-written queries; the source article is the only labelled relevant document."
+}
