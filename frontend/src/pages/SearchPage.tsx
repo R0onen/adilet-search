@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { BookOpenCheck, Languages, MessageCircle, Search } from 'lucide-react';
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { apiMode, search } from '../api/client';
+import { ApiError, apiMode, search } from '../api/client';
 import type { SearchRequest } from '../api/types';
 import { AnswerPanel } from '../components/AnswerPanel';
 import { ArticleDrawer } from '../components/ArticleDrawer';
@@ -13,7 +14,9 @@ import { Button } from '../components/ui/button';
 export default function SearchPage() {
   const { t } = useTranslation();
   const [request, setRequest] = useState<SearchRequest | null>(null);
-  const [articleId, setArticleId] = useState<string | null>(null);
+  // `/?article=<id>` opens an article directly (the admin query log links here).
+  const [params] = useSearchParams();
+  const [articleId, setArticleId] = useState<string | null>(params.get('article'));
   const results = useQuery({
     queryKey: ['search', request],
     queryFn: ({ signal }) => search(request!, signal),
@@ -65,7 +68,11 @@ export default function SearchPage() {
           {results.isError && (
             <div role="alert" className="error-box">
               <h3>{t('failed')}</h3>
-              <p>{results.error.message}</p>
+              <p>
+                {results.error instanceof ApiError && results.error.status === 429
+                  ? t('rateLimited', { seconds: results.error.retryAfter ?? 60 })
+                  : results.error.message}
+              </p>
               <Button onClick={() => void results.refetch()}>{t('retry')}</Button>
             </div>
           )}
@@ -83,7 +90,11 @@ export default function SearchPage() {
                 </div>
               )}
               <div className="results-layout">
-                <Results results={results.data.results} onOpen={setArticleId} />
+                <Results
+                  results={results.data.results}
+                  onOpen={setArticleId}
+                  queryId={apiMode === 'live' ? results.data.query_id : undefined}
+                />
                 {results.data.results.length > 0 && (
                   <AnswerPanel
                     key={results.data.query_id}

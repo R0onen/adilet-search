@@ -98,7 +98,11 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start a reindex job into a new collection */
+        /**
+         * Start a reindex job into a new collection
+         * @description Builds a new collection in the background and switches the alias only on success: the
+         *     current index keeps serving while the job runs and if it fails.
+         */
         post: operations["reindex_api_v1_admin_reindex_post"];
         delete?: never;
         options?: never;
@@ -113,7 +117,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Usage statistics (defaults to the last 7 days) */
+        /**
+         * Usage statistics (defaults to the last 7 days)
+         * @description Days are UTC days; both bounds are inclusive.
+         */
         get: operations["stats_api_v1_admin_stats_get"];
         put?: never;
         post?: never;
@@ -1371,15 +1378,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Not implemented yet (stub) */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
         };
     };
     login_api_v1_admin_login_post: {
@@ -1433,15 +1431,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1508,15 +1497,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Not implemented yet (stub) */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
         };
     };
     export_queries_api_v1_admin_queries_export_get: {
@@ -1567,15 +1547,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1634,15 +1605,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1710,8 +1672,8 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Not implemented yet (stub) */
-            501: {
+            /** @description A required upstream component is unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1769,15 +1731,6 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description Not implemented yet (stub) */
-            501: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
         };
     };
     system_api_v1_admin_system_get: {
@@ -1809,15 +1762,6 @@ export interface operations {
             };
             /** @description Internal error */
             500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
-                };
-            };
-            /** @description Not implemented yet (stub) */
-            501: {
                 headers: {
                     [name: string]: unknown;
                 };
