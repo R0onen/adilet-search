@@ -10,6 +10,7 @@ from app import __version__
 
 # Values that are only acceptable outside production.
 DEV_SESSION_SALT = "dev-only-session-salt"
+DEV_JWT_SECRET = "dev-only-jwt-secret-change-me-in-production"  # noqa: S105 - rejected in prod
 
 
 class Settings(BaseSettings):
@@ -67,14 +68,48 @@ class Settings(BaseSettings):
     # --- privacy ---
     session_salt: str = DEV_SESSION_SALT
 
-    @field_validator("cors_origins", mode="before")
+    # --- admin auth ---
+    # The admin user is created or updated at startup when both values are set.
+    admin_username: str | None = None
+    admin_password_hash: str | None = None  # bcrypt; `python -m app.cli hash-password`
+    jwt_secret: str = DEV_JWT_SECRET
+    jwt_ttl_s: int = Field(default=8 * 3600, gt=0)
+
+    # --- rate limits (requests per minute per session + IP; 0 = unlimited) ---
+    rate_limit_search: int = Field(default=60, ge=0)
+    rate_limit_answer: int = Field(default=10, ge=0)
+    rate_limit_login: int = Field(default=5, ge=0)
+    # Server-to-server callers send X-API-Key; a valid key multiplies the limits.
+    api_keys: Annotated[list[str], NoDecode] = Field(default_factory=list)
+    api_key_limit_factor: int = Field(default=10, ge=1)
+    max_body_bytes: int = Field(default=64 * 1024, gt=0)
+
+    # --- resilience ---
+    # After `breaker_failures` consecutive failures a dependency is skipped for `breaker_reset_s`.
+    breaker_failures: int = Field(default=5, ge=1)
+    breaker_reset_s: float = Field(default=20.0, gt=0)
+    # Per-process cache of query embeddings and search responses (0 = off).
+    cache_ttl_s: float = Field(default=300.0, ge=0)
+    cache_size: int = Field(default=2000, ge=1)
+
+    # --- admin reindex ---
+    # `processed` / `sample` live under this directory (mounted read-only in Docker).
+    data_dir: str = "../data"
+
+    @field_validator("cors_origins", "api_keys", mode="before")
     @classmethod
     def _split_origins(cls, value: object) -> object:
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",") if origin.strip()]
         return value
 
-    @field_validator("qdrant_api_key", "search_rerank_top_n", mode="before")
+    @field_validator(
+        "qdrant_api_key",
+        "search_rerank_top_n",
+        "admin_username",
+        "admin_password_hash",
+        mode="before",
+    )
     @classmethod
     def _empty_is_none(cls, value: object) -> object:
         return None if value == "" else value
@@ -83,6 +118,8 @@ class Settings(BaseSettings):
     def _no_dev_secrets_in_prod(self) -> "Settings":
         if self.environment == "prod" and self.session_salt == DEV_SESSION_SALT:
             raise ValueError("SESSION_SALT must be set to a strong secret in production")
+        if self.environment == "prod" and self.jwt_secret == DEV_JWT_SECRET:
+            raise ValueError("JWT_SECRET must be set to a strong secret in production")
         return self
 
 

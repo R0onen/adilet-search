@@ -19,6 +19,9 @@ dependencies = [
     "pyarrow>=18",
     "tzdata>=2026.5",
     "sse-starlette>=2.2",
+    "pyjwt>=2.9",
+    "bcrypt>=4.2",
+    "cachetools>=5.5",
     "prometheus-client>=0.21,<1",
 ]
 
@@ -31,6 +34,7 @@ dev = [
     "pytest-cov>=6.0",
     "pyyaml>=6.0",
     "types-pyyaml>=6.0.12.20260906",
+    "types-cachetools>=7.0.0.20260713",
 ]
 
 [tool.uv]

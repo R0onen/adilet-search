@@ -8,6 +8,8 @@ import SearchPage from './pages/SearchPage';
 import i18n from './i18n';
 
 const ComparePage = lazy(() => import('./pages/ComparePage'));
+// The admin panel is a separate chunk: visitors of the public site never download it.
+const AdminApp = lazy(() => import('./admin/AdminApp'));
 class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
@@ -96,6 +98,7 @@ export default function App() {
               <Route path="/search" element={<SearchPage />} />
               <Route path="/compare" element={<ComparePage />} />
               <Route path="/about" element={<About />} />
+              <Route path="/admin/*" element={<AdminApp />} />
               <Route
                 path="*"
                 element={

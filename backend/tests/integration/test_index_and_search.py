@@ -470,12 +470,14 @@ def test_index_built_by_another_process_is_used_at_once(corpus_dir: Path) -> Non
     asyncio.run(with_resources(reset))
     with TestClient(create_app(cache_settings)) as api:
         before = api.post("/api/v1/search", json={"query": QUERY_RU})
-        assert before.status_code == 503
-        assert "No search index" in before.json()["error"]["message"]
+        # No vector index yet: the full-text fallback answers, marked as degraded.
+        assert before.status_code == 200, before.text
+        assert before.json()["degraded"] == ["semantic"]
         asyncio.run(with_resources(index))
         after = api.post("/api/v1/search", json={"query": QUERY_RU})
         assert after.status_code == 200, after.text
         assert after.json()["results"]
+        assert after.json()["degraded"] == []
 
 
 # --- answer (SSE) ---------------------------------------------------------------------------

@@ -194,7 +194,8 @@ Rules:
 - **Zero results.** If search finds nothing, the stream is `sources` with an empty list, then `done` with `grounded: false`, `finish_reason: "no_results"` and a fixed "not found" message in the query's language. The LLM is not called.
 - **Heartbeat.** The server sends a comment line `: ping` every 15 s.
 - **Line endings.** Event lines may end with `\r\n` or `\n` (both are valid SSE); parse both.
-- **Errors before the stream.** Validation errors (422) and search failures (503 `upstream_unavailable`, e.g. no index) are normal JSON error responses; no stream is opened.
+- **Errors before the stream.** Validation errors (422), rate limiting (429) and search failures (503 `upstream_unavailable`: the vector search and the full-text fallback are both down) are normal JSON error responses; no stream is opened.
+- **Degraded search.** If the ML service, Qdrant or the index is unavailable, the sources come from the full-text fallback and the `sources` event carries `degraded: ["semantic"]`.
 - **Disconnect.** If the client disconnects, generation is cancelled.
 - **Schemas.** `openapi.json` publishes the four payloads as `SourcesEvent`, `TokenEvent`, `DoneEvent` and `ErrorEvent`, linked from the `/answer` 200 response under `x-sse-events`.
 
@@ -356,6 +357,8 @@ Returns a **Job**:
   | `/answer` | 10/min |
   | `/admin/login` | 5/min |
 
-  Exceeding a limit returns `429` with `Retry-After`. Server-to-server callers with a valid `X-API-Key` get higher limits.
+  Exceeding a limit returns `429` with `Retry-After` (seconds). Server-to-server callers with a valid `X-API-Key` get 10× these limits.
+- **Request body:** at most 64 KB; a larger body returns `413` with code `content_too_large`.
+- **No index or semantic path down:** `/search` still answers `200`, from the Postgres full-text fallback, with `degraded: ["semantic"]` and `score_type: "fts"` on each result. `503` is returned only when the fallback fails too.
 - `/metrics` (Prometheus) is served by the backend at the root path. It is not exposed through Caddy.
 - **Breaking changes** need Frontend's acknowledgement through `contracts/CHANGELOG.md`. Additive changes (a new optional field or a new endpoint) need only a CHANGELOG entry.

@@ -46,7 +46,8 @@ merging to `main` and public hosting are separate steps.
   Instructor-required project-specific fine-tuning and independent human RU/KK labels remain outstanding. Do not use superseded A3/A4 toy numbers.
 - Improve full-pipeline concurrency/performance and measure the full corpus.
 - Public HTTPS access for an external grader is unverified; no public URL has been created.
-- Planned application admin/auth/full-text failover remains incomplete; monitoring is Grafana.
+- Teammate admin/auth/full-text fallback changes are integrated from `origin/main`;
+  earlier runtime reports predate this integration. Rehearse the combined stack before submission.
 - See `docs/report/final_readiness.md` for the complete requirement matrix and limitations.
 
 ## Research extension
@@ -56,3 +57,15 @@ validation/test study, with pinned checkpoints, per-language metrics, paired unc
 and saved rankings. LLM query rewriting is a separate small matched pilot. See
 `docs/report/RESEARCH_FINDINGS.md` and `ml/notebooks/Final_Research_Comparison.ipynb`.
 The final deck now presents research questions, controls and results alongside the prototype.
+
+## Team Git handoff
+
+The final prototype/research work is committed on `final/prototype-and-defense` and integrates
+the latest teammate changes from `main`, preserving their admin UI, training notebooks,
+resilience code and monitoring alerts. Both monitoring dashboards remain available.
+Runtime JSON reports describe the earlier measured stack, not a deployment of this merge.
+
+Post-merge checks: 282 backend unit/contract tests, 49 ML tests and 20 frontend tests pass.
+Backend lint/format/types and OpenAPI drift checks pass; frontend lint/build and final
+Compose configuration validation pass. Storage/real-ML integration evidence above predates
+this merge; the merged services have not been redeployed by this Git handoff.

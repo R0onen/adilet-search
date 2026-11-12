@@ -48,7 +48,8 @@ Then run `./infra/start-final.ps1 -Index -Corpus processed` from the repository 
 Grafana uses `admin` and the password in `.env.final`. Prometheus scrapes both the backend and ML
 service. The provisioned dashboard shows service availability, traffic, HTTP errors, search p95
 and ML latency. It does not implement the planned application admin panel: `/api/v1/admin/*`
-still contains stubs and is excluded from the demonstration.
+now includes the teammate implementation merged from `main`; earlier runtime evidence
+predates that merge. Configure admin credentials and rehearse it before demonstrating it.
 
 ## Model and data identity
 

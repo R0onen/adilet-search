@@ -112,6 +112,56 @@ Single-user latency per stage:
 uv run python loadtests/measure_search.py --rounds 1 --top 3
 ```
 
+## Admin API
+
+Create the admin user: make a password hash, put it in `.env`, restart the backend.
+
+```bash
+docker compose exec backend python -m app.cli hash-password
+```
+
+```
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH='$2b$12$...'
+```
+
+Keep the single quotes: the hash contains `$`, which compose would otherwise expand. Then log in and call an admin route:
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8000/api/v1/admin/login -H 'Content-Type: application/json' -d '{"username": "admin", "password": "<your password>"}' | jq -r .access_token)
+```
+
+```bash
+curl -s http://localhost:8000/api/v1/admin/stats -H "Authorization: Bearer $TOKEN" | jq .totals
+```
+
+Routes: `/admin/stats`, `/admin/queries` (+ `/{id}`, `/export` as CSV), `/admin/system`, `/admin/reindex`, `/admin/jobs/{id}`. `POST /admin/reindex` runs the indexer inside the API process, builds a new collection and moves the alias only on success.
+
+## Degraded modes
+
+| What fails | What the user gets |
+|---|---|
+| ML service, Qdrant, or an index built with other models | `200` from the Postgres full-text fallback: `degraded: ["semantic"]`, `score_type: "fts"` |
+| Reranker (error or slower than `SEARCH_RERANK_TIMEOUT_S`) | the fused order, `degraded: ["rerank"]` |
+| LLM | the sources, then an SSE `error` event (`generation_unavailable`) |
+| Postgres | `503` |
+
+A circuit breaker stops calling a dependency after `BREAKER_FAILURES` consecutive failures and probes it again after `BREAKER_RESET_S`, so a dead service costs no timeouts. Query embeddings and search responses are cached per process for `CACHE_TTL_S`. Try it:
+
+```bash
+docker compose stop ml-service
+```
+
+Search still answers (degraded), `/admin/system` shows `ml_service: down`, and after `docker compose start ml-service` it recovers by itself.
+
+## Monitoring
+
+```bash
+docker compose --profile ml --profile monitoring up -d
+```
+
+Prometheus is at `http://127.0.0.1:9090` (alert rules in `infra/prometheus/alerts.yml`), Grafana at `http://127.0.0.1:3000/grafana/` (user and password from `GRAFANA_ADMIN_*`, default `admin` / `admin`). The "Adilet Search" dashboard is provisioned from `infra/grafana/dashboards/adilet.json`; edit `infra/grafana/build_dashboard.py` and rerun it to change the dashboard. The backend's own metrics are at `http://localhost:8000/metrics`.
+
 ## Run on the host (no Docker for the app)
 
 ```bash

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request, Response
 
 from app.api.deps import FeedbackServiceDep, SettingsDep
 from app.api.responses import errors
+from app.core import metrics
 from app.schemas.feedback import FeedbackRequest
 from app.services.query_log import session_hash
 
@@ -21,4 +22,5 @@ async def feedback(
     await service.submit(
         body, session_hash(request.headers.get("x-session-id"), settings.session_salt)
     )
+    metrics.FEEDBACK.labels(body.target, "positive" if body.rating > 0 else "negative").inc()
     return Response(status_code=204)

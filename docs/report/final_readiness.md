@@ -66,13 +66,13 @@ they do not demonstrate full-corpus or broad-query performance.
 
 ## Submission blockers and scope decisions
 
-- A fair final model selection and any required project-specific training remain outstanding.
+- Frozen-split proxy selection is complete; independent human-gold evaluation and any required project-specific training remain outstanding.
   The currently running neural models are pretrained; loading them is not proof of our own
   training. The superseded A3/A4 drafts do not supply that evidence.
 - The external grader cannot open a loopback URL. Public hosting needs an actual reachable
   environment; no public URL is currently verified.
-- The planned admin API/UI, database full-text failover and application authentication are
-  incomplete. Monitoring is supplied by Prometheus/Grafana, not by the stub admin routes.
+- Teammate admin API/UI, full-text fallback and authentication code are merged from `main`;
+  earlier runtime reports predate this integration and do not validate their deployment.
 - The snapshot is dated; legal currentness and answer faithfulness need separate review.
 - Runtime dependency audit: `npm audit --omit=dev` reported zero known vulnerabilities in its
   returned snapshot (`frontend_runtime_audit.json`). The initial full installation audit reported
@@ -134,3 +134,10 @@ per-query rankings and article-family bootstrap intervals are saved. No project-
 training or general natural-language legal accuracy is inferred from title-query scores.
 The current local ML service uses the optional GPU configuration; historical CPU load results
 remain separate and have not been replaced with an unmeasured GPU throughput claim.
+
+## Integration handoff
+
+The handoff branch incorporates teammate admin/auth, full-text fallback, resilience,
+monitoring and training-notebook changes from `origin/main` through `80f1fb7`. Earlier runtime
+JSON reports and screenshots predate this integration and do not verify deployment of the
+merged application. Git publication and deployment remain distinct steps.

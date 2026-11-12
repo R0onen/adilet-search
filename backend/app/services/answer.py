@@ -24,6 +24,7 @@ from typing import Any, Protocol
 import structlog
 from sse_starlette import ServerSentEvent
 
+from app.core import metrics
 from app.db.models import Article, Document
 from app.schemas.answer import (
     AnswerRequest,
@@ -307,4 +308,13 @@ class AnswerService:
             }
             if answer["status"] != "completed":
                 log_values["error_code"] = answer.get("error_code")
+            metrics.ANSWERS.labels(answer["status"]).inc()
+            if answer.get("ttft_ms") is not None:
+                metrics.ANSWER_TTFT.observe(answer["ttft_ms"] / 1000)
+            if answer.get("total_ms") is not None:
+                metrics.ANSWER_DURATION.observe(answer["total_ms"] / 1000)
+            if answer.get("invalid_citations_removed"):
+                metrics.CITATIONS_INVALID.inc(answer["invalid_citations_removed"])
+            if answer["status"] == "error":
+                metrics.DEGRADED.labels("generation").inc()
             self._background.spawn(self._store.save(log_values, answer))

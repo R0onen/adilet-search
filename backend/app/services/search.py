@@ -16,12 +16,15 @@ from dataclasses import dataclass, field
 from typing import Any, Literal, Protocol, TypeVar
 
 import structlog
+from cachetools import TTLCache
 
+from app.core import metrics
+from app.core.breaker import CircuitBreaker
 from app.core.errors import APIError
 from app.db.models import Article, Document
 from app.schemas.common import Highlight, SearchResult
 from app.schemas.ml import EmbedResponse, Manifest, RerankCandidate, RerankResponse
-from app.schemas.search import SearchRequest, SearchResponse, SearchTiming
+from app.schemas.search import SearchFilters, SearchRequest, SearchResponse, SearchTiming
 from app.services.fusion import Candidate, apply_rerank, fuse
 from app.services.index_info import ActiveIndex
 from app.services.lang import resolve_lang
@@ -38,6 +41,8 @@ T = TypeVar("T")
 ASSEMBLE_SLACK = 10
 # ml_service.md §1: /rerank accepts at most 100 candidates, whatever the manifest says.
 MAX_RERANK_CANDIDATES = 100
+# In full-text fallback the answer generator gets the start of the article, not a chunk.
+FTS_CONTEXT_CHARS = 4000
 
 
 class Embedder(Protocol):
@@ -112,6 +117,33 @@ class SearchOutcome:
     log_values: dict[str, Any] = field(default_factory=dict)
 
 
+class FullTextSearch(Protocol):
+    async def search(
+        self, query: str, lang: str, filters: SearchFilters, limit: int
+    ) -> list[tuple[Article, Document, float]]: ...
+
+
+class SemanticUnavailable(Exception):
+    """The embed/retrieve path cannot answer; the full-text fallback takes over if there is one."""
+
+    def __init__(self, message: str, component: str) -> None:
+        super().__init__(message)
+        self.message = message
+        self.component = component
+
+
+@dataclass
+class Resilience:
+    """Optional degraded-mode parts. Without them the service fails with 503, as before BE-04."""
+
+    fts: FullTextSearch | None = None
+    ml_breaker: CircuitBreaker | None = None
+    rerank_breaker: CircuitBreaker | None = None
+    store_breaker: CircuitBreaker | None = None
+    cache_ttl_s: float = 0.0
+    cache_size: int = 2000
+
+
 class SearchError(APIError):
     """An APIError that still carries the query-log row for the failed request."""
 
@@ -137,6 +169,7 @@ class SearchService:
         manifest: ManifestSource,
         index: IndexSource,
         budgets: SearchBudgets,
+        resilience: Resilience | None = None,
     ) -> None:
         self._ml = ml
         self._store = store
@@ -144,6 +177,16 @@ class SearchService:
         self._manifest = manifest
         self._index = index
         self._budgets = budgets
+        self._res = resilience or Resilience()
+        caching = self._res.cache_ttl_s > 0
+        # Per process. Keys include the collection and pipeline_version, so a reindex or a model
+        # change never serves stale results.
+        self._responses: TTLCache[tuple[Any, ...], SearchOutcome] | None = (
+            TTLCache(self._res.cache_size, self._res.cache_ttl_s) if caching else None
+        )
+        self._embeddings: TTLCache[tuple[Any, ...], EmbedResponse] | None = (
+            TTLCache(self._res.cache_size, self._res.cache_ttl_s) if caching else None
+        )
 
     async def search(self, request: SearchRequest, ctx: SearchContext) -> SearchOutcome:
         started = time.perf_counter()
@@ -203,9 +246,27 @@ class SearchService:
     async def _run(
         self, request: SearchRequest, query_id: uuid.UUID, lang: Literal["ru", "kk"], started: float
     ) -> SearchOutcome:
+        try:
+            return await self._semantic(request, query_id, lang, started)
+        except SemanticUnavailable as exc:
+            if self._res.fts is None:
+                raise _unavailable(exc.message) from exc
+            log.warning("search_degraded", reason=exc.message, component=exc.component)
+            return await self._fallback(request, query_id, lang, started)
+
+    def _allow(self, breaker: CircuitBreaker | None) -> bool:
+        return breaker is None or breaker.allow()
+
+    async def _semantic(
+        self, request: SearchRequest, query_id: uuid.UUID, lang: Literal["ru", "kk"], started: float
+    ) -> SearchOutcome:
         manifest = await self._manifest.get()
         if manifest is None:
-            raise _unavailable("Search models are not available (model manifest not loaded)")
+            raise SemanticUnavailable(
+                "Search models are not available (model manifest not loaded)", "ml_service"
+            )
+        if not self._allow(self._res.store_breaker):
+            raise SemanticUnavailable("The vector index is unavailable (circuit open)", "qdrant")
         try:
             active = await self._timed(self._index.get(), self._budgets.retrieve_s)
             if not active.compatible_with(manifest.index_compat_id):
@@ -213,9 +274,11 @@ class SearchService:
                 active = await self._timed(self._index.get(refresh=True), self._budgets.retrieve_s)
         except Exception as exc:
             log.warning("index_info_failed", error=type(exc).__name__)
-            raise _unavailable("The search index is unavailable") from exc
+            if self._res.store_breaker:
+                self._res.store_breaker.failure()
+            raise SemanticUnavailable("The search index is unavailable", "qdrant") from exc
         if active.collection is None:
-            raise _unavailable("No search index has been built yet")
+            raise SemanticUnavailable("No search index has been built yet", "index")
         if not active.compatible_with(manifest.index_compat_id):
             log.warning(
                 "index_incompatible",
@@ -223,7 +286,32 @@ class SearchService:
                 index_compat_id=active.index_compat_id,
                 manifest_index_compat_id=manifest.index_compat_id,
             )
-            raise _unavailable("The search index is incompatible with the models: reindex required")
+            raise SemanticUnavailable(
+                "The search index is incompatible with the models: reindex required", "index"
+            )
+
+        cache_key = (
+            request.query.strip(),
+            lang,
+            request.mode,
+            request.filters.model_dump_json(),
+            request.top_k,
+            manifest.pipeline_version,
+            active.collection,
+        )
+        if self._responses is not None:
+            cached = self._responses.get(cache_key)
+            if cached is not None:
+                metrics.CACHE_HITS.labels("search").inc()
+                response = cached.response.model_copy(
+                    update={
+                        "query_id": query_id,
+                        "query": request.query,
+                        "timing_ms": {"total": _ms(time.perf_counter() - started)},
+                    }
+                )
+                return SearchOutcome(response=response, items=cached.items)
+            metrics.CACHE_MISSES.labels("search").inc()
 
         params = manifest.retrieval
         mode = request.mode
@@ -233,21 +321,39 @@ class SearchService:
 
         # 1. embed
         t = time.perf_counter()
-        try:
-            # The HTTP timeout bounds each read; wait_for bounds the stage as a whole.
-            embedded = await self._timed(
-                self._ml.embed(
-                    [request.query],
-                    "query",
-                    dense=need_dense,
-                    sparse=need_sparse,
-                    timeout_s=self._budgets.embed_s,
-                ),
-                self._budgets.embed_s,
-            )
-        except (MlUnavailable, TimeoutError) as exc:
-            log.warning("embed_failed", error=str(exc) or type(exc).__name__)
-            raise _unavailable("The search models are unavailable") from exc
+        embed_key = (request.query, need_dense, need_sparse, manifest.pipeline_version)
+        embedded = self._embeddings.get(embed_key) if self._embeddings is not None else None
+        if embedded is not None:
+            metrics.CACHE_HITS.labels("embedding").inc()
+        else:
+            if not self._allow(self._res.ml_breaker):
+                raise SemanticUnavailable(
+                    "The search models are unavailable (circuit open)", "ml_service"
+                )
+            try:
+                # The HTTP timeout bounds each read; wait_for bounds the stage as a whole.
+                embedded = await self._timed(
+                    self._ml.embed(
+                        [request.query],
+                        "query",
+                        dense=need_dense,
+                        sparse=need_sparse,
+                        timeout_s=self._budgets.embed_s,
+                    ),
+                    self._budgets.embed_s,
+                )
+            except (MlUnavailable, TimeoutError) as exc:
+                log.warning("embed_failed", error=str(exc) or type(exc).__name__)
+                if self._res.ml_breaker:
+                    self._res.ml_breaker.failure()
+                raise SemanticUnavailable(
+                    "The search models are unavailable", "ml_service"
+                ) from exc
+            if self._res.ml_breaker:
+                self._res.ml_breaker.success()
+            if self._embeddings is not None:
+                metrics.CACHE_MISSES.labels("embedding").inc()
+                self._embeddings[embed_key] = embedded
         timing["embed"] = _ms(time.perf_counter() - t)
 
         # 2. retrieve (dense and sparse in parallel)
@@ -287,7 +393,11 @@ class SearchService:
             )
         except Exception as exc:
             log.warning("retrieve_failed", error=type(exc).__name__)
-            raise _unavailable("The vector index is unavailable") from exc
+            if self._res.store_breaker:
+                self._res.store_breaker.failure()
+            raise SemanticUnavailable("The vector index is unavailable", "qdrant") from exc
+        if self._res.store_breaker:
+            self._res.store_breaker.success()
         timing["retrieve"] = _ms(time.perf_counter() - t)
 
         # 3. fuse + collapse
@@ -317,6 +427,8 @@ class SearchService:
             top_n = min(configured, MAX_RERANK_CANDIDATES)
             head = candidates[:top_n]
             try:
+                if not self._allow(self._res.rerank_breaker):
+                    raise MlUnavailable("/rerank", "circuit_open")
                 reranked = await self._timed(
                     self._ml.rerank(
                         request.query,
@@ -333,8 +445,12 @@ class SearchService:
                 )
                 scores = {r.id: r.score for r in reranked.results}
                 candidates = apply_rerank(candidates, scores, top_n)
+                if self._res.rerank_breaker:
+                    self._res.rerank_breaker.success()
             except (MlUnavailable, TimeoutError) as exc:
                 log.warning("rerank_degraded", error=str(exc) or type(exc).__name__)
+                if self._res.rerank_breaker and getattr(exc, "kind", "") != "circuit_open":
+                    self._res.rerank_breaker.failure()
                 degraded.append("rerank")
             timing["rerank"] = _ms(time.perf_counter() - t)
 
@@ -351,6 +467,58 @@ class SearchService:
             degraded=degraded,
             timing_ms=timing,
             pipeline_version=manifest.pipeline_version,
+        )
+        outcome = SearchOutcome(response=response, items=items)
+        if self._responses is not None and not degraded:
+            self._responses[cache_key] = outcome
+        return outcome
+
+    async def _fallback(
+        self, request: SearchRequest, query_id: uuid.UUID, lang: Literal["ru", "kk"], started: float
+    ) -> SearchOutcome:
+        """Postgres full-text search: keyword matching only, `degraded: ["semantic"]`."""
+        fts = self._res.fts
+        if fts is None:
+            raise _unavailable("Search is unavailable")
+        t = time.perf_counter()
+        try:
+            rows = await self._timed(
+                fts.search(request.query, lang, request.filters, request.top_k),
+                self._budgets.retrieve_s,
+            )
+        except Exception as exc:
+            log.warning("fts_fallback_failed", error=type(exc).__name__)
+            raise _unavailable("Search is unavailable") from exc
+        retrieve_ms = _ms(time.perf_counter() - t)
+        items: list[AssembledResult] = []
+        for article, document, score in rows:
+            snippet = make_snippet(article.text, request.query)
+            result = SearchResult(
+                rank=len(items) + 1,
+                article=article_ref(article),
+                doc=document_ref(document),
+                chunk_id=f"{article.article_id}:c0",
+                lang=article.lang,
+                score=round(score, 6),
+                score_type="fts",
+                snippet=snippet,
+                highlights=[
+                    Highlight(start=s.start, end=s.end) for s in highlights(snippet, request.query)
+                ],
+            )
+            context = article.text[:FTS_CONTEXT_CHARS]
+            items.append(AssembledResult(result, article, document, context))
+        manifest = await self._manifest.get()
+        response = SearchResponse(
+            query_id=query_id,
+            query=request.query,
+            lang=lang,
+            mode=request.mode,
+            results=[item.result for item in items],
+            total_candidates=len(items),
+            degraded=["semantic"],
+            timing_ms={"retrieve": retrieve_ms, "total": _ms(time.perf_counter() - started)},
+            pipeline_version=manifest.pipeline_version if manifest else None,
         )
         return SearchOutcome(response=response, items=items)
 

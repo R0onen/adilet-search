@@ -1,6 +1,6 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './schema';
-import type { SearchRequest } from './types';
+import type { Schemas, SearchRequest } from './types';
 
 export const apiMode = import.meta.env.VITE_API_MODE === 'live' ? 'live' : 'mock';
 let sessionId: string | undefined;
@@ -19,6 +19,8 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    /** Seconds to wait, from the Retry-After header of a 429. */
+    public retryAfter?: number,
   ) {
     super(message);
     this.name = 'ApiError';
@@ -34,8 +36,16 @@ client.use({
 export async function search(request: SearchRequest, signal?: AbortSignal) {
   const { data, error, response } = await client.POST('/api/v1/search', { body: request, signal });
   if (error || !data)
-    throw new ApiError(response.status, error?.error.message || response.statusText);
+    throw new ApiError(
+      response.status,
+      error?.error.message || response.statusText,
+      Number(response.headers.get('Retry-After')) || undefined,
+    );
   return data;
+}
+export async function feedback(body: Schemas['FeedbackRequest']) {
+  const { error, response } = await client.POST('/api/v1/feedback', { body });
+  if (error) throw new ApiError(response.status, error.error.message || response.statusText);
 }
 export async function article(articleId: string, signal?: AbortSignal) {
   const { data, error, response } = await client.GET('/api/v1/articles/{article_id}', {

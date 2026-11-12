@@ -19,6 +19,7 @@ from app.core.logging import configure_logging
 from app.core.metrics import HttpMetrics, MetricsMiddleware
 from app.core.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 from app.schemas.answer import SSE_EVENTS
+from app.startup import startup_tasks
 from app.state import Resources
 
 log = structlog.get_logger(__name__)
@@ -63,6 +64,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.resources = Resources.create(settings)
+        await startup_tasks(app.state.resources)
         log.info(
             "startup",
             app_version=settings.app_version,
@@ -91,7 +93,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.get("/metrics", include_in_schema=False)
     async def prometheus_metrics() -> Response:
         return Response(
-            generate_latest(metrics.registry), headers={"Content-Type": CONTENT_TYPE_LATEST}
+            generate_latest(metrics.registry) + generate_latest(),
+            headers={"Content-Type": CONTENT_TYPE_LATEST},
         )
 
     app.add_middleware(MetricsMiddleware, metrics=metrics)
@@ -110,7 +113,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         max_age=600,
     )
     # Added last = outermost: every response, including CORS preflights and 500s, gets an id.
-    app.add_middleware(RequestContextMiddleware)
+    app.add_middleware(RequestContextMiddleware, max_body_bytes=settings.max_body_bytes)
     app.include_router(v1_router)
 
     default_openapi = app.openapi

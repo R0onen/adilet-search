@@ -13,6 +13,7 @@ services:
       backend:
         condition: service_healthy
   prometheus:
+    profiles: !reset []
     image: prom/prometheus:v3.2.1
     restart: unless-stopped
     command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=7d"]
@@ -22,9 +23,12 @@ services:
     ports:
       - "127.0.0.1:${PROMETHEUS_PORT:-19090}:9090"
   grafana:
+    profiles: !reset []
     image: grafana/grafana:11.6.0
     restart: unless-stopped
     environment:
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s:%(http_port)s/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD in an ignored env file}
