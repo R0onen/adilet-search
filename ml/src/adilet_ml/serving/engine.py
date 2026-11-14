@@ -175,6 +175,16 @@ def _build_reranker(manifest: Manifest) -> LexicalReranker | CrossEncoderReranke
     info = manifest.reranker
     if _runtime(info) == "cross-encoder":
         max_seq_len = getattr(info, "max_seq_len", None) or 512
+        local_path = getattr(info, "local_path", None)
+        if local_path:
+            # A checkpoint trained by us (not on the Hub): a folder under MODEL_LOCAL_DIR.
+            # No fallback to the base model: the manifest must describe what is really served.
+            checkpoint = (
+                Path(os.getenv("MODEL_LOCAL_DIR", str(DEFAULT_MANIFEST.parent))) / local_path
+            )
+            if not (checkpoint / "config.json").exists():
+                raise EngineLoadError(f"reranker checkpoint not found: {checkpoint}")
+            return CrossEncoderReranker(str(checkpoint), max_seq_len, None)
         return CrossEncoderReranker(
             getattr(info, "hf_repo", None) or info.id, max_seq_len, _revision(info)
         )
