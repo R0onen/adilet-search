@@ -47,14 +47,14 @@ sequenceDiagram
         B->>Q: BM25-weighted match (top 50)
     end
     B->>B: weighted reciprocal-rank fusion, collapse chunks to articles
-    B->>M: /rerank (top 20 articles)
+    B->>M: /rerank (top 5 articles)
     B->>P: article and document rows
     B-->>U: ranked articles with snippets, timing, degraded[]
     B-)P: query log (after the response)
 ```
 
 - **Hybrid retrieval.** The dense vector finds articles that mean the same as the question; the sparse (keyword) vector finds exact terms and article numbers. Reciprocal-rank fusion merges the two lists without tuning score scales.
-- **Reranking.** A cross-encoder reads the question together with each of the top 20 articles and reorders them. It is the most expensive stage, so it has its own time budget.
+- **Reranking.** A cross-encoder reads the question together with each of the top 5 articles and reorders them. It is the most expensive stage, so it has its own time budget.
 - **Budgets.** Each stage has a timeout (`SEARCH_*_TIMEOUT_S`). The target is p95 ≤ 2 s for the whole request.
 
 ## Answer: `POST /api/v1/answer` (Server-Sent Events)
@@ -145,7 +145,7 @@ Vectors live only in Qdrant; each point's payload carries the chunk text and the
 
 | Target | How |
 |---|---|
-| Response time ≤ 2 s | per-stage budgets; the reranker is capped (top 20, 384 tokens) and skipped when slow; query embeddings and responses are cached; measured in `docs/report/load_test.md` |
+| Response time ≤ 2 s | per-stage budgets; the reranker is capped (top 5, 256 tokens) and skipped when slow; query embeddings and responses are cached; measured in `docs/report/load_test.md` |
 | Fault tolerance | full-text fallback, circuit breakers, sources before generation, health checks and automatic container restarts |
 | Updating the index | versioned collections behind an alias; the old index serves until the new one is complete; rollback is an alias move |
 | Scalability | the backend is stateless apart from a per-process cache and rate limiter, so replicas can be added behind the proxy once those move to a shared store; Qdrant and PostgreSQL scale independently |

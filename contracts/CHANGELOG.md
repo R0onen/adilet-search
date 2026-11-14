@@ -111,3 +111,9 @@ Open items to settle by G0:
   supplied source. Non-numeric bracketed text and stored legal source text remain unchanged.
 - Breaking: no. Public response schemas and citation reference semantics are unchanged.
 - Frontend: no type changes required; existing canonical citation rendering handles the output.
+
+## 2026-11-14 — Reranker depth and input length in the manifest
+- `ml/models/model_manifest.json`: `retrieval.rerank_top_n` is 5 (was 20) and `reranker.max_seq_len` is 256 (was 384).
+- Why: with 20 candidates the reranker could not serve 10 concurrent users on CPU (97% of hybrid searches were returned without reranking). With 5 candidates p95 is 0.88 s uncached, and "right article first" on the synthetic test questions is 83.1% against 85.6% (72.8% without a reranker). See `docs/report/load_test.md`.
+- Breaking: no. `index_compat_id` is unchanged, so no reindex is needed. `SEARCH_RERANK_TOP_N` still overrides the manifest.
+- Who must react: nobody. Reports that quote ranking quality should state the rerank depth they were measured with.

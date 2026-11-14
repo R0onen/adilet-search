@@ -62,7 +62,7 @@ behaviour without changing embeddings, so it needs a new retrieval check but not
 `ADILET_ML_INFERENCE_WORKERS` bounds parallel model calls and `ADILET_ML_CPU_THREADS` sets
 OpenMP/MKL threads through Compose. Inference runs off the ASGI event loop so health checks
 remain responsive. Record these three settings with each load result. A smaller candidate pool
-trades reranking coverage for CPU latency; do not imply it is identical to the manifest's 20.
+trades reranking coverage for CPU latency; do not imply it is identical to the manifest's default (5 since 14 November; 20 before).
 
 The models are pretrained; project-specific fine-tuning and a fair winning-model comparison are
 not evidenced by the current experiment folder. The available baseline is BM25 on 1,318 held-out

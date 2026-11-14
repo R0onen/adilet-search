@@ -158,6 +158,11 @@ services:
       MODEL_MANIFEST_PATH: /app/models/model_manifest.json
       MODEL_CACHE_DIR: /models
       ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
+      MODEL_PROMPT_PATH: /app/prompts/answer_v1.md
+      # Parallel model calls and CPU threads per call (see docs/report/load_test.md).
+      ADILET_ML_INFERENCE_WORKERS: ${ADILET_ML_INFERENCE_WORKERS:-2}
+      OMP_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
+      MKL_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
       ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
       LLM_BASE_URL: ${LLM_BASE_URL:-}
       LLM_MODEL: ${LLM_MODEL:-}
