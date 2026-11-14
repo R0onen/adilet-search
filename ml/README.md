@@ -13,7 +13,7 @@ The ML side of Adilet Search:
 |---|---|---|
 | Dense embedder | `intfloat/multilingual-e5-base` (zero-shot, pinned revision) | 768-d, cosine, `query: ` / `passage: ` prefixes |
 | Sparse encoder | BM25 term weights, Russian Snowball stemming | Kazakh tokens are not stemmed (no Snowball stemmer exists) |
-| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` (zero-shot, pinned revision) | top 20 fused articles, 384 tokens |
+| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` (zero-shot, pinned revision) | top 5 fused articles, 256 tokens |
 | Generator | any OpenAI-compatible LLM (`ADILET_ML_GENERATOR_MODE=openai`) | prompt: `prompts/answer_v1.md`; without an LLM, an extractive fallback |
 
 `models/model_manifest.json` describes this pipeline and selects the implementations (`runtime`).

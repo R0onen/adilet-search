@@ -1,0 +1,222 @@
+# Production stack. Only the reverse proxy publishes ports (80/443); everything else stays on
+# the internal network.
+#
+#   docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+#
+# Local check without a domain (plain HTTP on port 8080), next to the dev stack:
+#   SITE_ADDRESS=:80 HTTP_PORT=8080 HTTPS_PORT=8443 docker compose -f docker-compose.prod.yml up -d --build
+#
+# See docs/tech/deployment.md and docs/tech/runbook.md.
+
+# Same project name as the dev stack: both use the same data volumes, so switching between
+# docker-compose.yml and this file on one machine keeps the database, the index and the models.
+name: adilet
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+x-backend-image: &backend-image
+  build:
+    context: ./backend
+  image: adilet-backend:${APP_TAG:-prod}
+
+x-backend-env: &backend-env
+  ENVIRONMENT: prod
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  LOG_JSON: "true"
+  CORS_ORIGINS: ${CORS_ORIGINS:?set CORS_ORIGINS to the site origin, e.g. https://example.kz}
+  GIT_SHA: ${GIT_SHA:-unknown}
+  DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-adilet}:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-adilet}
+  QDRANT_URL: http://qdrant:6333
+  QDRANT_ALIAS: ${QDRANT_ALIAS:-legal_chunks}
+  QDRANT_GRPC_PORT: 6334
+  ML_SERVICE_URL: http://ml-service:8001
+  MANIFEST_SOURCE: service
+  SEARCH_RERANK_TOP_N: ${SEARCH_RERANK_TOP_N:-}
+  SEARCH_RERANK_TIMEOUT_S: ${SEARCH_RERANK_TIMEOUT_S:-1.5}
+  ANSWER_TIMEOUT_S: ${ANSWER_TIMEOUT_S:-90}
+  SESSION_SALT: ${SESSION_SALT:?set SESSION_SALT (openssl rand -hex 32)}
+  JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET (openssl rand -hex 32)}
+  ADMIN_USERNAME: ${ADMIN_USERNAME:?set ADMIN_USERNAME}
+  ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?set ADMIN_PASSWORD_HASH (python -m app.cli hash-password)}
+  RATE_LIMIT_SEARCH: ${RATE_LIMIT_SEARCH:-60}
+  RATE_LIMIT_ANSWER: ${RATE_LIMIT_ANSWER:-10}
+  RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-5}
+  API_KEYS: ${API_KEYS:-}
+  CACHE_TTL_S: ${CACHE_TTL_S:-300}
+  DATA_DIR: /data
+
+services:
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS (a domain for HTTPS, or :80 for plain HTTP)}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.invalid}
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    logging: *logging
+
+  frontend:
+    build:
+      context: ./frontend
+    image: adilet-frontend:${APP_TAG:-prod}
+    restart: unless-stopped
+    logging: *logging
+
+  postgres:
+    image: postgres:16.15-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-adilet}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-adilet}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - backups:/backups
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    logging: *logging
+
+  qdrant:
+    image: qdrant/qdrant:v1.19.2
+    restart: unless-stopped
+    volumes:
+      - qdrant:/qdrant/storage
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          bash -c 'exec 3<>/dev/tcp/127.0.0.1/6333 &&
+          printf "GET /readyz HTTP/1.0\r\n\r\n" >&3 &&
+          grep -q "200 OK" <&3'
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    logging: *logging
+
+  migrate:
+    <<: *backend-image
+    command: ["alembic", "upgrade", "head"]
+    environment: *backend-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    logging: *logging
+
+  backend:
+    <<: *backend-image
+    restart: unless-stopped
+    environment: *backend-env
+    volumes:
+      - ./data:/data:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    deploy:
+      resources:
+        limits:
+          memory: 1500m
+    logging: *logging
+
+  ml-service:
+    build:
+      context: ./ml
+      dockerfile: serving/Dockerfile
+    image: adilet-ml-service:${APP_TAG:-prod}
+    restart: unless-stopped
+    environment:
+      MODEL_MANIFEST_PATH: /app/models/model_manifest.json
+      MODEL_CACHE_DIR: /models
+      ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
+      MODEL_PROMPT_PATH: /app/prompts/answer_v1.md
+      # Parallel model calls and CPU threads per call (see docs/report/load_test.md).
+      ADILET_ML_INFERENCE_WORKERS: ${ADILET_ML_INFERENCE_WORKERS:-2}
+      OMP_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
+      MKL_NUM_THREADS: ${ADILET_ML_CPU_THREADS:-4}
+      ADILET_ML_GENERATOR_MODE: ${ADILET_ML_GENERATOR_MODE:-fallback}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+    volumes:
+      - ml-model-cache:/models
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 300s
+    deploy:
+      resources:
+        limits:
+          memory: 5g
+    logging: *logging
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - ./infra/prometheus:/etc/prometheus:ro
+      - prometheus:/prometheus
+    logging: *logging
+
+  grafana:
+    image: grafana/grafana:12.1.1
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?set GRAFANA_ADMIN_PASSWORD}
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_ROOT_URL: "%(protocol)s://%(domain)s/grafana/"
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/adilet.json
+    volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana:/var/lib/grafana
+    depends_on:
+      - prometheus
+    logging: *logging
+
+volumes:
+  caddy-data:
+  caddy-config:
+  pgdata:
+  qdrant:
+  ml-model-cache:
+  prometheus:
+  grafana:
+  backups:
