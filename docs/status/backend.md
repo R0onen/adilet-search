@@ -1,9 +1,20 @@
 # Status: Backend agent
 
-_Last updated: 2026-11-12 · BE-04 admin, monitoring, resilience, security (branch `be/04-admin`)_
+_Last updated: 2026-11-15 · BE-05/06 load test and public stack (branch `be/05-load-prod`, PR #15)_
 
 ## Current phase
-BE-01 to BE-03, the integration and the real-corpus demo are merged (PRs #1–#8); ML pipeline 0.2.0 is merged (PR #9). **BE-04 is implemented on this branch.** Next: BE-05 (tests, CI, load test), BE-06 (production stack), BE-07 (docs).
+BE-01 to BE-04 are merged. **BE-05/06 are on PR #15**: load test on the full corpus, a faster reranker setting, the public stack behind a reverse proxy, smoke and backup scripts, architecture / deployment / runbook / integration docs.
+
+## Done in BE-05/06
+- **Load test** (`docs/report/load_test.md`): full corpus, 803 natural-language questions, degraded responses counted as failures. 10 users, cache off: 0 failed or degraded, p95 0.88–1.0 s (two runs, the second on the merged ML service with 2 workers × 4 threads). 25 users without a cache saturate the reranker.
+- **Reranker setting**: the manifest now reranks 5 candidates at 256 tokens (was 20 at 384). On 195 synthetic test questions "right article first" is 83.1% (85.6% with 20, 72.8% without a reranker). No reindex needed.
+- **Public stack** `docker-compose.prod.yml` (Caddy, HTTPS-ready), verified locally: smoke test through the proxy, `/metrics` and the backend port not exposed, backup restored with matching row counts. Not deployed to a public server.
+- `backend/uv.lock`: `opentelemetry-api` 1.45.2 (advisory GHSA-mf5v-w3w3-f6cg failed `pip-audit` on every PR).
+
+## Notes for others
+- **Final-prototype docs** (`docs/report/final_readiness.md`, `docs/status/final.md`, the deck): the "load target not met" item can be closed for the full corpus with the numbers above; quote the rerank depth (5) with them. The `.env.final` preset of 3 candidates is no longer needed for latency.
+- Natural-language evaluation questions exist now: `data/eval/synthetic/` (LLM-written, automatic labels).
+- Still open: Grafana screenshot under load, `/admin/stats` timing on 100k rows, public hosting.
 
 ## Done in BE-04
 - **Admin API (all of `contracts/api.md` §4):** JWT login (bcrypt hash from env, seeded at startup, `python -m app.cli hash-password`), usage statistics, query log with filters, detail and CSV export, system status, background reindex with job progress.
