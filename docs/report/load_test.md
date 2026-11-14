@@ -1,6 +1,6 @@
 # Load test of `/search` on the full corpus
 
-**Result.** With the reranker limited to the first 5 fused articles at 256 tokens, `/search` meets the target of p95 ≤ 2 s at 10 concurrent users on the full corpus: p95 **0.88 s** with the cache switched off, no failed and no degraded responses. At 25 users without a cache the reranker is saturated and most responses fall back to the fused order. The original setting (20 articles, 384 tokens) did not hold 10 users.
+**Result.** With the reranker limited to the first 5 fused articles at 256 tokens, `/search` meets the target of p95 ≤ 2 s at 10 concurrent users on the full corpus: p95 **0.88–1.0 s** with the cache switched off (two runs), no failed and no degraded responses. At 25 users without a cache the reranker is saturated and most responses fall back to the fused order. The original setting (20 articles, 384 tokens) did not hold 10 users.
 
 All numbers below were produced by `backend/loadtests/locustfile.py` on 12 November 2026.
 
@@ -16,7 +16,7 @@ All numbers below were produced by `backend/loadtests/locustfile.py` on 12 Novem
 | Mix | 90% hybrid search, 10% keyword search; generated answers off (the hosted LLM has a daily token limit) |
 | Questions | 803 LLM-written questions of `data/eval/synthetic/`, drawn at random |
 | Failure rule | any non-200 response **and** any `degraded` response counts as failed |
-| ML service code | commit `b545178` (model calls in one worker thread pool, PyTorch default threads) |
+| ML service code | runs 1–5: commit `b545178` (model calls in one thread pool, PyTorch default threads); run 6: current code, 2 inference workers × 4 threads |
 
 The rate limits stayed on; every request carried a new session id, as many separate visitors would.
 
@@ -29,6 +29,7 @@ The rate limits stayed on; every request carried a new session id, as many separ
 | 3 | top 5, 256 tokens | on | 25 | 3,116 | 0 | 8 ms | 630 ms | 1,100 ms | 10.4 |
 | 4 | top 5, 256 tokens | **off** | 10 | 1,055 | **0** | 520 ms | **880 ms** | 1,100 ms | 3.5 |
 | 5 | top 5, 256 tokens | **off** | 25 | 2,693 | 2,490 (92%) | 130 ms | 2,600 ms | 2,900 ms | 9.0 |
+| 6 | top 5, 256 tokens, merged code | **off** | 10 | 1,051 | **0** | 500 ms | **1,000 ms** | 1,300 ms | 3.5 |
 
 Keyword search (PostgreSQL full-text, no models) stayed under 200 ms at p95 in every run.
 
@@ -37,6 +38,7 @@ How to read the runs:
 - **Run 1** is the starting point. One rerank of 20 articles took 1.0–1.4 s for a single user, so at 4 requests per second the calls queued, passed the 1.5 s budget, and the circuit breaker switched the reranker off. The low median is the fused order returned without reranking.
 - **Runs 2 and 3** look better than they are: there are only 803 distinct questions, so about two thirds of the requests in run 3 were served from the response cache (5-minute TTL). They show what repeated questions cost, not the capacity of the models.
 - **Run 4 is the acceptance run**: every request goes through embedding, retrieval and reranking.
+- **Run 6** (15 November) repeats run 4 on the current `main` code, where the ML service runs model calls in a bounded pool (2 parallel calls, 4 CPU threads each, the defaults). The result is the same within noise: no failed or degraded response, p95 1.0 s.
 - **Run 5** shows the limit. The models can serve about 4 uncached searches per second on this machine; 25 users ask for about 10.
 
 ### Where the time goes (run 4, mean per request, from the Prometheus stage metrics)
@@ -68,7 +70,7 @@ Going from 20 to 5 candidates loses 2.5 points of "right article first" and keep
 
 - One machine, a laptop with more cores than the planned 4 vCPU server; on 4 vCPU the reranker will be slower and the capacity lower. Repeat run 4 on the real server before quoting it for that server.
 - Generated answers were not load-tested.
-- The runs were made before the bounded inference pool (`ADILET_ML_INFERENCE_WORKERS`, `ADILET_ML_CPU_THREADS`) was merged; the worker and thread counts change how the reranker shares the CPU, so the acceptance run has to be repeated on that code.
+- Runs 1–5 were made before the bounded inference pool (`ADILET_ML_INFERENCE_WORKERS`, `ADILET_ML_CPU_THREADS`) was merged; run 6 is the only one on the current code. Other worker and thread counts were not measured.
 - The earlier sample-corpus measurements in `final_load*.json` use another harness, 20 or 3 rerank candidates and 100 requests; they are not comparable with this table.
 
 ## Next steps if more capacity is needed
