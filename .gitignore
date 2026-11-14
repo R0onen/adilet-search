@@ -49,3 +49,10 @@ desktop.ini
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# notebook outputs when a notebook is run from the repository root
+a3_results/
+a4_results/
+a3_results.zip
+a4_results.zip
+runs/
