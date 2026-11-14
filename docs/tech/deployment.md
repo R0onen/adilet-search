@@ -2,7 +2,7 @@
 
 The production stack is `docker-compose.prod.yml`: a Caddy reverse proxy in front of the UI, the backend, the ML service, Postgres, Qdrant, Prometheus and Grafana. Only ports 80 and 443 are published.
 
-**Status:** the stack has been verified locally over plain HTTP (see "Local check"). It has not been deployed to a public server: the team has no VPS or domain yet. The steps below are what to do when there is one.
+**Status:** verified locally over plain HTTP on 15 November 2026 (see "Local check"): all services healthy, `scripts/smoke.sh` passes through the proxy, `/metrics` and the backend port are not reachable from outside, and a dump made by `scripts/backup.sh` restores into an empty database with the same row counts. It has not been deployed to a public server: the team has no VPS or domain yet. The steps below are what to do when there is one.
 
 ## What you need
 
@@ -97,7 +97,12 @@ SITE_ADDRESS=:80 HTTP_PORT=8080 HTTPS_PORT=8443 CORS_ORIGINS=http://localhost:80
 scripts/smoke.sh http://localhost:8080
 ```
 
-`POSTGRES_PASSWORD`, `SESSION_SALT`, `JWT_SECRET` and the admin login must be in `.env`. The UI is then at `http://localhost:8080`, the admin panel at `/admin`, Grafana at `/grafana/`.
+`POSTGRES_PASSWORD`, `SESSION_SALT`, `JWT_SECRET` and the admin login must be in `.env`. The stack refuses to start with the development values of `SESSION_SALT` or `JWT_SECRET` (the `migrate` service exits with an error that names the variable). `scripts/smoke.sh` needs `curl` and `jq`; where `jq` is missing, run it inside the stack's network:
+
+```bash
+docker run --rm --network adilet_default -v "$PWD/scripts:/s:ro" alpine:3.22 sh -c "apk add -q curl jq bash && bash /s/smoke.sh http://caddy"
+```
+ The UI is then at `http://localhost:8080`, the admin panel at `/admin`, Grafana at `/grafana/`.
 
 ## Known limits
 
