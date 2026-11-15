@@ -58,7 +58,7 @@ The production stack is `docker-compose.prod.yml`: a Caddy reverse proxy in fron
 
 7. Get an index. Either copy a finished one from a machine that has it (minutes), or build it on the server (hours on CPU; search answers from the full-text fallback meanwhile).
 
-   Copy: on the machine with the index run `scripts/transfer_index.sh export ./index_export`, copy the folder to the server, then on the server:
+   Copy: on the machine with the index run `scripts/transfer_index.sh export ./index_export`, copy the folder to the server, then on the server: The export of the 40-act index is about 315 MB (a 300 MB Qdrant snapshot and a 12 MB database dump).
 
    ```bash
    scripts/transfer_index.sh import ./index_export

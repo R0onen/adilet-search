@@ -14,11 +14,23 @@ What the system needs to run, from measurements on the development machine (Inte
 | Prometheus, Grafana | 0.3 GiB together | under 100 MB | 7–15 days of metrics |
 | **Total** | **about 3 GiB idle, 6 GiB under load** | **about 8 GB** with images | |
 
+## Deployed corpus (40 acts: 20,490 articles, 41,074 chunks)
+
+The table above was measured on the 8-code corpus. With the deployed 40-act index and pipeline 1.0.0, measured idle after the load test:
+
+| Component | RAM in use | Disk |
+|---|---|---|
+| ML service | 1.3 GiB | the same images and cache, plus 470 MB for the fine-tuned reranker |
+| Qdrant | 0.8 GiB | 291 MB for the live collection |
+| PostgreSQL | 0.2 GiB | 232 MB |
+
+The server recommendation below does not change. Indexing this corpus took 17 minutes with the ML service on an 8 GB GPU (about 40 chunks per second) and an estimated 2 hours on CPU, which is why the index is built once and copied to the server (`scripts/transfer_index.sh`).
+
 ## Throughput (see `docs/report/load_test.md`)
 
-- 10 concurrent users (about 4 searches per second, nothing cached): p95 0.9–1.0 s, no degraded responses.
+- 10 concurrent users (about 4 searches per second, nothing cached): p95 0.9–1.0 s on the 8-code index with no degraded responses; p95 1.2 s on the 40-act index with 1 degraded response in 981.
 - About 4 uncached searches per second is the ceiling on this CPU: the reranker takes 80% of a request.
-- Indexing the corpus on CPU: 45 minutes (about 340 chunks per minute).
+- Indexing the 8-code corpus on CPU: 45 minutes (about 340 chunks per minute).
 
 ## Recommended server
 

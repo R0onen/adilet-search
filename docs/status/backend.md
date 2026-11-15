@@ -1,53 +1,35 @@
-# Status: Backend agent
+# Status: Backend
 
-_Last updated: 2026-11-12 · BE-04 admin, monitoring, resilience, security (branch `be/04-admin`)_
+_Last updated: 2026-11-15 · branch `final-completion`_
 
 ## Current phase
-BE-01 to BE-03, the integration and the real-corpus demo are merged (PRs #1–#8); ML pipeline 0.2.0 is merged (PR #9). **BE-04 is implemented on this branch.** Next: BE-05 (tests, CI, load test), BE-06 (production stack), BE-07 (docs).
+All backend phases are implemented: public API, admin API, resilience, monitoring, production stack, load test. Remaining: deployment on the public server.
 
-## Done in BE-04
-- **Admin API (all of `contracts/api.md` §4):** JWT login (bcrypt hash from env, seeded at startup, `python -m app.cli hash-password`), usage statistics, query log with filters, detail and CSV export, system status, background reindex with job progress.
-- **Resilience:**
-  - Postgres full-text fallback: when the ML service, Qdrant or the index is unavailable, `/search` and `/answer` still answer (`degraded: ["semantic"]`, `score_type: "fts"`).
-  - Circuit breakers around embed, rerank and Qdrant.
-  - Per-process TTL cache of query embeddings and search responses.
-  - A reindex interrupted by an API restart is marked failed at startup.
-- **Security:** rate limits (search 60/min, answer 10/min, login 5/min; `X-API-Key` gets 10×), 64 KB body limit, `JWT_SECRET` required in production, `pip-audit` in CI, `docs/tech/security.md`.
-- **Monitoring:** `/metrics` (search stages, degraded, zero results, answer TTFT, feedback, ML client errors, cache, HTTP), Prometheus with 4 alert rules, a provisioned Grafana dashboard (10 panels), compose profile `monitoring`.
-- **Tests:** 277 unit and contract tests; 60 integration tests, including admin statistics against exact seeded numbers and the degraded drills (ML down, Qdrant down, fallback filters).
+## Done
+- **Public API** (`contracts/api.md`): `/search` (hybrid, semantic, keyword), `/answer` (SSE), `/articles`, `/documents`, `/feedback`, `/health`, `/version`.
+- **Admin API:** JWT login, usage statistics, query log with filters, detail and CSV export, system status, background reindex with job progress.
+- **Query expansion** (`app/services/query_expansion.py`): 34 everyday words and abbreviations get their legal terms appended to the query that goes to the embedder, the reranker, the full-text fallback and the snippet highlighter. The logged, cached and returned query is the user's own. No change to the API contract.
+- **Resilience:** PostgreSQL full-text fallback (`degraded: ["semantic"]`), circuit breakers around embed, rerank and Qdrant, a time budget for reranking (`degraded: ["rerank"]`), per-process TTL caches, interrupted reindex jobs marked failed at startup.
+- **Indexer:** builds a new collection and switches the alias; stale corpus rows are pruned in batches (a 41 thousand-article corpus exceeded the bind-parameter limit of one statement).
+- **Security:** rate limits (search 60/min, answer 10/min, login 5/min), 64 KB body limit, `JWT_SECRET` required in production, `pip-audit` in CI, `docs/tech/security.md`.
+- **Monitoring:** `/metrics`, Prometheus with alert rules, provisioned Grafana dashboards.
+- **Production stack:** `docker-compose.prod.yml` behind Caddy (HTTPS, security headers), backups, `scripts/smoke.sh`, `scripts/transfer_index.sh` to move a finished index to another machine; `docs/tech/deployment.md`, `docs/tech/runbook.md`.
+- **Load test:** `docs/report/load_test.md`: 10 users, cache off, 40-act index, p95 1.2 s.
+- **Tests:** 301 unit and contract tests; integration tests on PostgreSQL and Qdrant in CI.
 
-## G3 checklist (BE-04 acceptance)
-| Criterion | State |
-|---|---|
-| Every admin endpoint implemented, `openapi.json` regenerated, Frontend told | **Done** (CHANGELOG 2026-11-12). |
-| Grafana dashboard shows live data during a short load run | **Not checked yet**: the dashboard is provisioned, but the stack with Grafana has not been run under load. Planned with the BE-05 load test. |
-| Manual drill: stop the ML service, search still works, admin shows `ml_service: down`, recovery after restart | **Covered by integration tests** (dead ML URL, dead Qdrant URL). The manual drill on the real stack is still to do. |
-| `/admin/stats` under 300 ms on 100k rows | **Not measured.** |
-
-## Next steps
-- BE-05: load test (locust), Grafana screenshot, stats timing on 100k rows, coverage.
-- BE-06: production compose (reverse proxy, HTTPS-ready, backups), verified locally.
-- From Frontend's notes: tell "citation refers to a valid source" apart from "the source supports the claim"; catch refusals phrased outside the fixed sentences.
+## Not done
+- `/admin/stats` timing on 100 thousand log rows is not measured.
+- The load test has not been repeated on a 4 vCPU server.
 
 ## Blockers (need a human)
-- None. A Kazakh speaker should review `NOT_FOUND_TEXT["kk"]` in `backend/app/services/citations.py`.
-
-## Requests to other agents
-| To | Request | Since | Status |
-|---|---|---|---|
-| Frontend | Regenerate types. Build the admin panel on `/admin/*`. Handle `429` (`Retry-After`), show a notice when `degraded` is not empty, and expect `200` with `degraded: ["semantic"]` where a `503` used to come. | 2026-11-12 | open |
-| ML | `/metrics` of the ml-service is scraped by Prometheus (`ml_request_duration_seconds`); keep those metric names. | 2026-11-12 | FYI |
+- The server address and login for the public deployment.
+- A Kazakh speaker should review `NOT_FOUND_TEXT["kk"]` in `backend/app/services/citations.py`.
 
 ## Notes for others (endpoints, env vars, how to run)
 - **Run everything:** `backend/README.md` → "Run the whole project". Admin, degraded modes and monitoring have their own sections there.
-- **API base:** `http://localhost:8000/api/v1`; Swagger UI at `/api/v1/docs`. All endpoints of the contract are live.
+- **API base:** `http://localhost:8000/api/v1` in the development stack, `http://localhost:8080/api/v1` behind the proxy of the production stack; Swagger UI at `/api/v1/docs`.
 - **Admin login for local work:** set `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` in `.env` (README, "Admin API").
 - **New env vars:** `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_TTL_S`, `RATE_LIMIT_*`, `API_KEYS`, `BREAKER_*`, `CACHE_TTL_S`, `DATA_DIR`, `PROMETHEUS_PORT`, `GRAFANA_*`. All are documented in `.env.example`.
 - **Indexer recovery:** `python -m indexer … --abandon-stuck-job` after a crashed CLI run.
 - **Windows:** `POSTGRES_PORT=55432` if a native PostgreSQL holds 5432; use `127.0.0.1` in test URLs; prefix container paths with `MSYS_NO_PATHCONV=1` in Git Bash.
 
-## Planned: corpus expansion (not started; after the Assignment 3/4 runs and the reranker check)
-The AdiletCodex file already on disk holds 343 acts (24 codes, 312 laws; 22,117 Russian articles); 8 codes (4,631 Russian articles) are indexed. No scraping is needed. Proposed second tier, as a new `corpus_version` so the assignment notebooks keep the 8-code corpus:
-- Codes: Criminal Procedure (K1400000231), Civil Procedure (K1500000377), Marriage and Family (K1100000518), Social (K2300000224), Health (K2000000360), Administrative Procedure (K2000000350), Land (K030000442_), Penal Enforcement (K1400000234), and the Constitution (K2600000000).
-- Laws: housing relations, enforcement proceedings, road traffic, consumer protection, bankruptcy of citizens, personal data, notaries, LLPs, migration, citizenship, children's rights, education, microfinance, collection activity, mortgage, registration of rights to real estate.
-- Do not add K1700000120: it is the 2017 Tax Code, replaced by the 2025 one already indexed. Check every act's validity the same way before adding it.

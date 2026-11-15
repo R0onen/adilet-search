@@ -1,23 +1,42 @@
 # Final project readiness
 
-Inspection and local validation: **12 November 2026**. Submission shown in the assignment:
-**23 November 2026 at 00:00**. Branch: `final/prototype-and-defense`. Team handoff uses this branch; merging to `main` and public deployment are separate steps.
+State on **15 November 2026**. Submission: **23 November 2026**. The sections from "History" down describe the prototype of 12 November (Labor Code sample index, pretrained models) and are kept as a record; where they disagree with this section, this section is current.
 
 ## Requirement coverage
 
-| Assignment requirement | Current evidence | Remaining work |
+| Assignment requirement | Evidence | Open |
 |---|---|---|
-| Select the final model from earlier experiments | Full-corpus frozen-split study in `RESEARCH_FINDINGS.md`; recent embedding models, hybrid ablations, validation selection and paired intervals | Independent human-reviewed RU/KK questions; title labels remain proxies |
-| Load a saved model for inference | Live pipeline `0.2.0`, pinned E5 and cross-encoder weights downloaded and loaded | No project-specific fine-tuned checkpoint is evidenced |
-| Handle new inputs correctly | Model/schema unit tests; real RU/KK diagnostic requests; article viewer | Wider unseen questions and native-speaker review |
-| Fix the model version | `ml/models/model_manifest.json`; active index compatibility verified | Record the effective CPU/rerank configuration with the final result |
-| Describe inputs and outputs | `contracts/api.md`, `contracts/ml_service.md`, model card and Swagger | Update generator identity if an external LLM is enabled |
-| API and user interface | Real API, production nginx UI and same-origin streaming proxy; `final_browser.json` | Public access for the external grader |
-| Testing | 258 backend unit/contract tests; 49 ML tests; 34 storage/integration tests; 6 real-ML integration tests; 12 frontend unit tests; 4 browser scenarios | Performance acceptance |
-| Monitoring | Backend metrics; both Prometheus targets up; provisioned Grafana dashboard | Keep a traffic screenshot for the defence |
-| Accessible deployment | Local UI at http://127.0.0.1:18080; isolated `adilet-final` Compose project | Public HTTPS hosting is unverified |
-| Technical documentation | `docs/tech/final_project.md`, existing contracts and component READMEs | The older bootstrap reports remain superseded |
-| Final presentation (7–10 slides) | Editable 10-slide deck, PDF and speaker notes; speaker guide | Refresh performance and screenshots after the final measurements |
+| Select the final model from earlier experiments | Assignments 3 and 4 (`docs/report/A3_report.md`, `A4_report.md`, executed notebooks): classical models, embeddings + ML, pretrained transformer, full fine-tuning, LoRA, with significance tests and error analysis. Selection through the live API in `ml/experiments/final-selection/`. Embedding-model comparison in `RESEARCH_FINDINGS.md` | – |
+| Load a saved model for inference | Pipeline `1.0.0` loads our fine-tuned reranker checkpoint and verifies its SHA-256 (`ml/models/model_manifest.ft.json`) | Publish the 470 MB checkpoint (it is reproducible from the A4 notebook) |
+| Handle new inputs correctly | 195 test questions on articles not seen in training; 10 hand-written everyday questions (`docs/presentation/demo_questions.md`); input validation tests | – |
+| Fix the model version | Manifest with model revisions, checkpoint hash, `pipeline_version`, `index_compat_id`; the API reports the version in every response | – |
+| Describe inputs and outputs | `contracts/api.md`, `contracts/ml_service.md`, `contracts/openapi.json`, `ml/MODEL_CARD.md` | – |
+| API and user interface | FastAPI (`/api/v1`), React UI with search, streamed answers, article viewer, comparison page, admin panel | – |
+| Testing | 301 backend unit and contract tests, 64 ML tests, 20 frontend tests; integration tests on PostgreSQL and Qdrant, a real-model job and a full-stack smoke test in CI | – |
+| Monitoring | Prometheus metrics per pipeline stage, alerts, provisioned Grafana dashboards, query log in the admin panel | A dashboard screenshot under load for the slides |
+| Accessible deployment | `docker-compose.prod.yml` with HTTPS proxy, verified locally end to end; guide in `docs/tech/deployment.md` | Public server: waiting for the server address |
+| Technical documentation | `docs/tech/` (architecture, deployment, runbook, security, sizing), contracts, component READMEs, model card | – |
+| Final presentation | `docs/presentation/final_deck.pptx` / `.pdf` (10 slides), speaker guide, demo script | Public URL on slide 7; backup video |
+
+## Measured results
+
+| What | Result | Source |
+|---|---|---|
+| Reranker offline, nDCG@10 (195 test questions) | TF-IDF + LogReg 0.727 → pretrained cross-encoder 0.867 → fine-tuned 0.880 (p = 0.016 against pretrained) | `A4_report.md` |
+| Live API, deployed index (40 acts) | right article first for 82.6%, nDCG@10 0.871; on the 53 human-approved questions 83.0% and 0.908 | `final_eval.md` |
+| Generated answers, 30 human-approved questions | 29 generated; the labelled article cited in 26 of 26 cases where it was retrieved; first word after 0.8 s | `final_eval.md` |
+| Load, 10 users, cache off | p95 1.2 s, 0 failed, 1 of 981 without reranking | `load_test.md` |
+
+All quality numbers are on LLM-written questions with automatic labels; a person checked 60 of them.
+
+## Open before submission
+
+1. Public deployment (server address needed), then the smoke test and the load test on that server.
+2. Where to publish the fine-tuned checkpoint.
+3. Backup video of the demo, recorded by the team.
+4. A native speaker's check of the fixed Kazakh sentences in the answer prompt.
+
+## History (12 November 2026, prototype on the Labor Code sample)
 
 ## Verified operational path
 

@@ -1,5 +1,7 @@
 # Final project: running and validating the prototype
 
+> **Note (15 November 2026).** This guide starts the local prototype of 12 November: the Labor Code sample index and pipeline `0.2.0` on local ports. The submitted configuration (pipeline `1.0.0`, 40 acts, HTTPS proxy) is started with `docker-compose.prod.yml`; see [deployment.md](deployment.md). Current results are in [final_readiness.md](../report/final_readiness.md).
+
 The assignment screenshot in `../Final Project/image.png` asks for a working prototype with a
 model, API, UI, testing, monitoring, technical documentation and a 7–10 slide presentation.
 Submission is due **23 November 2026 at 00:00**, as shown in Moodle.

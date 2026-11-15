@@ -40,6 +40,7 @@ sequenceDiagram
     participant Q as Qdrant
     participant P as PostgreSQL
     U->>B: query, filters, mode
+    B->>B: append legal terms for everyday words
     B->>M: /embed (query) → dense + sparse vector
     par dense
         B->>Q: nearest neighbours (top 50)
@@ -53,6 +54,7 @@ sequenceDiagram
     B-)P: query log (after the response)
 ```
 
+- **Query expansion.** People write "зарплата" or "вещдок"; the statutes say "заработная плата" and "вещественные доказательства". A dictionary of 34 such words (`backend/app/services/query_expansion.py`) appends the legal terms to the query that the models and the keyword search see. The user's words are never removed, and the logged and returned query is unchanged.
 - **Hybrid retrieval.** The dense vector finds articles that mean the same as the question; the sparse (keyword) vector finds exact terms and article numbers. Reciprocal-rank fusion merges the two lists without tuning score scales.
 - **Reranking.** A cross-encoder reads the question together with each of the top 5 articles and reorders them. It is the most expensive stage, so it has its own time budget.
 - **Budgets.** Each stage has a timeout (`SEARCH_*_TIMEOUT_S`). The target is p95 ≤ 2 s for the whole request.

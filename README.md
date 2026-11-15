@@ -6,9 +6,9 @@ Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 
 ## What it does
 
-- **Search in plain language.** Ask "мне не платят зарплату" and get the Labor Code articles about wage payment, not only articles that contain those words. Dense embeddings and keyword matching are combined, then a reranker reorders the top results.
-- **Answers with citations.** An LLM writes a short answer from the retrieved articles only and cites them as `[1]`, `[2]`; every citation opens the article.
-- **Official texts.** The corpus is the public AdiletCodex dataset (parsed from adilet.zan.kz): 8 codes, 9,259 articles, in both languages, stored verbatim.
+- **Search in plain language.** Ask "работодатель задерживает зарплату" and get the Labor Code article on the terms of wage payment, not only articles that contain those words. Everyday words are expanded into legal terms, dense embeddings and keyword matching are combined, then a reranker fine-tuned on legal questions reorders the top results.
+- **Answers with citations.** An LLM writes a short answer from the retrieved articles only and cites them as `[1]`, `[2]`; every citation opens the article. When the articles do not answer the question directly, it says so and reports what they do say.
+- **Official texts.** The corpus is the public AdiletCodex dataset (parsed from adilet.zan.kz): 40 acts (23 codes and 17 laws), 20,490 articles in Russian and Kazakh, stored verbatim. A smaller 8-code corpus is used for training and experiments.
 - **Admin panel.** Usage statistics, the query log, system health, reindexing.
 - **Keeps working when parts fail.** If the models or the vector index are down, search falls back to keyword search in the database.
 
@@ -16,6 +16,9 @@ Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 
 - [Run guide for the final prototype](docs/tech/final_project.md) (`infra/start-final.ps1`: real models, production UI, Prometheus and Grafana on local ports) and the [readiness report](docs/report/final_readiness.md).
 - [10-slide presentation](docs/presentation/final_deck.md) and [speaker guide](docs/presentation/final_speaker_guide.md).
+- Final model and evaluation: [model card](ml/MODEL_CARD.md) (pipeline 1.0.0), [final evaluation](docs/report/final_eval.md), [load test](docs/report/load_test.md).
+- Model training: [Assignment 3](docs/report/A3_report.md) and [Assignment 4](docs/report/A4_report.md) reports, with executed notebooks in `ml/notebooks/`.
+- Public deployment: [deployment guide](docs/tech/deployment.md).
 - Research comparison of the pipeline with recent pretrained embedding models: [findings](docs/report/RESEARCH_FINDINGS.md), [executed notebook](ml/notebooks/Final_Research_Comparison.ipynb), [how to reproduce](docs/tech/research_benchmark.md).
 
 Older bootstrap reports are superseded and must not supply final numbers.
@@ -78,8 +81,9 @@ CI runs these on every pull request, plus integration tests on real PostgreSQL a
 
 ## Limits
 
-- The models are pretrained and not yet fine-tuned on legal text; quality numbers so far come from automatic (proxy) labels, not from human judgement. See [ml/MODEL_CARD.md](ml/MODEL_CARD.md).
-- Only 8 codes are indexed by default.
+- Quality numbers come from LLM-written test questions with automatic labels; a person checked 60 of them. There is no gold set written by lawyers. See [ml/MODEL_CARD.md](ml/MODEL_CARD.md).
+- Kazakh questions are answered less well than Russian ones.
+- The corpus is a snapshot of 17 September 2026 and covers 40 acts; later amendments and other acts are not in it.
 - The system is a search aid, not legal advice.
 
 How this repository was developed (three role briefs, shared rules, phase prompts) is described in [agents/README.md](agents/README.md) and [CLAUDE.md](CLAUDE.md).
