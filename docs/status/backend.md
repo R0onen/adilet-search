@@ -45,3 +45,9 @@ BE-01 to BE-03, the integration and the real-corpus demo are merged (PRs #1–#8
 - **New env vars:** `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH`, `JWT_SECRET`, `JWT_TTL_S`, `RATE_LIMIT_*`, `API_KEYS`, `BREAKER_*`, `CACHE_TTL_S`, `DATA_DIR`, `PROMETHEUS_PORT`, `GRAFANA_*`. All are documented in `.env.example`.
 - **Indexer recovery:** `python -m indexer … --abandon-stuck-job` after a crashed CLI run.
 - **Windows:** `POSTGRES_PORT=55432` if a native PostgreSQL holds 5432; use `127.0.0.1` in test URLs; prefix container paths with `MSYS_NO_PATHCONV=1` in Git Bash.
+
+## Planned: corpus expansion (not started; after the Assignment 3/4 runs and the reranker check)
+The AdiletCodex file already on disk holds 343 acts (24 codes, 312 laws; 22,117 Russian articles); 8 codes (4,631 Russian articles) are indexed. No scraping is needed. Proposed second tier, as a new `corpus_version` so the assignment notebooks keep the 8-code corpus:
+- Codes: Criminal Procedure (K1400000231), Civil Procedure (K1500000377), Marriage and Family (K1100000518), Social (K2300000224), Health (K2000000360), Administrative Procedure (K2000000350), Land (K030000442_), Penal Enforcement (K1400000234), and the Constitution (K2600000000).
+- Laws: housing relations, enforcement proceedings, road traffic, consumer protection, bankruptcy of citizens, personal data, notaries, LLPs, migration, citizenship, children's rights, education, microfinance, collection activity, mortgage, registration of rights to real estate.
+- Do not add K1700000120: it is the 2017 Tax Code, replaced by the 2025 one already indexed. Check every act's validity the same way before adding it.
