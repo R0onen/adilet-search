@@ -3,6 +3,7 @@
 import asyncio
 import json
 from collections.abc import AsyncGenerator
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -17,6 +18,7 @@ from app.services.answer import (
     AnswerConfig,
     AnswerService,
     PreparedAnswer,
+    source_text,
     source_title,
     truncate_at_paragraph,
 )
@@ -70,7 +72,10 @@ def tokens(*pieces: str, done: str | None = None) -> list[GenerateEvent]:
 
 
 def build(
-    generator: FakeGenerator, store_hits: FakeStore | None = None, timeout_s: float = 5.0
+    generator: FakeGenerator,
+    store_hits: FakeStore | None = None,
+    timeout_s: float = 5.0,
+    max_context_chars: int = 10000,
 ) -> tuple[AnswerService, RecordingStore, BackgroundRunner]:
     search, _, _ = make_service(store=store_hits)
     store = RecordingStore()
@@ -81,7 +86,7 @@ def build(
         manifest=FakeManifest(Manifest.model_validate(fake_manifest())),
         store=store,
         background=background,
-        config=AnswerConfig(timeout_s=timeout_s),
+        config=AnswerConfig(timeout_s=timeout_s, max_context_chars=max_context_chars),
     )
     return service, store, background
 
@@ -228,6 +233,27 @@ def test_truncate_at_paragraph() -> None:
     assert truncate_at_paragraph(text, 30) == "Первый абзац."
     assert truncate_at_paragraph("одно длинное предложение без переносов", 20) == "одно длинное"
     assert len(truncate_at_paragraph("x" * 50, 10)) == 10
+
+
+def test_source_text_prefers_the_whole_article_then_the_matched_passage() -> None:
+    def item(article_text: str, chunk_text: str) -> Any:
+        return SimpleNamespace(article=SimpleNamespace(text=article_text), chunk_text=chunk_text)
+
+    assert source_text(item("короткая статья", "короткая"), 100) == "короткая статья"
+    long_article = "начало статьи " * 50
+    assert source_text(item(long_article, "нужный пункт"), 100) == "нужный пункт"
+    assert len(source_text(item(long_article, "пункт " * 100), 100)) <= 100
+    assert source_text(item(long_article, ""), 100) == truncate_at_paragraph(long_article, 100)
+
+
+async def test_sources_share_the_context_budget() -> None:
+    generator = FakeGenerator(tokens("ответ [1]"))
+    service, _, background = build(generator, max_context_chars=200)
+    await run(service, AnswerRequest(query=QUERY))
+    await background.drain()
+    sources = generator.requests[0].sources
+    assert len(sources) > 1
+    assert all(len(source.text) <= 200 // len(sources) for source in sources)
 
 
 def test_source_title() -> None:

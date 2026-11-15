@@ -64,6 +64,7 @@ class AnswerConfig:
     timeout_s: float = 90.0
     max_tokens: int = 512
     temperature: float = 0.1
+    max_context_chars: int = 10000
 
 
 @dataclass
@@ -83,6 +84,14 @@ def truncate_at_paragraph(text: str, limit: int) -> str:
     if cut <= 0:
         cut = limit
     return text[:cut].rstrip()
+
+
+def source_text(item: AssembledResult, limit: int) -> str:
+    """What the LLM reads of one source: the whole article when it fits, otherwise the retrieved
+    passage, which is the part of the article that matched the question."""
+    if len(item.article.text) <= limit:
+        return item.article.text
+    return truncate_at_paragraph(item.chunk_text or item.article.text, limit)
 
 
 def source_title(article: Article, document: Document) -> str:
@@ -142,6 +151,8 @@ class AnswerService:
         manifest = await self._manifest.get()
         params = manifest.retrieval if manifest else None
         max_chars = params.max_chars_per_context if params else 4000
+        if prepared.sources:
+            max_chars = min(max_chars, self._config.max_context_chars // len(prepared.sources))
         refs = list(range(1, len(prepared.sources) + 1))
         search_ms = response.timing_ms.get("total")
         answer: dict[str, Any] = {
@@ -209,7 +220,7 @@ class AnswerService:
                         ref=ref,
                         article_id=item.article.article_id,
                         title=source_title(item.article, item.document),
-                        text=truncate_at_paragraph(item.article.text, max_chars),
+                        text=source_text(item, max_chars),
                     )
                     for ref, item in zip(refs, prepared.sources, strict=True)
                 ],

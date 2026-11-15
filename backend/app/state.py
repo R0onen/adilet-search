@@ -106,6 +106,7 @@ class Resources:
                 timeout_s=settings.answer_timeout_s,
                 max_tokens=settings.answer_max_tokens,
                 temperature=settings.answer_temperature,
+                max_context_chars=settings.answer_max_context_chars,
             ),
         )
         return cls(
