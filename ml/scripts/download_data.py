@@ -45,7 +45,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--out", type=Path, default=REPO_ROOT / "data/processed")
     parser.add_argument("--all-acts", action="store_true", help="every act, not only Tier-1")
-    parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these Tier-1 acts")
+    parser.add_argument("--tier", type=int, default=1, help="1: the 8 main codes; 2: 40 acts")
+    parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these configured acts")
     args = parser.parse_args(argv)
 
     importer_args = ["--csv", str(fetch(args.raw)), "--out", str(args.out)]
@@ -53,6 +54,8 @@ def main(argv: list[str] | None = None) -> int:
         importer_args.append("--all-acts")
     if args.docs:
         importer_args += ["--docs", *args.docs]
+    if args.tier != 1:
+        importer_args += ["--tier", str(args.tier)]
     return adiletcodex.main(importer_args)
 
 

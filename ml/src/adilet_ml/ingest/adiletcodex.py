@@ -136,11 +136,12 @@ def header(short: str, number: str | None, title: str | None, lang: str) -> str:
     return ". ".join(parts)
 
 
-def load_tier1(config_path: Path) -> dict[str, dict[str, Any]]:
+def load_tier1(config_path: Path, max_tier: int = 1) -> dict[str, dict[str, Any]]:
+    """The configured acts up to `max_tier` (1: the 8 main codes; 2: the curated 40 acts)."""
     import yaml
 
     config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    return {act["doc_id"]: act for act in config["acts"]}
+    return {a["doc_id"]: a for a in config["acts"] if int(a.get("tier", 1)) <= max_tier}
 
 
 def load_excluded(config_path: Path) -> set[str]:
@@ -180,7 +181,7 @@ def convert(
         first = doc_rows[0]
         title = nfc(first["title"])
         act = (acts or {}).get(doc_id)
-        short = act[f"short_title_{lang}"] if act else short_title(title, lang)
+        short = (act or {}).get(f"short_title_{lang}") or short_title(title, lang)
         statuses = {nfc(r["status"]) for r in doc_rows}
         documents.append(
             {
@@ -291,10 +292,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--all-acts", action="store_true", help="every act except the excluded ones"
     )
-    parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these Tier-1 acts")
+    parser.add_argument("--tier", type=int, default=1, help="configured acts up to this tier")
+    parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these configured acts")
     args = parser.parse_args(argv)
 
-    acts = load_tier1(args.corpus_config)
+    acts = load_tier1(args.corpus_config, 99 if args.all_acts else args.tier)
     if args.docs and not args.all_acts:
         unknown = set(args.docs) - set(acts)
         if unknown:

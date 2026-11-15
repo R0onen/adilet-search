@@ -185,3 +185,14 @@ def test_the_exclusion_list_never_drops_a_configured_act() -> None:
     excluded = load_excluded(config)
     assert "K1700000120" in excluded  # the 2017 Tax Code
     assert not excluded & set(load_tier1(config))
+
+
+def test_tiers_of_the_corpus_config() -> None:
+    from adilet_ml.ingest.adiletcodex import load_excluded, load_tier1
+
+    config = Path(__file__).resolve().parents[1] / "configs" / "corpus.yaml"
+    tier1, tier2 = load_tier1(config), load_tier1(config, 2)
+    assert len(tier1) == 8
+    assert len(tier2) == 40
+    assert set(tier1) < set(tier2)
+    assert not load_excluded(config) & set(tier2)
