@@ -91,7 +91,17 @@ def make_snippet(text: str, query: str, max_chars: int = SNIPPET_MAX_CHARS) -> s
             ),
             start,
         )
-        start, end = _cut_window(text, first_hit, budget)
+        if first_hit - start <= budget * 2 // 3:
+            # The match is near the beginning: start at the sentence start, which reads better
+            # than a window that opens in the middle of a clause.
+            sentence_start = start
+            _, end = _cut_window(text, first_hit, budget)
+            end = min(end, sentence_start + budget)
+            if end < len(text) and not text[end].isspace():
+                end = text.rfind(" ", sentence_start, end)
+            start = sentence_start
+        else:
+            start, end = _cut_window(text, first_hit, budget)
     else:
         # Grow the window with neighbouring sentences while it fits.
         lo, hi = best, best

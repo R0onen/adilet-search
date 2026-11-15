@@ -1,71 +1,33 @@
-# Final preparation status — 12 November 2026
+# Final preparation status — 15 November 2026
 
-Team handoff branch: `final/prototype-and-defense`. See Git history for publication status;
-merging to `main` and public hosting are separate steps.
+Branch: `final-completion`. Requirement matrix and measured results: `docs/report/final_readiness.md`.
 
-## Completed
+## Current state
 
-- Added production frontend/nginx container and final Compose overlay with Prometheus/Grafana.
-- Added per-app backend HTTP metrics and tests; no user query/article IDs in metric labels.
-- Fixed blocking ML inference with a bounded worker pool; verified concurrent health responsiveness.
-- Pinned ML image dependencies using constraints exported from `uv.lock` and fixed the packaged
-  prompt path for LLM generation.
-- Fixed nginx Docker DNS resolution after backend recreation and verified recovery.
-- Built and ran the real model stack, indexed official Labor Code sample, verified RU/KK retrieval,
-  external generated answers, citations, article drawer and parallel-language switching.
-- Reused the existing ignored generator configuration, without exposing credentials. Current model:
-  `openai/gpt-oss-120b`; fresh checkout defaults to extractive fallback.
-- Prepared 10-slide editable presentation, PDF, speaker guide, executed inference notebook,
-  technical run guide, readiness matrix and source archive.
+- **Model.** Pipeline `1.0.0`: multilingual E5 + BM25, reciprocal-rank fusion, the cross-encoder reranker fine-tuned in Assignment 4 (5 candidates, 256 tokens), a dictionary that expands everyday words into legal terms, a hosted LLM for answers. Pipeline `0.2.0` (pretrained reranker) stays available through `ml/models/model_manifest.json`.
+- **Corpus.** The live index holds 40 acts: 20,490 articles in Russian and Kazakh, 41,074 chunks (`--tier 2` of the importer). Experiments and training use the 8-code corpus.
+- **Assignments 3 and 4.** Notebooks executed on a GPU with outputs; reports rewritten from those runs.
+- **Evaluation.** Live API on 195 test questions: right article first for 82.6%, nDCG@10 0.871 (`docs/report/final_eval.md`). 60 test questions reviewed by a person.
+- **Load.** 10 users without cache on the 40-act index: p95 1.2 s, no failures (`docs/report/load_test.md`).
+- **Answers.** No bare refusal: when the articles do not answer the question, the answer says so and reports what they do say. The ML service waits and retries once when the LLM provider rate-limits a request.
+- **UI.** About page removed; clearer labels for degraded search; compact header after a search.
+- **Presentation.** `docs/presentation/final_deck.pptx` and `.pdf` rebuilt by `build_final.py`; `demo_script.md`, `demo_questions.md` and `final_speaker_guide.md` match the current system.
 
 ## Verification
 
-- 49 ML tests; 258 backend unit/contract checks; 34 database/storage integration checks;
-  6 real-model integration checks; 12 frontend unit tests; 4 browser scenarios.
-- Backend ruff/format/mypy and OpenAPI drift check passed; frontend build and lint passed.
-- Data audit: no duplicate IDs, orphan chunks, empty article texts, broken parallel links or
-  article groups crossing evaluation splits. All eval queries are title-derived proxies.
-- See `docs/report/final_{runtime,smoke,browser,monitoring,data_audit}.json` for runtime evidence.
-- Load runs varied. Latest post-deployment run: 100 requests / 10 users, no HTTP errors,
-  60 degraded responses, complete-response p95 2,530.88 ms. Target **not met**.
+- Backend: 301 unit and contract tests, ruff, mypy. ML: 64 tests. Frontend: 20 tests, lint, build.
+- Integration tests (PostgreSQL, Qdrant), the real-model job and the full-stack smoke test run in CI on the pull request.
+- Local stack: `docker compose -f docker-compose.prod.yml up -d`, UI at http://localhost:8080.
 
-## Current runtime
+## Open
 
-- UI: http://127.0.0.1:18080; API docs: http://127.0.0.1:18000/api/v1/docs.
-- Grafana: http://127.0.0.1:13000; Prometheus: http://127.0.0.1:19090.
-- Current ML service: optional NVIDIA CUDA overlay, one inference worker, rerank 20 candidates.
-- Historical CPU preset: 4 workers, 1 CPU thread, rerank 3; its failed load results remain recorded.
-- Main demo index: 454 article-language rows / 805 points, pipeline `0.2.0`.
-- The full 9,259-article-language / 16,264-chunk corpus is on disk but not in the main demo index.
-- The real-ML test uses a separate DB/alias; do not confuse its index with the demo alias.
-- Existing unrelated Docker projects retained. Temporary fake-ML test container stopped.
+- Public deployment: needs the server address and login; steps in `docs/tech/deployment.md`.
+- Publishing the fine-tuned checkpoint (470 MB, not in the repository; reproducible from the A4 notebook).
+- Backup video of the demo.
+- A native speaker's check of the fixed Kazakh sentences in `ml/prompts/answer_v1.md`.
 
-## Next work / outstanding requirements
+## Notes for others
 
-- The full-corpus frozen proxy comparison is complete; see `docs/report/RESEARCH_FINDINGS.md`.
-  Instructor-required project-specific fine-tuning and independent human RU/KK labels remain outstanding. Do not use superseded A3/A4 toy numbers.
-- Improve full-pipeline concurrency/performance and measure the full corpus.
-- Public HTTPS access for an external grader is unverified; no public URL has been created.
-- Teammate admin/auth/full-text fallback changes are integrated from `origin/main`;
-  earlier runtime reports predate this integration. Rehearse the combined stack before submission.
-- See `docs/report/final_readiness.md` for the complete requirement matrix and limitations.
-
-## Research extension
-
-Recent embedding candidates and project ablations now have a matched full-corpus frozen
-validation/test study, with pinned checkpoints, per-language metrics, paired uncertainty
-and saved rankings. LLM query rewriting is a separate small matched pilot. See
-`docs/report/RESEARCH_FINDINGS.md` and `ml/notebooks/Final_Research_Comparison.ipynb`.
-The final deck now presents research questions, controls and results alongside the prototype.
-
-## Team Git handoff
-
-The final prototype/research work is committed on `final/prototype-and-defense` and integrates
-the latest teammate changes from `main`, preserving their admin UI, training notebooks,
-resilience code and monitoring alerts. Both monitoring dashboards remain available.
-Runtime JSON reports describe the earlier measured stack, not a deployment of this merge.
-
-Post-merge checks: 282 backend unit/contract tests, 49 ML tests and 20 frontend tests pass.
-Backend lint/format/types and OpenAPI drift checks pass; frontend lint/build and final
-Compose configuration validation pass. Storage/real-ML integration evidence above predates
-this merge; the merged services have not been redeployed by this Git handoff.
+- With the `1.0.0` manifest the ML service refuses to start unless `ml/models/checkpoints/reranker-ft-written/` is present and matches the recorded hash. Without the checkpoint, use the `0.2.0` manifest (the default).
+- The hosted LLM's free tier allows 8,000 tokens a minute and 200,000 a day: about two answers a minute and 50 a day. Search does not depend on it.
+- The earlier status of 12 November (Labor Code sample index, local ports 18080/18000) is in the Git history of this file.

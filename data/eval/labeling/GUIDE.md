@@ -39,3 +39,16 @@ For the first real benchmark, aim for at least 200 queries:
 - at least 30 cross-article questions;
 - at least 30 hard negative queries;
 - at least two reviewers for 20 percent of the set to estimate agreement.
+
+## Human check of the synthetic test questions (`synthetic_review.csv`)
+
+60 questions sampled from the synthetic **test** split (40 Russian, 20 Kazakh; half plain, half
+terminology; seed 42). Open the file in Excel or Google Sheets and fill in `verdict` for each row:
+
+- `ok`: a person could really ask this, and the listed article answers it;
+- `wrong`: the article does not answer the question;
+- `vague`: the question is too general, or several articles answer it equally well.
+
+Leave rows you cannot judge (for example, Kazakh if you do not read it) empty. The share of `ok`
+rows is reported as the human-checked precision of the automatic labels, and metrics are also
+reported on the `ok` rows only.

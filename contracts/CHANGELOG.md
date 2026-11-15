@@ -117,3 +117,18 @@ Open items to settle by G0:
 - Why: with 20 candidates the reranker could not serve 10 concurrent users on CPU (97% of hybrid searches were returned without reranking). With 5 candidates p95 is 0.88 s uncached, and "right article first" on the synthetic test questions is 83.1% against 85.6% (72.8% without a reranker). See `docs/report/load_test.md`.
 - Breaking: no. `index_compat_id` is unchanged, so no reindex is needed. `SEARCH_RERANK_TOP_N` still overrides the manifest.
 - Who must react: nobody. Reports that quote ranking quality should state the rerank depth they were measured with.
+
+## 2026-11-15 — Answer prompt: no bare refusal when there is no direct answer
+- `ml/prompts/answer_v1.md`: when the sources do not directly answer, the model now opens with a fixed sentence (`В найденных статьях нет прямого ответа на этот вопрос.` / `Табылған баптарда бұл сұраққа тікелей жауап жоқ.`), then says what the related sources do establish (with citations) and what kind of rule is missing. It still may not state rules that are not in the sources.
+- Backend: the new opening sentences are recognised as a refusal, so such answers keep `grounded: false` while their citations stay clickable. The old sentences are still recognised.
+- Why: a one-line "no answer in the sources" was a dead end for questions outside the indexed codes.
+- Breaking: no. Event shapes are unchanged.
+
+## 2026-11-15 — `/generate` source texts: a total budget, and the matched passage for long articles
+- Backend: the source texts of one answer together are at most `ANSWER_MAX_CONTEXT_CHARS` (default 10,000 characters; per source still at most `max_chars_per_context`). A source is the whole article when it fits its share, otherwise the retrieved passage of the article instead of the article's beginning.
+- `contracts/ml_service.md`: the description of `sources[].text` says so. The request shape is unchanged.
+- ML service: on HTTP 429 from the LLM provider with a `retry-after` of at most 30 s, `/generate` waits and retries once before reporting `llm_unavailable`.
+- `ml/prompts/answer_v1.md`: the "no direct answer" opening is used only when no source states the rule asked about; an answer that depends on conditions listed in the sources is a direct answer.
+- Why: with five long articles a request exceeded the provider's tokens-per-minute limit and 4 of 30 test answers failed every time; the model also opened 9 of 13 answers with "no direct answer" although the cited article answered the question.
+- Breaking: no.
+- Who must react: nobody.

@@ -1,43 +1,33 @@
-# A2 Report: Data Preparation and Baselines
+# Assignment 2: data preparation and baseline
 
-> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
-
-## Task
-
-Prepare the legal-search dataset shape and establish local baselines for article retrieval.
+Assignment 2 and the midterm were submitted earlier in the course. This page records the data and the baseline that the later assignments build on, with the numbers as they are in the repository now.
 
 ## Data
 
-The committed bootstrap corpus contains 2 document rows, 30 article rows and 33 chunk rows under
-`data/sample`. It covers Russian and Kazakh Labor Code sample text and includes parallel article
-ids, an excluded article, amendment notes and a long split article.
+- **Source.** AdiletCodex v1.0 (CC BY 4.0), the official texts parsed from adilet.zan.kz, snapshot of 17 September 2026. Downloaded and verified by `ml/scripts/download_data.py`.
+- **Corpus for experiments.** The 8 main codes in Russian and Kazakh: 16 documents, 9,259 articles, 16,264 chunks of about 400 tokens.
+- **Unit.** One article of one act in one language. Long articles are split into chunks for retrieval and collapsed back to the article in the results.
+- **Quality.** No duplicate ids, empty texts or orphan chunks; 9,248 of 9,259 articles have a parallel article in the other language (`ml/reports/data_quality.md`).
+- **Cleaning.** Texts are stored verbatim. Amendment footnotes are separated from the article text.
 
-Evaluation uses `data/eval/queries.jsonl` with 10 seed synthetic queries and
-`data/eval/qrels.jsonl` with graded qrels. `data/eval/splits.json` freezes the seed split by
-`doc_id:unit_key`. This is not a full gold benchmark.
+## Evaluation data and split
 
-## Baselines
+- **Title queries** (`data/eval/`): each article's title is a query for that article, 8,735 queries. A proxy: titles use the statute's own wording.
+- **Split.** By article, 70 / 15 / 15, seed 42; the Russian and Kazakh versions of an article are in the same split. This prevents leakage between the two languages of one article.
 
-| Run | nDCG@10 | Recall@10 | Recall@50 | MRR@10 |
-|---|---:|---:|---:|---:|
-| `20261008_bm25_seed` | 0.8796 | 0.8889 | 0.9444 | 0.9000 |
-| `20261008_tfidf_logreg_seed` | 0.8198 | 1.0000 | 1.0000 | 0.8500 |
+## Baseline
 
-BM25 is the strongest seed baseline by nDCG@10. The learned TF-IDF/logistic baseline retrieves all
-positive articles within the top 10 but ranks them slightly worse on this tiny set.
+BM25 over article bodies with Russian stemming, on the 1,318 test title queries (`ml/reports/results.csv`):
 
-## Metrics
+| Metric | All | Russian | Kazakh |
+|---|---|---|---|
+| nDCG@10 | 0.730 | 0.753 | 0.708 |
+| MRR@10 | 0.686 | 0.709 | 0.664 |
+| Recall@10 | 0.866 | 0.891 | 0.842 |
+| Recall@50 | 0.938 | 0.947 | 0.929 |
 
-- `ndcg@10`: primary metric because it rewards relevant articles near the top.
-- `recall@10` and `recall@50`: whether the answer article was retrieved at all.
-- `mrr@10`: rank of the first relevant article.
-- `roc_auc`, `f1`, `pr_auc`: classification metrics for the learned reranker.
+nDCG@10 is the main metric because the position of the right article matters; recall shows whether it was retrieved at all. Accuracy is not used: almost every (query, article) pair is negative.
 
-Accuracy is not used because retrieval has many negatives and the ranking order matters more than a
-single class decision.
+## What followed
 
-## Conclusion
-
-The A2 local pipeline is complete for a reproducible seed benchmark: data schema, qrels, splits,
-baseline scripts, run folders and aggregated results all exist. The full A2 benchmark still needs
-150+ human-labelled gold queries over the official Tier-1 corpus.
+Title queries overstate keyword search, so Assignments 3 and 4 use 803 LLM-written questions in everyday and legal wording (`data/eval/synthetic/`), 60 of them reviewed by a person. See `A3_report.md` and `A4_report.md`.

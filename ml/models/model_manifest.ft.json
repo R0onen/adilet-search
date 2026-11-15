@@ -1,0 +1,73 @@
+{
+  "pipeline_version": "1.0.0",
+  "created_at": "2026-11-15",
+  "index_compat_id": "e5base-bm25st-ch1",
+  "embedder": {
+    "id": "multilingual-e5-base-zs",
+    "hf_repo": "intfloat/multilingual-e5-base",
+    "revision": "d128750597153bb5987e10b1c3493a34e5a4502a",
+    "dim": 768,
+    "distance": "cosine",
+    "max_seq_len": 512,
+    "query_prefix": "query: ",
+    "passage_prefix": "passage: ",
+    "runtime": "sentence-transformers"
+  },
+  "sparse": {
+    "id": "bm25-snowball-ru-kk-v2",
+    "type": "bm25",
+    "qdrant_idf_modifier": true,
+    "params": {
+      "k1": 1.2,
+      "b": 0.75,
+      "avgdl": 113.0
+    }
+  },
+  "reranker": {
+    "id": "mmarco-mMiniLMv2-L12-H384-ft-adilet",
+    "runtime": "cross-encoder",
+    "max_seq_len": 256,
+    "local_path": "checkpoints/reranker-ft-written",
+    "sha256": "990d251aa1f1b4b65a13afbdb8ae06b34870cfcade586e11abe1ca5cdaa90344",
+    "base_model": {
+      "hf_repo": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+      "revision": "1427fd652930e4ba29e8149678df786c240d8825"
+    },
+    "training": "fine-tuned on 4,264 (question, article) pairs from the written training questions; ml/notebooks/A4_embeddings_to_finetuning.ipynb, configuration E3b"
+  },
+  "generator": {
+    "id": "openai-compatible-llm",
+    "base_model": null,
+    "adapter": null,
+    "gguf": null,
+    "served_model_name": "set by LLM_MODEL",
+    "prompt_template": "prompts/answer_v1.md",
+    "max_context_tokens": 6000,
+    "runtime": "ADILET_ML_GENERATOR_MODE: openai (LLM_BASE_URL) | fallback (extractive)"
+  },
+  "retrieval": {
+    "dense_limit": 50,
+    "sparse_limit": 50,
+    "rrf_k": 60,
+    "weights": {
+      "dense": 1.0,
+      "sparse": 1.0
+    },
+    "rerank_top_n": 5,
+    "default_top_k": 10,
+    "context_top_k": 5,
+    "max_chars_per_context": 4000
+  },
+  "chunking": {
+    "version": "ch1",
+    "max_chunk_tokens": 400,
+    "tokenizer": "intfloat/multilingual-e5-base"
+  },
+  "corpus_version": "2026.09.17",
+  "eval": {
+    "dataset": null,
+    "ndcg@10": null,
+    "recall@10": null,
+    "mrr@10": null
+  }
+}

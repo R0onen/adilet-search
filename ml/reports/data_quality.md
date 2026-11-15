@@ -1,41 +1,39 @@
-# Data Quality Report: Bootstrap Sample
+# Data quality report
 
-Date: 2026-10-08  
-Corpus version: `2026.10.08-bootstrap`
+Corpus: AdiletCodex v1.0 (CC BY 4.0, doi:10.5281/zenodo.22812626), parsed from adilet.zan.kz; `corpus_version` 2026.09.17. Built by `ml/scripts/download_data.py`, which verifies the MD5 of the download. Schema: `contracts/data_schema.md`.
 
-This is a bootstrap integration sample for Backend and Frontend. It follows the final
-`contracts/data_schema.md` schema, but it is not the final scraped Tier-1 corpus and must not be
-used for quality claims.
+## Tier 1 (8 codes; training and experiments)
 
-## Files
+Audit of 12 November 2026 (`docs/report/final_data_audit.json`):
 
-| File | Rows |
-|---|---:|
-| `data/sample/documents.parquet` | 2 |
-| `data/sample/articles.parquet` | 30 |
-| `data/sample/chunks.parquet` | 33 |
-| `data/sample/sample_articles.json` | 30 |
+| Check | Result |
+|---|---|
+| Documents (code × language) | 16 |
+| Articles | 9,259 (4,631 Russian, 4,628 Kazakh) |
+| Chunks | 16,264 |
+| Duplicate article ids / chunk ids | 0 / 0 |
+| Chunks without an article | 0 |
+| Articles with empty text | 0 |
+| Russian–Kazakh parallel links | 9,248, none broken |
+| Articles in more than one evaluation split | 0 |
 
-## Coverage
+## Tier 2 (40 acts; the deployed index)
 
-- Languages: Russian and Kazakh.
-- Act: Labor Code sample, `doc_id = K1500000414`.
-- Included cases:
-  - one excluded article in each language (`a53`);
-  - amendment notes in each language (`a113`);
-  - a long article split into multiple chunks (`a114`);
-  - RU/KK `parallel_article_id` for every article.
+80 documents, 20,490 articles, 41,074 chunks. The importer applies the same schema validation; the indexer validated these counts before indexing (15 November 2026). The 51 acts that the full dataset holds in an expired or superseded edition (for example the 2017 Tax Code) are listed under `excluded_acts` in `ml/configs/corpus.yaml` and are never imported.
 
-## Validation
+## Evaluation sets
 
-The sample was loaded through the backend corpus validator:
+| Set | Size | Labels |
+|---|---|---|
+| `data/eval/` title queries | 8,735 (6,106 train, 1,311 validation, 1,318 test) | each article's title is a query for that article (proxy) |
+| `data/eval/synthetic/` | 803 questions for 400 articles (489 train, 119 validation, 195 test; 316 Kazakh) | LLM-written; the source article is the only relevant one |
+| `data/eval/labeling/synthetic_review.csv` | 60 of the test questions | reviewed by a person: 53 correct, 3 wrong article, 4 too vague |
 
-```text
-2 documents, 30 articles, 33 chunks, corpus_version=2026.10.08-bootstrap
-```
+Both sets are split by article (70 / 15 / 15, seed 42), with the Russian and Kazakh versions of an article in the same split.
 
-Known limitations:
+## Known limits
 
-- Text is educational bootstrap content, not official statute text.
-- Article numbering gaps are intentional because this is a selected sample, not the full code.
-- Real Adilet source anchors and revision parsing still need live scraper QA.
+- The corpus is a snapshot; amendments after 17 September 2026 are not in it, and all articles carry the status "in force" as of the snapshot.
+- Amendment footnotes are stored separately from the article text; texts are verbatim.
+- 11 articles have no parallel article in the other language.
+- There is no gold set written by lawyers.

@@ -168,3 +168,31 @@ def test_split_notes_and_chunker_edges() -> None:
     parts = chunk_paragraphs(huge)
     assert all(len(p) <= 1500 for p in parts)
     assert "".join(parts).replace(" ", "") == huge.replace(" ", "")
+
+
+def test_all_acts_keeps_every_act_except_the_excluded_ones(csv_path: Path) -> None:
+    rows = read_rows(csv_path)
+    doc_ids = {row["doc_id"] for row in rows}
+    dropped = sorted(doc_ids)[0]
+    documents, _, _ = convert(rows, acts={"OTHER": {}}, all_acts=True, excluded={dropped})
+    assert {d["doc_id"] for d in documents} == doc_ids - {dropped}
+
+
+def test_the_exclusion_list_never_drops_a_configured_act() -> None:
+    from adilet_ml.ingest.adiletcodex import load_excluded, load_tier1
+
+    config = Path(__file__).resolve().parents[1] / "configs" / "corpus.yaml"
+    excluded = load_excluded(config)
+    assert "K1700000120" in excluded  # the 2017 Tax Code
+    assert not excluded & set(load_tier1(config))
+
+
+def test_tiers_of_the_corpus_config() -> None:
+    from adilet_ml.ingest.adiletcodex import load_excluded, load_tier1
+
+    config = Path(__file__).resolve().parents[1] / "configs" / "corpus.yaml"
+    tier1, tier2 = load_tier1(config), load_tier1(config, 2)
+    assert len(tier1) == 8
+    assert len(tier2) == 40
+    assert set(tier1) < set(tier2)
+    assert not load_excluded(config) & set(tier2)

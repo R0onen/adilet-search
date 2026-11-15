@@ -100,23 +100,38 @@ async def upsert_articles(session: AsyncSession, rows: Sequence[dict[str, Any]])
     return await _upsert(session, Article, ARTICLE_COLUMNS, ("article_id",), rows)
 
 
+# One statement may carry at most 32,767 bind parameters (asyncpg), so stale rows are found in
+# Python and deleted in batches; a `NOT IN (<every id of the corpus>)` breaks on a large corpus.
+PRUNE_BATCH = 5000
+
+
+def stale_keys[K](existing: Iterable[K], keep: Iterable[K]) -> list[K]:
+    """Keys that are in the database but not in the indexed dataset."""
+    kept = set(keep)
+    return [key for key in existing if key not in kept]
+
+
 async def prune_corpus(
     session: AsyncSession, doc_keys: Iterable[tuple[str, str]], article_ids: Iterable[str]
 ) -> tuple[int, int]:
     """Delete documents and articles that are not in the indexed dataset."""
-    keep_articles = list(article_ids)
-    keep_docs = list(doc_keys)
-    articles = await session.execute(
-        delete(Article).where(Article.article_id.not_in(keep_articles))
-        if keep_articles
-        else delete(Article)
-    )
-    documents = await session.execute(
-        delete(Document).where(tuple_(Document.doc_id, Document.lang).not_in(keep_docs))
-        if keep_docs
-        else delete(Document)
-    )
-    return documents.rowcount or 0, articles.rowcount or 0  # type: ignore[attr-defined]
+    existing_articles = (await session.execute(select(Article.article_id))).scalars().all()
+    stale_articles = stale_keys(existing_articles, article_ids)
+    for start in range(0, len(stale_articles), PRUNE_BATCH):
+        batch = stale_articles[start : start + PRUNE_BATCH]
+        await session.execute(delete(Article).where(Article.article_id.in_(batch)))
+
+    existing_docs = [
+        (doc_id, lang)
+        for doc_id, lang in (await session.execute(select(Document.doc_id, Document.lang))).all()
+    ]
+    stale_docs = stale_keys(existing_docs, doc_keys)
+    for start in range(0, len(stale_docs), PRUNE_BATCH):
+        doc_batch = stale_docs[start : start + PRUNE_BATCH]
+        await session.execute(
+            delete(Document).where(tuple_(Document.doc_id, Document.lang).in_(doc_batch))
+        )
+    return len(stale_docs), len(stale_articles)
 
 
 # --- reads for the API --------------------------------------------------------------------

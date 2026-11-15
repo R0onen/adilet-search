@@ -19,16 +19,18 @@ _UNICODE_MARKER = re.compile(r"[【［](\s*\d{1,3}(?:\s*[,;]\s*\d{1,3})*\s*)[】
 _SPACE_BEFORE_PUNCT = re.compile(r"[ \t]+([.,;:!?])")
 _DOUBLE_SPACES = re.compile(r"[ \t]{2,}")
 
-# Phrases the prompt template tells the model to use when the sources do not answer.
-# PROVISIONAL until ML confirms the wording of its template (request in docs/status/backend.md).
+# Phrases the prompt template (ml/prompts/answer_v1.md) tells the model to open with when the
+# sources do not directly answer; the older wordings are kept for stored answers and other models.
 REFUSAL_PHRASES = (
     # ru
+    "в найденных статьях нет прямого ответа",
     "в предоставленных источниках нет ответа",
     "в источниках нет ответа",
     "источники не содержат ответа",
     "предоставленные источники не содержат",
     "не могу ответить на основании предоставленных источников",
     # kk
+    "табылған баптарда бұл сұраққа тікелей жауап жоқ",
     "берілген дереккөздерде жауап жоқ",
     "дереккөздерде жауап жоқ",
     "берілген дереккөздерде бұл сұраққа жауап жоқ",

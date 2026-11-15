@@ -60,6 +60,8 @@ class Settings(BaseSettings):
     # ml_service.md /generate: max_tokens at most 1024.
     answer_max_tokens: int = Field(default=512, ge=1, le=1024)
     answer_temperature: float = Field(default=0.1, ge=0, le=2)
+    # All source texts of one answer together. Hosted LLMs limit tokens per request and minute.
+    answer_max_context_chars: int = Field(default=10000, ge=1000)
     sse_ping_s: float = Field(default=15.0, gt=0)
 
     # --- health ---

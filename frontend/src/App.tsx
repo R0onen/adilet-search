@@ -1,6 +1,6 @@
 import { Component, Suspense, lazy } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowUpRight, Scale } from 'lucide-react';
+import { Scale } from 'lucide-react';
 import { NavLink, Route, Routes, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { apiMode } from './api/client';
@@ -26,21 +26,6 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean
     );
   }
 }
-function About() {
-  const { t } = useTranslation();
-  return (
-    <section className="about-page">
-      <span className="eyebrow">ADILET SEARCH / AI ESSENTIALS</span>
-      <h1>{t('aboutTitle')}</h1>
-      <p>{t('aboutText')}</p>
-      <div className="notice">{t(apiMode === 'mock' ? 'aboutDemo' : 'aboutLive')}</div>
-      <p>{t('disclaimer')}</p>
-      <Link className="button" to="/">
-        {t('back')}
-      </Link>
-    </section>
-  );
-}
 export default function App() {
   const { t, i18n } = useTranslation();
   return (
@@ -63,10 +48,6 @@ export default function App() {
               {t('search')}
             </NavLink>
             <NavLink to="/compare">{t('compare')}</NavLink>
-            <NavLink to="/about">
-              {t('project')}
-              <ArrowUpRight size={13} />
-            </NavLink>
           </nav>
           <div className="header-right">
             <span className={`mode-badge ${apiMode}`}>
@@ -97,7 +78,6 @@ export default function App() {
               <Route path="/" element={<SearchPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/compare" element={<ComparePage />} />
-              <Route path="/about" element={<About />} />
               <Route path="/admin/*" element={<AdminApp />} />
               <Route
                 path="*"

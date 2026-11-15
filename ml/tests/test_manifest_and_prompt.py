@@ -96,10 +96,57 @@ def test_prompt_has_system_rules_and_numbered_sources() -> None:
     )
     system, user = build_messages(body)
     assert system["role"] == "system"
-    assert "В предоставленных источниках нет ответа." in system["content"]
-    assert "Берілген дереккөздерде жауап жоқ." in system["content"]
+    assert "В найденных статьях нет прямого ответа на этот вопрос." in system["content"]
+    assert "Табылған баптарда бұл сұраққа тікелей жауап жоқ." in system["content"]
     assert "no Markdown" in system["content"]
     assert user["role"] == "user"
     assert "Language: Kazakh" in user["content"]
     assert "[1] ТК РК. Статья 88\n24 календарных дня." in user["content"]
     assert "{{" not in user["content"]
+
+
+def _manifest_with_local_reranker(local_path: str) -> Manifest:
+    data = json.loads((MODELS / "model_manifest.json").read_text(encoding="utf-8"))
+    data["reranker"]["local_path"] = local_path
+    return Manifest.model_validate(data)
+
+
+def test_reranker_loads_from_a_local_checkpoint(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    loaded = {}
+
+    def fake_init(self: object, model_name: str, max_seq_len: int, revision: str | None) -> None:
+        loaded.update(model=model_name, revision=revision)
+
+    (tmp_path / "reranker-ft").mkdir()
+    (tmp_path / "reranker-ft" / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("MODEL_LOCAL_DIR", str(tmp_path))
+    monkeypatch.setattr(engine.CrossEncoderReranker, "__init__", fake_init)
+    engine._build_reranker(_manifest_with_local_reranker("reranker-ft"))
+    assert loaded == {"model": str(tmp_path / "reranker-ft"), "revision": None}
+
+
+def test_missing_local_checkpoint_is_an_error_not_a_fallback(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("MODEL_LOCAL_DIR", str(tmp_path))
+    with pytest.raises(engine.EngineLoadError, match="checkpoint not found"):
+        engine._build_reranker(_manifest_with_local_reranker("reranker-ft"))
+
+
+def test_local_checkpoint_is_resolved_next_to_the_loaded_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    loaded = {}
+
+    def fake_init(self: object, model_name: str, max_seq_len: int, revision: str | None) -> None:
+        loaded.update(model=model_name)
+
+    (tmp_path / "checkpoints" / "reranker-ft").mkdir(parents=True)
+    (tmp_path / "checkpoints" / "reranker-ft" / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.delenv("MODEL_LOCAL_DIR", raising=False)
+    monkeypatch.setenv("MODEL_MANIFEST_PATH", str(tmp_path / "model_manifest.ft.json"))
+    monkeypatch.setattr(engine.CrossEncoderReranker, "__init__", fake_init)
+    engine._build_reranker(_manifest_with_local_reranker("checkpoints/reranker-ft"))
+    assert loaded == {"model": str(tmp_path / "checkpoints" / "reranker-ft")}

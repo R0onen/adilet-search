@@ -1,88 +1,37 @@
-# Adilet Search: presentation and local demo guide
+# Demo script (about 3 minutes)
+
+The demo runs against the deployed configuration: pipeline 1.0.0, 40 acts, generated answers from the hosted LLM. Questions with their expected articles are in `demo_questions.md`.
 
 ## Where to open it
 
-- App: http://127.0.0.1:5173
-- API documentation: http://127.0.0.1:18000/api/v1/docs
-- Health: http://127.0.0.1:18000/api/v1/health
+- Public: the URL in the README (after deployment).
+- Local: http://localhost:8080 with `docker compose -f docker-compose.prod.yml up -d` (see `docs/tech/deployment.md`). Docker Desktop must be running.
+- Admin panel: `/admin`, with the admin account from `.env`.
+- Grafana: `/grafana` behind the proxy.
 
-The app is deployed locally on this laptop. These addresses are not a public website and will not open the app on the professor's own laptop. Keep Docker Desktop and the frontend process running. Search uses local services; generated answers require internet access to Groq.
+## Steps
 
-## Your opening explanation (about 30 seconds)
-
-“Our project is Adilet Search, a prototype for finding and understanding Kazakhstan legislation. A user asks a question in Russian or Kazakh. The app retrieves relevant articles and asks an AI model to explain them using those sources. The user can open the original article and check the answer. We built it as a group of three, covering backend, frontend and AI. My part is the frontend.”
-
-## How it works, in plain language
-
-This approach is called **RAG: retrieval-augmented generation**. First we find documents; then we give selected source text and the user's question to the language model. The answer therefore has specific evidence the user can inspect.
-
-The flow is:
-
-**Question → search index → ranked articles → Groq language model → streamed answer → source inspection.**
-
-- **React/TypeScript frontend:** search form, filters, results, answer display, article drawer and language switching.
-- **FastAPI backend:** validates requests, runs search and streams answers to the browser.
-- **PostgreSQL:** stores documents, articles and application records.
-- **Qdrant:** stores indexed passages for retrieval.
-- **ML service:** creates retrieval vectors, ranks candidates and calls Groq's hosted `openai/gpt-oss-120b` model.
-
-The current search is a bootstrap implementation using hash vectors and lexical ranking. Hash vectors are not trained semantic embeddings. The LLM generates real answers, but it cannot reliably compensate for missing or irrelevant retrieved sources.
-
-## What data we use
-
-We downloaded official Adilet pages for the Labor and Environmental Codes in RU and KK. HTML is cached, parsed into articles, split into smaller searchable passages and indexed. We preserve source wording and links, with amendment notes stored separately.
-
-There are **653 article IDs in two languages: 1,306 article-language records and 2,799 chunks**. Eighteen removed article records are marked excluded. This is a snapshot, not all Kazakhstan legislation; revision dates and amendment effective dates are not fully verified. These documents are a retrieval corpus, not data used to train our own LLM.
-
-## Live demonstration (about 4 minutes)
-
-| Step | What to do | What to explain |
+| # | Do | Say |
 |---|---|---|
-| 1. Search | Open the app, confirm **Live API**, select RU. Click **Сколько дней ежегодного отпуска?** | The frontend calls the real backend. Show article 88 ranked first. |
-| 2. Filters | Point out source-language, document and in-force filters. | Users can narrow the evidence. UI language and source language are separate. |
-| 3. Answer | Click **Сформировать ответ**. | Sources are supplied to the model; answer text arrives progressively instead of waiting for a complete response. |
-| 4. Verify | Open the first source button below the answer. | Article 88 gives 24 calendar days, with provisions allowing longer leave. The article is the evidence; the answer is an AI explanation. |
-| 5. Languages | In the drawer, click **Открыть на другом языке**; then Escape. | Parallel RU/KK source articles are linked. The interface also supports English, but English law sources are not indexed. |
-| 6. Compare | Open **Сравнение** and click the working-week example. | Show keyword and hybrid results side by side. This illustrates the two modes; it does not prove semantic superiority. |
-
-If time remains, ask: **Какие сроки выплаты заработной платы? Что происходит, если день выплаты совпадает с выходным?** Article 113 should rank first. Another tested question is **Жұмыс уақытының қалыпты ұзақтығы аптасына қанша сағат?**, which should retrieve article 68 KK.
-
-Inline `[1]` references are clickable when the model follows the expected format. Sometimes it emits a different notation; use the separate source buttons. Do not describe a warning or malformed citation as successful evidence verification.
-
-## Your frontend contribution
-
-“I implemented the search interface, filters, result cards, streamed answer panel, source links, article drawer, RU/KK article switching and comparison page. I integrated the typed backend API and handled loading, errors and cancelled generation. The frontend has responsive layouts, RU/KK/EN interface text and automated checks.”
-
-You can mention that 12 unit tests, build and lint passed in earlier validation. Today's browser rehearsal passed live answer display, source-button opening, the official article, KK switching and comparison. The strict inline-citation check failed on one model response; source buttons still worked.
-
-## Likely professor questions
-
-**Did you train the model?** No. This MVP uses a pretrained hosted model. Our work is data ingestion, retrieval, application integration and source-based presentation of answers.
-
-**How accurate is it?** We ran a small diagnostic set, not a formal accuracy benchmark. All expected sources appeared in the top five for 8 of 13 supported questions. Paraphrases and multi-part questions exposed retrieval failures and some incorrect generated claims. A valid citation number does not establish correctness.
-
-**Does it learn from users?** No automatic training or adaptation is implemented. Answers change with the question and retrieved context.
-
-**What would you improve?** Real multilingual semantic embeddings, better ranking and query decomposition, stricter evidence checks, reliable citation formatting, verified legal dates and a larger human-reviewed evaluation set. Admin UI and public hosting are not part of this demonstrated frontend.
-
-**Why is this useful?** It brings search, explanation and source verification into one flow. It helps users inspect relevant legislation, while keeping the original article accessible.
+| 1 | Type «работодатель задерживает зарплату — что делать?» and search | The question has none of the statute's words. Article 113 of the Labor Code, "Порядок и сроки выплаты заработной платы", is first: everyday words are expanded into legal terms, dense and keyword search are fused, and our fine-tuned reranker orders the top. |
+| 2 | Press the answer button | The LLM gets only the retrieved articles. The answer arrives as a stream and every statement carries a citation: the employer owes the wage and a penalty for each day of delay. The articles do not say what the worker should do next, and the answer says that too instead of inventing it. |
+| 3 | Click a citation `[1]` | The article opens with its official text, stored verbatim. This is the evidence; the answer is an explanation of it. |
+| 4 | In the article, switch to Kazakh | The parallel Kazakh article is linked. |
+| 5 | Ask «можно ли вернуть товар в магазин без чека» and request the answer | A direct answer ("yes, if the purchase can be proved") from the Consumer Protection Law, one of the 32 acts added to the 8 codes. |
+| 6 | Ask «сколько могут держать мой телефон в вещдоке» and request the answer | No article gives a time limit for this. The answer says so first, then reports what the articles on material evidence do say. |
+| 7 | Switch the source language to Kazakh, ask «Жұмыс уақытының қалыпты ұзақтығы қандай?» | Article 68 of the Labor Code in Kazakh. |
+| 8 | Open `/compare` with any question | Keyword search and hybrid search side by side. |
+| 9 | Open `/admin` | Usage statistics, the query log with latency and degradation marks, health, reindexing. |
 
 ## If something fails
 
-If Groq is unavailable or rate-limited, show search, article viewing, language switching and comparison. Explain the external generator dependency. A screenshot from a successful rehearsal is in `frontend/test-results/groq-live-answer.png`; label it as a recorded result. Do not silently present mock answers as live AI.
+- **The answer fails with an error.** The hosted LLM's free tier allows 8,000 tokens a minute (about two answers) and 200,000 a day (about 50 answers). The service waits and retries once; if it still fails, wait a minute. Do not spend the daily budget on rehearsals on the day of the defence. Search does not depend on the LLM.
+- **Results are marked as keyword-only.** The ML service or the vector index is down and search fell back to PostgreSQL full-text search. Say so; this is the designed behaviour. `docker compose -f docker-compose.prod.yml ps` shows which container is unhealthy.
+- **The first search after a restart is slow.** The models are loading; repeat it.
+- **Nothing opens.** Use the backup recording.
 
-To restart services from the repository root:
+## What not to claim
 
-```powershell
-docker compose -p adilet-localtest --env-file .env.localtest --profile ml up -d --wait
-```
-
-In another PowerShell terminal, from `frontend`:
-
-```powershell
-$env:VITE_API_MODE='live'
-$env:API_PROXY_TARGET='http://127.0.0.1:18000'
-npm run dev
-```
-
-Database volumes persist; restarting does not normally require indexing again. If restoring the current corpus is necessary, use `/data/processed/official-baseline`, not the old three-article dataset. Full ingestion commands and failure evidence are in [qa_frontend.md](qa_frontend.md).
+- The numbers on the slides are from LLM-written test questions, 60 of them checked by a person. Not from lawyers.
+- A valid citation shows where a statement comes from. It does not prove the statement is right.
+- The corpus is a snapshot of 17 September 2026.

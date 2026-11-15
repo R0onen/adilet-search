@@ -1,6 +1,14 @@
 # Status: Frontend agent
 
-_Last updated: 2026-11-12 · FE-04 admin panel and feedback (branch `fe/04-admin`)_
+_Last updated: 2026-11-15 · FE-04 admin panel and feedback (branch `fe/04-admin`)_
+
+## Update (15 November 2026, branch `final-completion`)
+- The About page is removed (route, navigation link and i18n keys).
+- Degraded search is explained in words: separate notices for keyword-only results (`degraded: ["semantic"]`) and for results shown without reranking (`degraded: ["rerank"]`).
+- The notice under an answer that starts with "no direct answer" is reworded: the sources are related, the question is not answered directly.
+- After a search the header is compact, so results start higher on the page.
+- The production image is served by nginx behind the Caddy proxy of `docker-compose.prod.yml`.
+- 20 unit tests, lint and build pass. The sections below describe FE-04 as of 12 November.
 
 ## Current phase
 The presentation MVP (search, streamed answer, article drawer, comparison page) is merged. **FE-04 is implemented on this branch:** the admin panel on the BE-04 API, and feedback buttons on the public pages. Next: FE-06 (production image, more tests) and FE-07 (demo, docs).
@@ -36,4 +44,4 @@ The presentation MVP (search, streamed answer, article drawer, comparison page) 
 ## Notes for others (routes, how to run)
 - Start: `cd frontend && npm ci && npm run dev` → `http://127.0.0.1:5173` (mock mode).
 - Live mode: `VITE_API_MODE=live npm run dev`; Vite proxies `/api` to `API_PROXY_TARGET` (default `http://127.0.0.1:8000`).
-- Routes: `/`, `/compare`, `/about`, `/admin`, `/admin/queries`, `/admin/system`, `/admin/login`.
+- Routes: `/`, `/compare`, `/admin`, `/admin/queries`, `/admin/system`, `/admin/login`.

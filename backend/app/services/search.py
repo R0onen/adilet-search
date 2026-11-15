@@ -31,6 +31,7 @@ from app.services.lang import resolve_lang
 from app.services.mappers import article_ref, document_ref
 from app.services.ml_client import MlUnavailable
 from app.services.qdrant_store import Hit, SearchFilter, build_filter
+from app.services.query_expansion import expand_query
 from app.services.query_log import normalise_query
 from app.services.snippets import highlights, make_snippet
 
@@ -315,13 +316,15 @@ class SearchService:
 
         params = manifest.retrieval
         mode = request.mode
+        # What the models see: the user's words plus the legal terms for everyday ones.
+        model_query = expand_query(request.query, lang)
         need_dense = mode != "keyword"
         need_sparse = mode != "semantic"
         timing: SearchTiming = {}
 
         # 1. embed
         t = time.perf_counter()
-        embed_key = (request.query, need_dense, need_sparse, manifest.pipeline_version)
+        embed_key = (model_query, need_dense, need_sparse, manifest.pipeline_version)
         embedded = self._embeddings.get(embed_key) if self._embeddings is not None else None
         if embedded is not None:
             metrics.CACHE_HITS.labels("embedding").inc()
@@ -334,7 +337,7 @@ class SearchService:
                 # The HTTP timeout bounds each read; wait_for bounds the stage as a whole.
                 embedded = await self._timed(
                     self._ml.embed(
-                        [request.query],
+                        [model_query],
                         "query",
                         dense=need_dense,
                         sparse=need_sparse,
@@ -431,7 +434,7 @@ class SearchService:
                     raise MlUnavailable("/rerank", "circuit_open")
                 reranked = await self._timed(
                     self._ml.rerank(
-                        request.query,
+                        model_query,
                         [
                             RerankCandidate(
                                 id=c.article_id,
@@ -455,7 +458,7 @@ class SearchService:
             timing["rerank"] = _ms(time.perf_counter() - t)
 
         # 5. assemble
-        items = await self._assemble(request, candidates, payloads)
+        items = await self._assemble(request, model_query, candidates, payloads)
         timing["total"] = _ms(time.perf_counter() - started)
         response = SearchResponse(
             query_id=query_id,
@@ -480,10 +483,11 @@ class SearchService:
         fts = self._res.fts
         if fts is None:
             raise _unavailable("Search is unavailable")
+        model_query = expand_query(request.query, lang)
         t = time.perf_counter()
         try:
             rows = await self._timed(
-                fts.search(request.query, lang, request.filters, request.top_k),
+                fts.search(model_query, lang, request.filters, request.top_k),
                 self._budgets.retrieve_s,
             )
         except Exception as exc:
@@ -492,7 +496,7 @@ class SearchService:
         retrieve_ms = _ms(time.perf_counter() - t)
         items: list[AssembledResult] = []
         for article, document, score in rows:
-            snippet = make_snippet(article.text, request.query)
+            snippet = make_snippet(article.text, model_query)
             result = SearchResult(
                 rank=len(items) + 1,
                 article=article_ref(article),
@@ -503,7 +507,7 @@ class SearchService:
                 score_type="fts",
                 snippet=snippet,
                 highlights=[
-                    Highlight(start=s.start, end=s.end) for s in highlights(snippet, request.query)
+                    Highlight(start=s.start, end=s.end) for s in highlights(snippet, model_query)
                 ],
             )
             context = article.text[:FTS_CONTEXT_CHARS]
@@ -525,6 +529,7 @@ class SearchService:
     async def _assemble(
         self,
         request: SearchRequest,
+        model_query: str,
         candidates: list[Candidate],
         payloads: dict[str, dict[str, Any]],
     ) -> list[AssembledResult]:
@@ -544,7 +549,7 @@ class SearchService:
                 continue
             article, document = row
             chunk_text = str(payloads[candidate.best_chunk_id].get("text", ""))
-            snippet = make_snippet(chunk_text, request.query)
+            snippet = make_snippet(chunk_text, model_query)
             result = SearchResult(
                 rank=len(items) + 1,
                 article=article_ref(article),
@@ -555,7 +560,7 @@ class SearchService:
                 score_type="rerank" if candidate.rerank_score is not None else "fusion",
                 snippet=snippet,
                 highlights=[
-                    Highlight(start=s.start, end=s.end) for s in highlights(snippet, request.query)
+                    Highlight(start=s.start, end=s.end) for s in highlights(snippet, model_query)
                 ],
             )
             items.append(AssembledResult(result, article, document, chunk_text))

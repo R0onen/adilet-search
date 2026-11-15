@@ -68,7 +68,7 @@ Results are sorted by score, descending. Scores are comparable only within one c
 {
   "question": "Ответственность работодателя за задержку зарплаты",
   "lang": "ru",
-  "sources": [{"ref": 1, "article_id": "K1500000414:ru:a113", "title": "Трудовой кодекс РК. Статья 113. …", "text": "<full article text, already truncated by backend to max_chars_per_context>"}],
+  "sources": [{"ref": 1, "article_id": "K1500000414:ru:a113", "title": "Трудовой кодекс РК. Статья 113. …", "text": "<the article text, or the retrieved passage of a long article; at most max_chars_per_context>"}],
   "max_tokens": 512,
   "temperature": 0.1,
   "stream": true

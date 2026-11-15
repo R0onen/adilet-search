@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import os
@@ -175,6 +176,16 @@ def _build_reranker(manifest: Manifest) -> LexicalReranker | CrossEncoderReranke
     info = manifest.reranker
     if _runtime(info) == "cross-encoder":
         max_seq_len = getattr(info, "max_seq_len", None) or 512
+        local_path = getattr(info, "local_path", None)
+        if local_path:
+            # A checkpoint trained by us (not on the Hub): a folder under MODEL_LOCAL_DIR.
+            # No fallback to the base model: the manifest must describe what is really served.
+            # Relative to the manifest that is actually loaded, unless MODEL_LOCAL_DIR is set.
+            manifest_dir = Path(os.getenv("MODEL_MANIFEST_PATH", str(DEFAULT_MANIFEST))).parent
+            checkpoint = Path(os.getenv("MODEL_LOCAL_DIR", str(manifest_dir))) / local_path
+            if not (checkpoint / "config.json").exists():
+                raise EngineLoadError(f"reranker checkpoint not found: {checkpoint}")
+            return CrossEncoderReranker(str(checkpoint), max_seq_len, None)
         return CrossEncoderReranker(
             getattr(info, "hf_repo", None) or info.id, max_seq_len, _revision(info)
         )
@@ -325,29 +336,27 @@ class MlEngine:
         ttft_ms: int | None = None
         try:
             timeout = httpx.Timeout(120.0)
-            async with (
-                httpx.AsyncClient(timeout=timeout, headers=headers) as client,
-                client.stream(
-                    "POST",
-                    f"{self.llm_base_url.rstrip('/')}/v1/chat/completions",
-                    json=payload,
-                ) as response,
-            ):
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line.startswith("data: "):
-                        continue
-                    data = line.removeprefix("data: ").strip()
-                    if data == "[DONE]":
-                        break
-                    chunk = json.loads(data)
-                    delta = chunk["choices"][0].get("delta", {}).get("content", "")
-                    if not delta:
-                        continue
-                    if ttft_ms is None:
-                        ttft_ms = int((time.perf_counter() - started) * 1000)
-                    text += delta
-                    yield "token", {"text": delta}
+            url = f"{self.llm_base_url.rstrip('/')}/v1/chat/completions"
+            async with httpx.AsyncClient(timeout=timeout, headers=headers) as client:
+                response = await _open_llm_stream(client, url, payload)
+                try:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line.startswith("data: "):
+                            continue
+                        data = line.removeprefix("data: ").strip()
+                        if data == "[DONE]":
+                            break
+                        chunk = json.loads(data)
+                        delta = chunk["choices"][0].get("delta", {}).get("content", "")
+                        if not delta:
+                            continue
+                        if ttft_ms is None:
+                            ttft_ms = int((time.perf_counter() - started) * 1000)
+                        text += delta
+                        yield "token", {"text": delta}
+                finally:
+                    await response.aclose()
         except (httpx.HTTPError, KeyError, json.JSONDecodeError) as exc:
             yield "error", {"code": "llm_unavailable", "message": str(exc)}
             return
@@ -360,6 +369,34 @@ class MlEngine:
             model_version=self.pipeline_version,
         )
         yield "done", done.model_dump()
+
+
+MAX_RATE_LIMIT_WAIT_S = 30.0
+
+
+def _retry_after_s(header: str | None) -> float | None:
+    """Seconds to wait before one retry, or None when the wait is unknown or too long."""
+    try:
+        wait_s = float(header or "")
+    except ValueError:
+        return None
+    return wait_s if 0 <= wait_s <= MAX_RATE_LIMIT_WAIT_S else None
+
+
+async def _open_llm_stream(
+    client: httpx.AsyncClient, url: str, payload: dict[str, Any]
+) -> httpx.Response:
+    """Open the completion stream. Hosted LLMs limit tokens per minute: on 429 with a short
+    `retry-after`, wait and try once more instead of failing the answer."""
+    response = await client.send(client.build_request("POST", url, json=payload), stream=True)
+    if response.status_code != 429:
+        return response
+    wait_s = _retry_after_s(response.headers.get("retry-after"))
+    if wait_s is None:
+        return response
+    await response.aclose()
+    await asyncio.sleep(wait_s)
+    return await client.send(client.build_request("POST", url, json=payload), stream=True)
 
 
 def _detect_lang(text: str) -> str:

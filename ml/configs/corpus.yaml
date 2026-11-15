@@ -56,3 +56,272 @@ acts:
     doc_type: code
     tier: 1
     languages: [ru, kk]
+  # Tier 2 (`--tier 2`): the acts ordinary questions are about, and the remaining codes.
+  # Short titles are generated from the official titles.
+  - key: criminal_procedure_code
+    doc_id: K1400000231
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: civil_procedure_code
+    doc_id: K1500000377
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: marriage_family_code
+    doc_id: K1100000518
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: social_code
+    doc_id: K2300000224
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: health_code
+    doc_id: K2000000360
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: administrative_procedure_code
+    doc_id: K2000000350
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: land_code
+    doc_id: K030000442_
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: housing_relations_law
+    doc_id: Z970000094_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: consumer_protection_law
+    doc_id: Z100000274_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: enforcement_proceedings_law
+    doc_id: Z100000261_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: road_traffic_law
+    doc_id: Z1400000194
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: citizen_bankruptcy_law
+    doc_id: Z2200000178
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: microfinance_law
+    doc_id: Z1200000056
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: collection_activity_law
+    doc_id: Z1700000062
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: constitution
+    doc_id: K2600000000
+    doc_type: other
+    tier: 2
+    languages: [ru, kk]
+  - key: citizenship_law
+    doc_id: Z910004800_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: migration_law
+    doc_id: Z1100000477
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: personal_data_law
+    doc_id: Z1300000094
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: notaries_law
+    doc_id: Z970000155_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: llp_law
+    doc_id: Z980000220_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: child_rights_law
+    doc_id: Z020000345_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: education_law
+    doc_id: Z070000319_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: mortgage_law
+    doc_id: U950002723_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: real_estate_registration_law
+    doc_id: Z070000310_
+    doc_type: law
+    tier: 2
+    languages: [ru, kk]
+  - key: customs_code
+    doc_id: K1700000123
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: subsoil_code
+    doc_id: K1700000125
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: budget_code
+    doc_id: K2500000171
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: construction_code
+    doc_id: K2600000253
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: water_code
+    doc_id: K2500000178
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: forest_code
+    doc_id: K030000477_
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: digital_code
+    doc_id: K2600000255
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+  - key: penal_enforcement_code
+    doc_id: K1400000234
+    doc_type: code
+    tier: 2
+    languages: [ru, kk]
+
+# Acts of the dataset that `--all-acts` leaves out: they no longer apply, and an expired rule returned
+# as current law would be a wrong answer. Checked by hand against the act titles and texts (2026-11-15).
+# Kept on purpose: the 2026-2028 budget and transfer laws and the 2026 amnesty (still applied).
+excluded_acts:
+  - doc_id: K1700000120
+    reason: "2017 Tax Code, replaced by the 2025 Tax Code (K2500000214)"
+  - doc_id: Z950002444_
+    reason: "1995 banking law, repealed by the 2026 law of the same title (Z2600000258, article 135)"
+  - doc_id: Z000000131_
+    reason: "republican budget law for past years"
+  - doc_id: Z020000362_
+    reason: "republican budget law for past years"
+  - doc_id: Z070000008_
+    reason: "republican budget law for past years"
+  - doc_id: Z080000096_
+    reason: "republican budget law for past years"
+  - doc_id: Z090000219_
+    reason: "republican budget law for past years"
+  - doc_id: Z1000000357
+    reason: "republican budget law for past years"
+  - doc_id: Z1100000496
+    reason: "republican budget law for past years"
+  - doc_id: Z1200000054
+    reason: "republican budget law for past years"
+  - doc_id: Z1300000148
+    reason: "republican budget law for past years"
+  - doc_id: Z1400000259
+    reason: "republican budget law for past years"
+  - doc_id: Z1500000426
+    reason: "republican budget law for past years"
+  - doc_id: Z1600000025
+    reason: "republican budget law for past years"
+  - doc_id: Z1700000113
+    reason: "republican budget law for past years"
+  - doc_id: Z1800000197
+    reason: "republican budget law for past years"
+  - doc_id: Z1900000276
+    reason: "republican budget law for past years"
+  - doc_id: Z2000000379
+    reason: "republican budget law for past years"
+  - doc_id: Z2100000077
+    reason: "republican budget law for past years"
+  - doc_id: Z2200000163
+    reason: "republican budget law for past years"
+  - doc_id: Z2300000043
+    reason: "republican budget law for past years"
+  - doc_id: Z2400000141
+    reason: "republican budget law for past years"
+  - doc_id: Z930005000_
+    reason: "republican budget law for past years"
+  - doc_id: Z940001000_
+    reason: "republican budget law for past years"
+  - doc_id: Z960000059_
+    reason: "republican budget law for past years"
+  - doc_id: Z980000318_
+    reason: "republican budget law for past years"
+  - doc_id: Z060000189_
+    reason: "budget transfer law for past years"
+  - doc_id: Z070000005_
+    reason: "budget transfer law for past years"
+  - doc_id: Z2200000161
+    reason: "budget transfer law for past years"
+  - doc_id: Z2300000042
+    reason: "budget transfer law for past years"
+  - doc_id: Z000000134_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z010000173_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z060000113_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z060000149_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z060000157_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z1100000521
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z1400000213
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z1600000027
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z2100000081
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z2200000152
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z2500000195
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z960000027_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z990000415_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z030000505_
+    reason: "republican budget law for past years"
+  - doc_id: Z050000088_
+    reason: "republican budget law for past years"
+  - doc_id: Z060000194_
+    reason: "republican budget law for past years"
+  - doc_id: Z040000602_
+    reason: "budget transfer law for past years"
+  - doc_id: Z1300000149
+    reason: "budget transfer law for past years"
+  - doc_id: Z020000294_
+    reason: "one-off amnesty whose application period has ended"
+  - doc_id: Z010000156_
+    reason: "enactment law of the 2001 Code of Administrative Offences, which is no longer in force"
+  - doc_id: Z010000210_
+    reason: "enactment law of the 2001 Tax Code, which is no longer in force"

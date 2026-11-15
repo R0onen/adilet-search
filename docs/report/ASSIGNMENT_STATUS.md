@@ -1,31 +1,14 @@
-# ML Assignment Status
+# Assignment status (15 November 2026)
 
-> **Superseded (2026-11-11).** The numbers in this draft came from a 10-query toy set on a paraphrased sample. That set and its runs were removed. Current results are in `ml/reports/results.csv`; this document is rewritten in the A3/A4 phases.
+| Assignment | State | Where |
+|---|---|---|
+| A2 and midterm: data and baseline | submitted earlier; summary of the data and the baseline | `docs/report/A2_report.md`, `ml/reports/data_quality.md`, `ml/reports/results.csv` |
+| A3: training and fine-tuning | done; notebook executed on a GPU with outputs | `ml/notebooks/A3_training_finetuning.ipynb`, `docs/report/A3_report.md` |
+| A4: embeddings → ML model → transformer → fine-tuning | done; notebook executed with outputs, significance tests and error analysis | `ml/notebooks/A4_embeddings_to_finetuning.ipynb`, `docs/report/A4_report.md` |
+| Final model | pipeline 1.0.0 with the reranker fine-tuned in A4 | `ml/MODEL_CARD.md`, `ml/experiments/final-selection/` |
+| Final evaluation | through the live API, with a human-checked subset | `docs/report/final_eval.md` |
+| Load test | 10 users on the deployed corpus | `docs/report/load_test.md` |
 
-Date: 2026-10-08
+What a person did: reviewed 60 of the 195 test questions (`data/eval/labeling/synthetic_review.csv`: 53 correct, 3 wrong, 4 too vague).
 
-## Completed In Repo
-
-- Corpus/sample schema and committed bootstrap data.
-- ML service v0 endpoints and tests.
-- Model manifest and prompt template.
-- Fusion fixture shared with Backend.
-- Seed eval queries, qrels and deterministic splits.
-- BM25, hash-dense and TF-IDF/logistic local baselines.
-- Experiment run folders and aggregated results table.
-- Model card, technical ML docs, A2/A3/A4/final-eval report files and slide drafts.
-
-## Verified
-
-- `python -m pytest ml/tests`: 30 passed.
-- `python -m ruff check ml/src ml/tests ml/scripts`: passed.
-- `python -m pytest backend/tests/unit/test_fusion.py`: 19 passed.
-
-## Not Fully Completable Locally
-
-- Full official Tier-1 Adilet corpus scrape and HF upload.
-- 150+ human-labelled gold queries with agreement.
-- A3/A4 transformer fine-tuning and QLoRA runs.
-- Final `v1.0.0` model checkpoint, precomputed embeddings and deployed API evaluation.
-
-These require external credentials, human labeling and GPU/runtime access.
+Not done: a gold set written by lawyers. All quality numbers are on LLM-written questions and say so where they are quoted.

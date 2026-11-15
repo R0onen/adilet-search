@@ -1,64 +1,67 @@
-# Model card: Adilet Search pipeline 0.2.0
+# Model card: Adilet Search pipeline 1.0.0
 
-Manifest: `ml/models/model_manifest.json` · `index_compat_id`: `e5base-bm25st-ch1` · 2026-11-11
+Manifest: `ml/models/model_manifest.ft.json` · `index_compat_id`: `e5base-bm25st-ch1` · 15 November 2026
+
+The previous pipeline, `0.2.0` (`ml/models/model_manifest.json`), differs only in the reranker weights: it serves the pretrained reranker and needs no local checkpoint. Both use the same index.
 
 ## What it does
 
-Retrieves articles of Kazakhstan legislation for a question in Russian or Kazakh, and writes a short
-answer that cites the retrieved articles. It is a search aid, not legal advice.
+Retrieves articles of Kazakhstan legislation for a question in Russian or Kazakh, and writes a short answer that cites the retrieved articles. It is a search aid, not legal advice.
 
 ## Components
 
 | Stage | Model | Training |
 |---|---|---|
-| Dense embedder | `intfloat/multilingual-e5-base` @ `d1287505` | pretrained, zero-shot (not fine-tuned on our data) |
+| Query expansion | a dictionary of 34 everyday words and abbreviations with their legal terms (`backend/app/services/query_expansion.py`) | written by hand |
+| Dense embedder | `intfloat/multilingual-e5-base` @ `d1287505` | pretrained, not fine-tuned |
 | Sparse encoder | BM25 term weights; Russian Snowball stemming; Kazakh unstemmed | no training |
 | Fusion | weighted reciprocal-rank fusion, `k = 60`, weights 1:1 (in the backend) | no training |
-| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` @ `1427fd65` | pretrained on mMARCO (14 languages, Russian included, Kazakh not), zero-shot |
+| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` @ `1427fd65`, **fine-tuned by us** (`checkpoints/reranker-ft-written`, SHA-256 in the manifest); reranks the first 5 fused articles at 256 tokens | 4,264 (question, article) pairs from LLM-written questions, learning rate 1e-5, 2 epochs; Assignment 4, configuration E3b |
 | Generator | an OpenAI-compatible LLM chosen at deployment (`LLM_MODEL`) with `prompts/answer_v1.md` | not trained by us |
+
+The fine-tuned weights (470 MB) are not in the repository. `ml/notebooks/A4_embeddings_to_finetuning.ipynb` reproduces them in about 2 minutes on a GPU; the service refuses to start with the 1.0.0 manifest if the checkpoint is missing or its hash differs.
 
 ## Data
 
-AdiletCodex v1.0 (CC BY 4.0, doi:10.5281/zenodo.22812626), parsed from adilet.zan.kz: the 8 Tier-1
-codes in Russian and Kazakh, 9,259 articles, 16,264 chunks of about 400 tokens. Texts are verbatim;
-amendment footnotes are stored separately. The corpus is a snapshot (`corpus_version` 2026.09.17):
-later amendments are not in it.
+AdiletCodex v1.0 (CC BY 4.0, doi:10.5281/zenodo.22812626), parsed from adilet.zan.kz, `corpus_version` 2026.09.17. Texts are verbatim; amendment footnotes are stored separately. Later amendments are not in the snapshot.
+
+| Corpus | Acts | Articles (RU + KK) | Chunks | Used for |
+|---|---|---|---|---|
+| Tier 1 (default of the importer) | 8 codes | 9,259 | 16,264 | training and all offline experiments |
+| Tier 2 (`--tier 2`) | 40 acts: 23 codes and 17 laws that everyday questions are about (family, consumer protection, housing, road traffic, enforcement, bankruptcy and others) | 20,490 | 41,074 | the deployed index |
 
 ## Evaluation
 
-The full body-only frozen proxy study now compares pretrained models and project ablations:
+All test numbers are on 195 LLM-written test questions (articles not seen in training; 41% Kazakh). The label is the article a question was written for. A person checked 60 of them: 53 correct, 3 wrong, 4 too vague (`data/eval/labeling/`).
 
-| Configuration | Validation nDCG@10 | Test nDCG@10 |
-|---|---:|---:|
-| E5 dense | 0.706 | 0.703 |
-| Project hybrid + reranker | 0.856 | 0.846 |
-| Hybrid without reranker | 0.778 | 0.770 |
-| Qwen3-Embedding-0.6B | 0.539 | 0.548 |
-| BGE-M3 | 0.830 | 0.822 |
-| EmbeddingGemma 2, text-only | 0.710 | 0.716 |
+**Reranker, offline** (20 BM25 candidates, tier 1; `docs/report/A4_report.md`):
 
-All use the same 16,264 body-only chunks, 1,311 validation and 1,318 test queries. The hybrid
-configuration is selected by validation; its paired test difference from dense E5 is +0.142,
-with an article-family bootstrap 95% interval [+0.123, +0.162]. It reproduces the project stages
-offline using local BM25; its IDF differs from Qdrant. The optional LLM rewrite has only a
-separate eight-test-query pilot and establishes no benefit.
+| Reranker | nDCG@10 | ROC-AUC | F1 |
+|---|---|---|---|
+| TF-IDF features + Logistic Regression | 0.727 | 0.923 | 0.539 |
+| Pretrained cross-encoder | 0.867 | 0.959 | 0.598 |
+| Fine-tuned on written questions (served) | 0.880 | 0.973 | 0.652 |
 
-Queries remain title-derived known-item proxies. Body-only indexing avoids direct title-header
-overlap, but there is no independent human-gold set. These scores do not establish general
-natural-language legal accuracy. Encoder precision is FP16 except Gemma's supported BF16;
-this evaluates practical configurations, not architecture alone. Checkpoints, fingerprints,
-per-language scores, rankings and limits are in
-[research findings](../docs/report/RESEARCH_FINDINGS.md) and
-[run artifacts](experiments/research-final/results.json).
+The fine-tuned model is better than the pretrained one by +0.013 nDCG@10 (95% interval +0.003 to +0.025, p = 0.016).
 
-The earlier article-body BM25 baseline (`ml/reports/results.csv`, test nDCG@10 0.730) uses a
-different retrieval unit. Keep it separate from this matched chunk-based comparison.
+**Whole pipeline through the live API** (hybrid mode, 5 reranked candidates; `ml/experiments/final-selection/`):
+
+| Index | Reranker | Right article first | nDCG@10 | Recall@10 | Human-approved subset: first / nDCG@10 |
+|---|---|---|---|---|---|
+| 8 codes | pretrained | 0.831 | 0.885 | 0.944 | 0.811 / 0.890 |
+| 8 codes | fine-tuned | 0.851 | 0.895 | 0.944 | 0.830 / 0.902 |
+| 40 acts (deployed) | fine-tuned | 0.826 | 0.871 | 0.928 | 0.830 / 0.908 |
+
+Adding 32 acts costs 2.5 points of "right article first" on questions written for the 8 codes, because other acts regulate the same subjects. On the human-approved questions the result is unchanged.
+
+Earlier comparisons of embedding models and of the hybrid pipeline on title-derived queries are in `docs/report/RESEARCH_FINDINGS.md`.
 
 ## Known limits
 
-- Zero-shot models: nothing is tuned to legal Kazakh or Russian.
-- Kazakh keyword matching is weaker (no stemmer), and the reranker never saw Kazakh in training.
+- The test questions are LLM-written with one labelled article each; a second correct article counts as an error. Differences below about 0.02 are within noise.
+- Kazakh is weaker than Russian at every stage: no stemmer for keyword matching, and neither the embedder nor the reranker base was trained on much Kazakh. The reranker's offline nDCG@10 is 0.83 in Kazakh against 0.91 in Russian.
+- The query dictionary is small and mostly Russian. A question in words that are neither in the article nor in the dictionary still depends on the dense embedder alone.
+- The reranker reads only the first 5 fused articles. Reranking 10 puts the right article first for 0.856 of the questions on the deployed index, at about half the throughput (`SEARCH_RERANK_TOP_N`).
 - Articles longer than the encoders' context are split into chunks; a chunk can miss context.
-- The generator can still misread a source. The backend removes citations to sources that were not
-  provided, but cannot check that a cited source supports the claim.
-- Only 8 codes are indexed by default; questions about other acts get weak results.
+- The generator can misread a source. The backend removes citations to sources that were not provided, but cannot check that a cited source supports the claim.
+- Acts outside the 40 are not indexed.

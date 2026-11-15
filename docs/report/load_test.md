@@ -1,8 +1,10 @@
-# Load test of `/search` on the full corpus
+# Load test of `/search`
 
-**Result.** With the reranker limited to the first 5 fused articles at 256 tokens, `/search` meets the target of p95 ≤ 2 s at 10 concurrent users on the full corpus: p95 **0.88 s** with the cache switched off, no failed and no degraded responses. At 25 users without a cache the reranker is saturated and most responses fall back to the fused order. The original setting (20 articles, 384 tokens) did not hold 10 users.
+**Result on the deployed configuration (15 November 2026).** Pipeline 1.0.0 on the 40-act index, 10 concurrent users, cache off: p95 **1.2 s**, 981 hybrid searches, none failed, 1 answered without reranking. Details in the last section.
 
-All numbers below were produced by `backend/loadtests/locustfile.py` on 12 November 2026.
+**Result on the 8-code index (12 November 2026).** With the reranker limited to the first 5 fused articles at 256 tokens, `/search` meets the target of p95 ≤ 2 s at 10 concurrent users on the full corpus: p95 **0.88 s** with the cache switched off, no failed and no degraded responses. At 25 users without a cache the reranker is saturated and most responses fall back to the fused order. The original setting (20 articles, 384 tokens) did not hold 10 users.
+
+All numbers were produced by `backend/loadtests/locustfile.py`. The sections up to "Limits" describe the runs of 12 November 2026.
 
 ## Setup
 
@@ -68,8 +70,28 @@ Going from 20 to 5 candidates loses 2.5 points of "right article first" and keep
 
 - One machine, a laptop with more cores than the planned 4 vCPU server; on 4 vCPU the reranker will be slower and the capacity lower. Repeat run 4 on the real server before quoting it for that server.
 - Generated answers were not load-tested.
-- The runs were made before the bounded inference pool (`ADILET_ML_INFERENCE_WORKERS`, `ADILET_ML_CPU_THREADS`) was merged; the worker and thread counts change how the reranker shares the CPU, so the acceptance run has to be repeated on that code.
+- The runs of 12 November were made before the bounded inference pool (`ADILET_ML_INFERENCE_WORKERS`, `ADILET_ML_CPU_THREADS`) was merged. The run of 15 November below is on the merged code.
 - The earlier sample-corpus measurements in `final_load*.json` use another harness, 20 or 3 rerank candidates and 100 requests; they are not comparable with this table.
+
+## Acceptance run on the deployed configuration (15 November 2026)
+
+| | |
+|---|---|
+| Stack | `docker-compose.prod.yml`: requests go through the Caddy reverse proxy, as on the server |
+| Models | pipeline `1.0.0`: `intfloat/multilingual-e5-base`, the fine-tuned reranker, 5 candidates at 256 tokens |
+| ML service | 2 inference workers, 4 CPU threads each |
+| Index | 40 acts: 41,074 chunks of 20,490 articles (RU and KK) |
+| Search | with query expansion (everyday words → legal terms) |
+| Load | 10 users, 1–3 s between requests, 5 minutes, cache off (`CACHE_TTL_S=0`), same questions and failure rule as above |
+
+| Requests | Failed | Degraded | p50 | p95 | p99 | Requests/s |
+|---|---|---|---|---|---|---|
+| 981 hybrid | 0 | 1 (reranker timeout, answered in fused order) | 650 ms | **1,200 ms** | 1,800 ms | 3.3 |
+| 137 keyword | 0 | 0 | 110 ms | 460 ms | 540 ms | 0.5 |
+
+The target (p95 ≤ 2 s at 10 users) is met. Compared with run 4, the median is 130 ms higher: the index is 2.5 times larger, the ML service runs two inference workers of 4 threads instead of one pool with PyTorch's default thread count, and requests pass through the proxy. One search in 981 exceeded the 1.5 s reranker budget and was returned in fused order, marked `degraded`.
+
+Raw output: `backend/loadtests/out/t2_users10*` (not committed).
 
 ## Next steps if more capacity is needed
 
@@ -80,7 +102,7 @@ Going from 20 to 5 candidates loses 2.5 points of "right article first" and keep
 ## Reproduce
 
 ```bash
-cd backend && uv run locust -f loadtests/locustfile.py --host http://127.0.0.1:8000 --headless --users 10 --spawn-rate 5 --run-time 5m --csv loadtests/out/users10 --only-summary
+cd backend && uv run locust -f loadtests/locustfile.py --host http://localhost:8080 --headless --users 10 --spawn-rate 5 --run-time 5m --csv loadtests/out/users10 --only-summary
 ```
 
-Set `CACHE_TTL_S=0` in `.env` and restart the backend for the uncached runs.
+Set `CACHE_TTL_S=0` in `.env` and restart the backend for the uncached runs. The host is the reverse proxy of `docker-compose.prod.yml`; with the development stack use `http://127.0.0.1:8000`.
