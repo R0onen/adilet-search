@@ -39,7 +39,7 @@ export default function SearchPage() {
         <SearchForm onSearch={setRequest} busy={results.isFetching} />
       </section>
       {!request && (
-        <section className="features" aria-label={t('project')}>
+        <section className="features" aria-label={t('tagline')}>
           {[MessageCircle, BookOpenCheck, Languages].map((Icon, index) => (
             <article key={index}>
               <div className="feature-icon">
@@ -86,7 +86,11 @@ export default function SearchPage() {
             <>
               {!!results.data.degraded?.length && (
                 <div role="status" className="notice">
-                  {t('degraded', { stages: results.data.degraded?.join(', ') })}
+                  {t(
+                    results.data.degraded.includes('semantic')
+                      ? 'degradedSemantic'
+                      : 'degradedRerank',
+                  )}
                 </div>
               )}
               <div className="results-layout">

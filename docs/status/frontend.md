@@ -36,4 +36,4 @@ The presentation MVP (search, streamed answer, article drawer, comparison page) 
 ## Notes for others (routes, how to run)
 - Start: `cd frontend && npm ci && npm run dev` → `http://127.0.0.1:5173` (mock mode).
 - Live mode: `VITE_API_MODE=live npm run dev`; Vite proxies `/api` to `API_PROXY_TARGET` (default `http://127.0.0.1:8000`).
-- Routes: `/`, `/compare`, `/about`, `/admin`, `/admin/queries`, `/admin/system`, `/admin/login`.
+- Routes: `/`, `/compare`, `/admin`, `/admin/queries`, `/admin/system`, `/admin/login`.

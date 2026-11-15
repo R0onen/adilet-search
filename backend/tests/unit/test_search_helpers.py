@@ -162,3 +162,16 @@ def test_ua_family(ua: str | None, family: str | None) -> None:
     from app.api.context import ua_family
 
     assert ua_family(ua) == family
+
+
+def test_snippet_of_a_long_sentence_starts_at_the_sentence_start_when_the_match_is_near() -> None:
+    long_sentence = (
+        "Плательщики платы вправе выкупить норматив "
+        + "при соблюдении установленных условий и порядка, " * 12
+        + "если иное не предусмотрено законом."
+    )
+    text = "Общие положения. " + long_sentence
+    snippet = make_snippet(text, "выкупить норматив")
+    assert snippet.startswith("…Плательщики платы")
+    assert len(snippet) <= 300
+    assert not snippet.rstrip("…").endswith(" ")

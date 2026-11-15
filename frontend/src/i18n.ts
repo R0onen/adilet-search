@@ -5,7 +5,6 @@ export const ru = {
   tagline: 'ЗАКОНОДАТЕЛЬСТВО КАЗАХСТАНА',
   search: 'Поиск',
   compare: 'Сравнение',
-  project: 'О проекте',
   demo: 'Демо-режим',
   live: 'Live API',
   demoNotice: 'Синтетические данные · ответы подготовлены заранее · не являются законодательством',
@@ -72,7 +71,9 @@ export const ru = {
   feedbackAnswer: 'Ответ был полезен?',
   rateLimited: 'Слишком много запросов. Повторите через {{seconds}} с.',
   answerUnavailable: 'AI-ответ недоступен. Найденные источники остаются доступны.',
-  degraded: 'Поиск работает с ограничениями: {{stages}}',
+  degradedSemantic:
+    'Умный поиск временно недоступен: показаны результаты поиска по ключевым словам.',
+  degradedRerank: 'Результаты показаны без дополнительного уточнения порядка.',
   ungrounded: 'Ответ не подтверждён источниками.',
   invalidCitation: 'Источник недоступен',
   close: 'Закрыть',
@@ -85,13 +86,6 @@ export const ru = {
   compareLive: 'Сравните результаты двух режимов API на одном вопросе.',
   compareSubmit: 'Сравнить',
   noComparison: 'Введите вопрос, чтобы сравнить результаты.',
-  aboutTitle: 'От вопроса — к проверяемому источнику.',
-  aboutText:
-    'Учебный проект команды из трёх человек: frontend, backend и AI. Интерфейс подключается к REST API и получает ответы через SSE.',
-  aboutDemo:
-    'Сейчас используется локальная демонстрация: синтетический корпус, поиск по правилам и заранее подготовленный поток ответа. Это демонстрация интерфейса, а не качества AI.',
-  aboutLive:
-    'Live-режим вызывает API. Доступность моделей и реального корпуса зависит от backend и AI-сервисов.',
   back: 'Вернуться к поиску',
   footer: 'Учебный проект · AI Essentials',
   sourceFooter: 'Источники в live-режиме: adilet.zan.kz',
@@ -104,7 +98,6 @@ const en: typeof ru = {
   tagline: 'LEGISLATION OF KAZAKHSTAN',
   search: 'Search',
   compare: 'Compare',
-  project: 'About',
   demo: 'Demo mode',
   live: 'Live API',
   demoNotice: 'Synthetic data · scripted answers · not legislation',
@@ -171,7 +164,8 @@ const en: typeof ru = {
   feedbackAnswer: 'Was this answer helpful?',
   rateLimited: 'Too many requests. Try again in {{seconds}} s.',
   answerUnavailable: 'AI answers are unavailable. Retrieved sources remain accessible.',
-  degraded: 'Search is degraded: {{stages}}',
+  degradedSemantic: 'Smart search is temporarily unavailable: showing keyword results.',
+  degradedRerank: 'Results are shown without the final reordering step.',
   ungrounded: 'The answer is not grounded in sources.',
   invalidCitation: 'Source unavailable',
   close: 'Close',
@@ -183,13 +177,6 @@ const en: typeof ru = {
   compareLive: 'Compare two API search modes using the same question.',
   compareSubmit: 'Compare',
   noComparison: 'Enter a question to compare results.',
-  aboutTitle: 'From a question to a verifiable source.',
-  aboutText:
-    'A course project by a team of three: frontend, backend, and AI. The interface connects to a REST API and receives answers over SSE.',
-  aboutDemo:
-    'This local demonstration uses a synthetic corpus, rule-based search, and scripted answer streaming. It demonstrates the interface, not AI quality.',
-  aboutLive:
-    'Live mode calls the API. Model and real-corpus availability depend on the backend and AI services.',
   back: 'Back to search',
   footer: 'Course project · AI Essentials',
   sourceFooter: 'Live-mode sources: adilet.zan.kz',
@@ -203,7 +190,6 @@ const kk: typeof ru = {
   tagline: 'ҚАЗАҚСТАН ЗАҢНАМАСЫ',
   search: 'Іздеу',
   compare: 'Салыстыру',
-  project: 'Жоба туралы',
   demo: 'Демо режимі',
   live: 'Live API',
   demoNotice: 'Синтетикалық деректер · дайын жауаптар · заңнама емес',
@@ -267,7 +253,8 @@ const kk: typeof ru = {
   feedbackAnswer: 'Жауап пайдалы болды ма?',
   rateLimited: 'Сұраулар тым көп. {{seconds}} с кейін қайталаңыз.',
   answerUnavailable: 'AI жауабы қолжетімсіз. Табылған дереккөздерді ашуға болады.',
-  degraded: 'Іздеу шектеулі: {{stages}}',
+  degradedSemantic: 'Ақылды іздеу уақытша қолжетімсіз: кілт сөздер бойынша нәтижелер көрсетілді.',
+  degradedRerank: 'Нәтижелер қосымша реттеусіз көрсетілді.',
   ungrounded: 'Жауап дереккөздермен расталмаған.',
   invalidCitation: 'Дереккөз қолжетімсіз',
   close: 'Жабу',
@@ -280,13 +267,6 @@ const kk: typeof ru = {
   compareLive: 'Бір сұрақ үшін API іздеу режимдерін салыстырыңыз.',
   compareSubmit: 'Салыстыру',
   noComparison: 'Салыстыру үшін сұрақ енгізіңіз.',
-  aboutTitle: 'Сұрақтан тексерілетін дереккөзге.',
-  aboutText:
-    'Үш адамнан тұратын топтың оқу жобасы: frontend, backend және AI. Интерфейс REST API-ге қосылып, SSE арқылы жауап алады.',
-  aboutDemo:
-    'Бұл көрсетілім синтетикалық деректерді, ереже бойынша іздеуді және дайын жауапты пайдаланады. Бұл AI сапасының емес, интерфейстің көрсетілімі.',
-  aboutLive:
-    'Live режимі API-ге сұрау жібереді. Модельдер мен нақты деректер backend және AI қызметтеріне байланысты.',
   back: 'Іздеуге оралу',
   footer: 'Оқу жобасы · AI Essentials',
   sourceFooter: 'Live дереккөздері: adilet.zan.kz',

@@ -454,12 +454,19 @@ main {
   color: #667f68;
 }
 .hero-searched {
-  padding: 36px 0;
+  padding: 18px 0 8px;
 }
 .hero-searched h1 {
-  font-size: 49px;
+  font-size: 30px;
   line-height: 1.1;
-  margin: 18px 0 12px;
+  letter-spacing: -0.3px;
+  margin: 0 0 16px;
+}
+/* After a search the results matter: drop the slogan, the subtitle and the example questions. */
+.hero-searched .hero-stamp,
+.hero-searched .hero-subtitle,
+.hero-searched .examples {
+  display: none;
 }
 .hero-searched h1 br {
   display: none;
@@ -859,27 +866,6 @@ main {
 .smart-column > .section-heading {
   color: #4d7844;
 }
-.about-page {
-  max-width: 740px;
-  margin: 70px auto;
-}
-.about-page h1 {
-  font-family: Georgia, 'Times New Roman', serif;
-  font-size: 48px;
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -1px;
-  margin: 25px 0;
-}
-.about-page p {
-  line-height: 1.9;
-  color: var(--muted);
-  font-size: 15px;
-  margin: 20px 0;
-}
-.about-page .notice {
-  margin-top: 30px;
-}
 .sr-only {
   position: absolute;
   width: 1px;
@@ -924,10 +910,10 @@ main {
     font-size: 96px;
   }
   .hero-searched {
-    padding: 35px 0;
+    padding: 18px 0 8px;
   }
   .hero-searched h1 {
-    font-size: 49px;
+    font-size: 30px;
   }
 }
 @media (max-width: 1000px) {
@@ -953,7 +939,7 @@ main {
     font-size: 74px;
   }
   .hero-searched h1 {
-    font-size: 42px;
+    font-size: 26px;
   }
   .results-layout {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -1119,7 +1105,7 @@ main {
     padding-top: 25px;
   }
   .hero-searched h1 {
-    font-size: 42px;
+    font-size: 26px;
   }
   .hero-searched h1 br {
     display: block;
@@ -1149,9 +1135,6 @@ main {
     padding-top: 35px;
   }
   .page-intro h1,
-  .about-page h1 {
-    font-size: 38px;
-  }
   .drawer {
     padding: 24px;
   }
@@ -1160,9 +1143,6 @@ main {
   }
   .drawer-actions .button {
     white-space: normal;
-  }
-  .about-page {
-    margin: 45px auto;
   }
 }
 @media (prefers-reduced-motion: reduce) {
