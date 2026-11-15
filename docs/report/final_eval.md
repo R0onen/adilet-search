@@ -55,7 +55,7 @@ How this was reached. A first run exposed two defects, both fixed before the run
 
 What the numbers do not show: nobody has judged whether each statement follows from the cited article. In the 4 "no direct answer" cases the sources list several cases (different fines or time limits by situation) and the model treats that as indirect; two of them could be answered directly. The provider's free tier allows 8,000 tokens a minute and 200,000 a day: about two answers a minute and 50 a day. Search is not affected by these limits.
 
-The table is from the run made before the last prompt rule was added (a partial answer must not carry the "no direct answer" sentence). A repeat with the final prompt ran into the daily token limit after 18 answers (15 direct, 3 with the opening, all 17 that had the labelled article among the sources cited it), so it is not reported as a result and the per-answer file is not committed. One full run costs about 120,000 tokens.
+The table is from the run made before the last prompt rule was added (a partial answer must not carry the "no direct answer" sentence). A repeat with the final prompt ran into the daily token limit after 16 answers (13 direct, 3 with the opening; all 15 that had the labelled article among the sources cited it), so it is not reported as a result and the per-answer file is not committed. One full run costs about 120,000 tokens.
 
 ## Speed
 
