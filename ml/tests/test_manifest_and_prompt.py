@@ -96,8 +96,8 @@ def test_prompt_has_system_rules_and_numbered_sources() -> None:
     )
     system, user = build_messages(body)
     assert system["role"] == "system"
-    assert "В предоставленных источниках нет ответа." in system["content"]
-    assert "Берілген дереккөздерде жауап жоқ." in system["content"]
+    assert "В найденных статьях нет прямого ответа на этот вопрос." in system["content"]
+    assert "Табылған баптарда бұл сұраққа тікелей жауап жоқ." in system["content"]
     assert "no Markdown" in system["content"]
     assert user["role"] == "user"
     assert "Language: Kazakh" in user["content"]

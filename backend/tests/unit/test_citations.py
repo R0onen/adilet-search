@@ -57,3 +57,14 @@ def test_refusal_detection_is_case_and_whitespace_insensitive() -> None:
 def test_not_found_texts_exist_for_both_languages() -> None:
     assert set(NOT_FOUND_TEXT) == {"ru", "kk"}
     assert not process_citations(NOT_FOUND_TEXT["ru"], REFS).grounded
+
+
+def test_no_direct_answer_with_related_sources_is_a_refusal_that_keeps_its_citations() -> None:
+    text = (
+        "В найденных статьях нет прямого ответа на этот вопрос. "
+        "Изъятые предметы приобщаются к делу [2]. Этот вопрос относится к процессуальным нормам."
+    )
+    result = process_citations(text, {1, 2})
+    assert result.refused
+    assert result.citations == [2]
+    assert not result.grounded

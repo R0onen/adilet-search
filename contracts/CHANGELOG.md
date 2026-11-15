@@ -117,3 +117,9 @@ Open items to settle by G0:
 - Why: with 20 candidates the reranker could not serve 10 concurrent users on CPU (97% of hybrid searches were returned without reranking). With 5 candidates p95 is 0.88 s uncached, and "right article first" on the synthetic test questions is 83.1% against 85.6% (72.8% without a reranker). See `docs/report/load_test.md`.
 - Breaking: no. `index_compat_id` is unchanged, so no reindex is needed. `SEARCH_RERANK_TOP_N` still overrides the manifest.
 - Who must react: nobody. Reports that quote ranking quality should state the rerank depth they were measured with.
+
+## 2026-11-15 — Answer prompt: no bare refusal when there is no direct answer
+- `ml/prompts/answer_v1.md`: when the sources do not directly answer, the model now opens with a fixed sentence (`В найденных статьях нет прямого ответа на этот вопрос.` / `Табылған баптарда бұл сұраққа тікелей жауап жоқ.`), then says what the related sources do establish (with citations) and what kind of rule is missing. It still may not state rules that are not in the sources.
+- Backend: the new opening sentences are recognised as a refusal, so such answers keep `grounded: false` while their citations stay clickable. The old sentences are still recognised.
+- Why: a one-line "no answer in the sources" was a dead end for questions outside the indexed codes.
+- Breaking: no. Event shapes are unchanged.
