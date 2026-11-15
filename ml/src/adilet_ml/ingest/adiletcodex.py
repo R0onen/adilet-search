@@ -44,6 +44,7 @@ LANGS = {"rus": "ru", "kaz": "kk"}
 # The dataset's publication date on Zenodo stands in for the scrape date.
 SCRAPED_AT = datetime(2026, 9, 17, tzinfo=UTC)
 CORPUS_VERSION = "2026.09.17"
+SHORT_TITLE_MAX = 120
 # ~400 E5 tokens: Russian/Kazakh legal text averages ~3.8 characters per token.
 MAX_CHUNK_CHARS = 1500
 CHARS_PER_TOKEN = 3.8
@@ -77,8 +78,13 @@ def parse_date(value: str | None) -> date | None:
 def short_title(title: str, lang: str) -> str:
     """Fallback short title for acts outside corpus.yaml."""
     if lang == "ru":
-        return re.sub(r"\s+Республики Казахстан\b", " РК", title).strip()
-    return re.sub(r"^Қазақстан Республикасының\s+", "ҚР ", title, flags=re.IGNORECASE).strip()
+        short = re.sub(r"\s+Республики Казахстан\b", " РК", title).strip()
+    else:
+        short = re.sub(r"^Қазақстан Республикасының\s+", "ҚР ", title, flags=re.IGNORECASE).strip()
+    # The short title is repeated at the start of every chunk: keep very long names short.
+    if len(short) > SHORT_TITLE_MAX:
+        short = short[:SHORT_TITLE_MAX].rsplit(" ", 1)[0].rstrip(",;:") + "…"
+    return short
 
 
 def split_notes(text: str) -> tuple[str, list[str]]:
@@ -137,6 +143,14 @@ def load_tier1(config_path: Path) -> dict[str, dict[str, Any]]:
     return {act["doc_id"]: act for act in config["acts"]}
 
 
+def load_excluded(config_path: Path) -> set[str]:
+    """Acts that `--all-acts` skips: superseded or expired (see the reasons in the config)."""
+    import yaml
+
+    config = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    return {act["doc_id"] for act in config.get("excluded_acts") or []}
+
+
 def read_rows(csv_path: Path) -> list[dict[str, str]]:
     csv.field_size_limit(sys.maxsize if sys.maxsize < 2**31 else 2**31 - 1)
     with gzip.open(csv_path, "rt", encoding="utf-8", newline="") as handle:
@@ -144,9 +158,17 @@ def read_rows(csv_path: Path) -> list[dict[str, str]]:
 
 
 def convert(
-    rows: list[dict[str, str]], acts: dict[str, dict[str, Any]] | None
+    rows: list[dict[str, str]],
+    acts: dict[str, dict[str, Any]] | None,
+    *,
+    all_acts: bool = False,
+    excluded: set[str] | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
-    if acts is not None:
+    """`acts` gives the configured short titles. Without `all_acts` only those acts are kept;
+    with it every act of the dataset is kept except the `excluded` ones."""
+    if all_acts:
+        rows = [r for r in rows if r["doc_id"] not in (excluded or set())]
+    elif acts is not None:
         rows = [r for r in rows if r["doc_id"] in acts]
     by_doc: dict[tuple[str, str], list[dict[str, str]]] = defaultdict(list)
     for row in rows:
@@ -266,17 +288,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, required=True)
     default_config = Path(__file__).resolve().parents[3] / "configs" / "corpus.yaml"
     parser.add_argument("--corpus-config", type=Path, default=default_config)
-    parser.add_argument("--all-acts", action="store_true", help="convert every act, not Tier-1")
+    parser.add_argument(
+        "--all-acts", action="store_true", help="every act except the excluded ones"
+    )
     parser.add_argument("--docs", nargs="+", metavar="DOC_ID", help="only these Tier-1 acts")
     args = parser.parse_args(argv)
 
-    acts = None if args.all_acts else load_tier1(args.corpus_config)
-    if args.docs and acts is not None:
+    acts = load_tier1(args.corpus_config)
+    if args.docs and not args.all_acts:
         unknown = set(args.docs) - set(acts)
         if unknown:
             parser.error(f"not in {args.corpus_config.name}: {sorted(unknown)}")
         acts = {doc_id: acts[doc_id] for doc_id in args.docs}
-    documents, articles, chunks = convert(read_rows(args.csv), acts)
+    documents, articles, chunks = convert(
+        read_rows(args.csv),
+        acts,
+        all_acts=args.all_acts,
+        excluded=load_excluded(args.corpus_config),
+    )
     write(args.out, documents, articles, chunks)
     excluded = sum(a["unit_status"] == "excluded" for a in articles)
     noted = sum(a["has_amendments"] for a in articles)

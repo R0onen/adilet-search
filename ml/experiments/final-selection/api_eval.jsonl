@@ -1,0 +1,6 @@
+{"config": "base_top5", "queries": 195, "degraded": 0, "hit@1": 0.831, "mrr@10": 0.867, "ndcg@10": 0.885, "recall@10": 0.944, "human_ok_n": 53, "human_ok_hit@1": 0.811, "human_ok_ndcg@10": 0.89, "p50_ms": 254, "p95_ms": 292}
+{"config": "base_top10", "queries": 195, "degraded": 0, "hit@1": 0.836, "mrr@10": 0.879, "ndcg@10": 0.895, "recall@10": 0.944, "human_ok_n": 53, "human_ok_hit@1": 0.792, "human_ok_ndcg@10": 0.891, "p50_ms": 454, "p95_ms": 489}
+{"config": "base_top20", "queries": 195, "degraded": 0, "hit@1": 0.836, "mrr@10": 0.884, "ndcg@10": 0.903, "recall@10": 0.959, "human_ok_n": 53, "human_ok_hit@1": 0.792, "human_ok_ndcg@10": 0.91, "p50_ms": 963, "p95_ms": 1069}
+{"config": "ft_top5", "queries": 195, "degraded": 0, "hit@1": 0.851, "mrr@10": 0.88, "ndcg@10": 0.895, "recall@10": 0.944, "human_ok_n": 53, "human_ok_hit@1": 0.83, "human_ok_ndcg@10": 0.902, "p50_ms": 289, "p95_ms": 402}
+{"config": "ft_top10", "queries": 195, "degraded": 0, "hit@1": 0.862, "mrr@10": 0.894, "ndcg@10": 0.907, "recall@10": 0.944, "human_ok_n": 53, "human_ok_hit@1": 0.792, "human_ok_ndcg@10": 0.897, "p50_ms": 535, "p95_ms": 666}
+{"config": "ft_top20", "queries": 195, "degraded": 0, "hit@1": 0.867, "mrr@10": 0.902, "ndcg@10": 0.916, "recall@10": 0.959, "human_ok_n": 53, "human_ok_hit@1": 0.792, "human_ok_ndcg@10": 0.913, "p50_ms": 944, "p95_ms": 1166}

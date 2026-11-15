@@ -56,3 +56,6 @@ a4_results/
 a3_results.zip
 a4_results.zip
 runs/
+
+# fine-tuned model weights (large; produced by the notebooks, shipped separately)
+ml/models/checkpoints/

@@ -179,9 +179,9 @@ def _build_reranker(manifest: Manifest) -> LexicalReranker | CrossEncoderReranke
         if local_path:
             # A checkpoint trained by us (not on the Hub): a folder under MODEL_LOCAL_DIR.
             # No fallback to the base model: the manifest must describe what is really served.
-            checkpoint = (
-                Path(os.getenv("MODEL_LOCAL_DIR", str(DEFAULT_MANIFEST.parent))) / local_path
-            )
+            # Relative to the manifest that is actually loaded, unless MODEL_LOCAL_DIR is set.
+            manifest_dir = Path(os.getenv("MODEL_MANIFEST_PATH", str(DEFAULT_MANIFEST))).parent
+            checkpoint = Path(os.getenv("MODEL_LOCAL_DIR", str(manifest_dir))) / local_path
             if not (checkpoint / "config.json").exists():
                 raise EngineLoadError(f"reranker checkpoint not found: {checkpoint}")
             return CrossEncoderReranker(str(checkpoint), max_seq_len, None)

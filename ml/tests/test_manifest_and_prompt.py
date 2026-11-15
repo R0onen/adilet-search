@@ -133,3 +133,20 @@ def test_missing_local_checkpoint_is_an_error_not_a_fallback(
     monkeypatch.setenv("MODEL_LOCAL_DIR", str(tmp_path))
     with pytest.raises(engine.EngineLoadError, match="checkpoint not found"):
         engine._build_reranker(_manifest_with_local_reranker("reranker-ft"))
+
+
+def test_local_checkpoint_is_resolved_next_to_the_loaded_manifest(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    loaded = {}
+
+    def fake_init(self: object, model_name: str, max_seq_len: int, revision: str | None) -> None:
+        loaded.update(model=model_name)
+
+    (tmp_path / "checkpoints" / "reranker-ft").mkdir(parents=True)
+    (tmp_path / "checkpoints" / "reranker-ft" / "config.json").write_text("{}", encoding="utf-8")
+    monkeypatch.delenv("MODEL_LOCAL_DIR", raising=False)
+    monkeypatch.setenv("MODEL_MANIFEST_PATH", str(tmp_path / "model_manifest.ft.json"))
+    monkeypatch.setattr(engine.CrossEncoderReranker, "__init__", fake_init)
+    engine._build_reranker(_manifest_with_local_reranker("checkpoints/reranker-ft"))
+    assert loaded == {"model": str(tmp_path / "checkpoints" / "reranker-ft")}

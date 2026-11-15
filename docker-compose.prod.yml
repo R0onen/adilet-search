@@ -155,7 +155,7 @@ services:
     image: adilet-ml-service:${APP_TAG:-prod}
     restart: unless-stopped
     environment:
-      MODEL_MANIFEST_PATH: /app/models/model_manifest.json
+      MODEL_MANIFEST_PATH: ${ML_MODEL_MANIFEST_PATH:-/app/models/model_manifest.json}
       MODEL_CACHE_DIR: /models
       ADILET_ML_BATCH_SIZE: ${ADILET_ML_BATCH_SIZE:-32}
       MODEL_PROMPT_PATH: /app/prompts/answer_v1.md
@@ -169,6 +169,8 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
     volumes:
       - ml-model-cache:/models
+      # fine-tuned checkpoints (not in git, not in the image): see ml/models/model_manifest.ft.json
+      - ./ml/models/checkpoints:/app/models/checkpoints:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
       interval: 15s
