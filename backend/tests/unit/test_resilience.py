@@ -18,6 +18,7 @@ from app.services.search import (
 )
 from dev.fake_ml.app import fake_manifest
 from tests.unit.test_search_service import (
+    MODEL_QUERY,
     QUERY,
     ROWS,
     FakeIndex,
@@ -134,7 +135,7 @@ async def test_semantic_failure_falls_back_to_full_text(broken: str) -> None:
     assert response.results[0].score_type == "fts"
     assert response.results[0].score == 0.42
     assert response.results[0].snippet
-    assert fts.calls == [(QUERY, "ru", request.filters, 5)]
+    assert fts.calls == [(MODEL_QUERY, "ru", request.filters, 5)]
     # /answer reuses the items: the generator gets article text as context
     assert outcome.items[0].chunk_text
     assert outcome.log_values["degraded"] == ["semantic"]

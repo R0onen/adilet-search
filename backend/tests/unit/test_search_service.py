@@ -19,6 +19,7 @@ from app.schemas.search import SearchRequest
 from app.services.index_info import ActiveIndex
 from app.services.ml_client import MlUnavailable
 from app.services.qdrant_store import Hit
+from app.services.query_expansion import expand_query
 from app.services.search import SearchBudgets, SearchContext, SearchError, SearchService
 from dev.fake_ml.app import fake_manifest
 from dev.sample_corpus import build
@@ -173,6 +174,8 @@ def make_service(
 
 
 QUERY = "Ответственность работодателя за задержку зарплаты"
+# The models get the query with the legal terms for "зарплата" appended; the response does not.
+MODEL_QUERY = expand_query(QUERY, "ru")
 
 
 async def test_hybrid_search_reranks_and_assembles() -> None:
@@ -194,7 +197,11 @@ async def test_hybrid_search_reranks_and_assembles() -> None:
     assert first.doc.short_title == "Тестовый ТК"
     assert len(first.snippet) <= 300
     assert first.highlights
-    assert ml.embed_calls == [{"texts": [QUERY], "kind": "query", "dense": True, "sparse": True}]
+    assert response.query == QUERY
+    assert MODEL_QUERY != QUERY
+    assert ml.embed_calls == [
+        {"texts": [MODEL_QUERY], "kind": "query", "dense": True, "sparse": True}
+    ]
     assert (store.dense_calls, store.sparse_calls) == (1, 1)
     # rerank got the best chunk's text_for_embedding
     sent = {c.id: c.text for c in ml.rerank_calls[0]}
