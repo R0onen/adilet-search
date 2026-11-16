@@ -146,7 +146,7 @@ def test_local_checkpoint_is_resolved_next_to_the_loaded_manifest(
     (tmp_path / "checkpoints" / "reranker-ft").mkdir(parents=True)
     (tmp_path / "checkpoints" / "reranker-ft" / "config.json").write_text("{}", encoding="utf-8")
     monkeypatch.delenv("MODEL_LOCAL_DIR", raising=False)
-    monkeypatch.setenv("MODEL_MANIFEST_PATH", str(tmp_path / "model_manifest.ft.json"))
+    monkeypatch.setenv("MODEL_MANIFEST_PATH", str(tmp_path / "model_manifest.local.json"))
     monkeypatch.setattr(engine.CrossEncoderReranker, "__init__", fake_init)
     engine._build_reranker(_manifest_with_local_reranker("checkpoints/reranker-ft"))
     assert loaded == {"model": str(tmp_path / "checkpoints" / "reranker-ft")}

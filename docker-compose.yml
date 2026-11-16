@@ -175,7 +175,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
     volumes:
       - ml-model-cache:/models
-      # fine-tuned checkpoints (not in git, not in the image): see ml/models/model_manifest.ft.json
+      # optional local checkpoints for a manifest with `local_path` (not in git, not in the image)
       - ./ml/models/checkpoints:/app/models/checkpoints:ro
     ports:
       - "127.0.0.1:${ML_SERVICE_PORT:-8001}:8001"
