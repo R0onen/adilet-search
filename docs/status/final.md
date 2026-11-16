@@ -22,12 +22,12 @@ Branch: `final-completion`. Requirement matrix and measured results: `docs/repor
 ## Open
 
 - Public deployment: needs the server address and login; steps in `docs/tech/deployment.md`.
-- Publishing the fine-tuned checkpoint (470 MB, not in the repository; reproducible from the A4 notebook).
+
 - Backup video of the demo.
 - A native speaker's check of the fixed Kazakh sentences in `ml/prompts/answer_v1.md`.
 
 ## Notes for others
 
-- With the `1.0.0` manifest the ML service refuses to start unless `ml/models/checkpoints/reranker-ft-written/` is present and matches the recorded hash. Without the checkpoint, use the `0.2.0` manifest (the default).
+- Pipeline `1.0.0` is the default manifest. Its reranker downloads from the Hugging Face Hub (`qb2k/adilet-reranker-mminilm-ru-kk`) on the first start, like the embedder. `model_manifest.pretrained.json` is pipeline `0.2.0`.
 - The hosted LLM's free tier allows 8,000 tokens a minute and 200,000 a day: about two answers a minute and 50 a day. Search does not depend on it.
 - The earlier status of 12 November (Labor Code sample index, local ports 18080/18000) is in the Git history of this file.

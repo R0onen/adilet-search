@@ -101,8 +101,8 @@ SLIDES = [
         "Source: ml/experiments/final-selection/. Hybrid mode, 5 reranked candidates, 195 test "
         "questions. On the 53 human-approved questions the right article is first for 83.0% on both "
         "indexes. Adding 32 acts costs 2.5 points on questions written for the 8 codes, because other "
-        "acts regulate the same subjects. The version is fixed in ml/models/model_manifest.ft.json "
-        "with model revisions and the checkpoint hash. Inputs and outputs: contracts/api.md.",
+        "acts regulate the same subjects. The version is fixed in ml/models/model_manifest.json "
+        "with pinned model revisions; the reranker is published on the Hugging Face Hub. Inputs and outputs: contracts/api.md.",
     ),
     (
         "06 / ARCHITECTURE",
@@ -140,17 +140,18 @@ SLIDES = [
         "981 searches · 0 failed · 1 answered without reranking\n"
         "p50 0.65 s · p95 1.2 s · target p95 ≤ 2 s\n"
         "One search alone: about 0.35 s\n"
-        "Answers: 29 of 30 generated, each cites the right article when retrieved; first words after 0.8 s",
+        "Answers: 38 of 40 generated, each cites the right article when retrieved; first words after 1 s",
         "Source: docs/report/load_test.md (10 simulated users, cache off, every request through "
         "embedding, retrieval and reranking, 5 minutes). Tests: backend unit, contract and "
         "integration tests, ML tests, frontend tests; counts in docs/status/. Answers: "
-        "docs/report/final_eval.md (30 human-approved questions, hosted LLM).",
+        "docs/report/final_eval.md (30 human-approved questions and 10 Kazakh ones, hosted LLM).",
     ),
     (
         "10 / LIMITS AND NEXT STEPS",
         "What the numbers do not show",
         "Test questions are LLM-written; 60 were checked by a person, none by a lawyer\n"
         "Kazakh is weaker than Russian (reranker nDCG@10 0.83 against 0.91)\n"
+        "Everyday questions on the added acts: right article first for 58%, not 83%\n"
         "15 of 35 reranker errors: the article never reaches the reranker\n"
         "The corpus is a snapshot; later amendments are not in it\n"
         "Next: Kazakh training questions, a larger dictionary, a lawyer-written gold set",
@@ -227,9 +228,11 @@ def main():
             table(slide, FINAL, [3.6, 2.6, 3.2, 2.0], top=2.6, size=20)
             caption = (
                 "Fine-tuned against pretrained: +0.013 nDCG@10 offline, p = 0.016\n"
-                "Human-approved questions: right article first for 83.0%"
+                "Human-approved questions: right article first for 83.0%\n"
+                "55 everyday questions on the added acts: first 58%, top 10 87% "
+                "(keyword search: 26%, 64%)"
             )
-            box(slide, 0.7, 5.0, 11.6, 1.2, caption, 20)
+            box(slide, 0.7, 4.9, 11.6, 1.6, caption, 19)
             body = markdown_table(FINAL) + "\n\n" + caption
         elif i == 5:
             for x, y, w, text in ARCHITECTURE:

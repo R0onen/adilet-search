@@ -27,8 +27,12 @@ Measured through the live API (`POST /api/v1/search`, hybrid mode; the first tab
 
 **Decision.** The deployed index is the 40 acts with 5 reranked candidates: it covers everyday questions outside the 8 codes at a cost of 2.5 points on questions written for the 8 codes, and unchanged results on the human-approved questions. Query expansion does not change these numbers; it is there for colloquial wording (`docs/report/final_eval.md`).
 
+## Everyday questions about the added acts
+
+`everyday_eval.jsonl`: the 55 questions of `data/eval/everyday/` through the live API (`ml/scripts/eval_api_everyday.py`). Hybrid with 5 reranked candidates: right article first 0.582, top 3 0.745, top 10 0.873; with 10 reranked: 0.618 / 0.818 / 0.873; keyword search only: 0.255 / 0.400 / 0.636.
+
 ## Generated answers
 
-`ml/scripts/eval_api_answers.py out.jsonl --pause 20` sends 30 human-approved questions to `/answer` and saves each answer. One run uses about 120,000 of the LLM provider's 200,000 free tokens a day. Summary of the run of 15 November in `docs/report/final_eval.md`.
+`answers.jsonl` (30 human-approved questions, Russian) and `answers_kk.jsonl` (10 everyday questions, Kazakh): the answers of the live API with their texts, from `ml/scripts/eval_api_answers.py` on 16 November. One Russian run uses about 120,000 of the LLM provider's 200,000 free tokens a day. Summary in `docs/report/final_eval.md`.
 
 Limits: one test set of 195 questions, so differences of one or two points are within noise (the 53-question human subset moves by 1.9 points per question); latency was measured sequentially on a laptop CPU.

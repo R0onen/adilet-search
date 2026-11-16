@@ -16,10 +16,10 @@ The ML side of Adilet Search:
 | Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1`: pretrained in 0.2.0, fine-tuned on our questions in 1.0.0 | top 5 fused articles, 256 tokens |
 | Generator | any OpenAI-compatible LLM (`ADILET_ML_GENERATOR_MODE=openai`) | prompt: `prompts/answer_v1.md`; without an LLM, an extractive fallback |
 
-`models/model_manifest.json` describes pipeline 0.2.0 and selects the implementations (`runtime`).
-`models/model_manifest.ft.json` is pipeline 1.0.0: the same index, with the reranker checkpoint
-`models/checkpoints/reranker-ft-written` (produced by `notebooks/A4_embeddings_to_finetuning.ipynb`,
-not in the repository; the service checks its SHA-256). See `MODEL_CARD.md`.
+`models/model_manifest.json` describes pipeline 1.0.0 and selects the implementations (`runtime`); its
+reranker is our fine-tuned checkpoint on the Hugging Face Hub (`qb2k/adilet-reranker-mminilm-ru-kk`,
+produced by `notebooks/A4_embeddings_to_finetuning.ipynb`). `models/model_manifest.pretrained.json`
+is pipeline 0.2.0 with the pretrained reranker and the same index. See `MODEL_CARD.md`.
 `models/model_manifest.bootstrap.json` runs offline stand-ins (hash embedder, word-overlap
 reranker) for tests and CI. It has its own `index_compat_id`, so an index built with the stand-ins
 is never served as E5.

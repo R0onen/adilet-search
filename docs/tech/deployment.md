@@ -36,7 +36,7 @@ The production stack is `docker-compose.prod.yml`: a Caddy reverse proxy in fron
    | `ADMIN_USERNAME`, `ADMIN_PASSWORD_HASH` | the admin login; make the hash in step 5 and keep it in single quotes |
    | `GRAFANA_ADMIN_PASSWORD` | a random password |
    | `ADILET_ML_GENERATOR_MODE`, `LLM_BASE_URL`, `LLM_MODEL`, `LLM_API_KEY` | the LLM (see `backend/README.md`) |
-   | `ML_MODEL_MANIFEST_PATH` | `/app/models/model_manifest.ft.json` for pipeline 1.0.0 (the fine-tuned reranker). Its weights are not in git: copy the folder `ml/models/checkpoints/reranker-ft-written/` to the same path on the server first. Leave the variable out to run the pretrained pipeline 0.2.0. |
+   | `ML_MODEL_MANIFEST_PATH` | leave it out: the default manifest is pipeline 1.0.0, and its fine-tuned reranker downloads from the Hugging Face Hub on the first start. `/app/models/model_manifest.pretrained.json` runs the pretrained pipeline 0.2.0. |
 
 4. Build the corpus files (downloads the public AdiletCodex dataset, 34 MB, and verifies it). `--tier 2` is the curated set of 40 acts; without it only the 8 main codes are built:
 
