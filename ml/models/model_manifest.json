@@ -1,6 +1,6 @@
 {
-  "pipeline_version": "0.2.0",
-  "created_at": "2026-11-11",
+  "pipeline_version": "1.0.0",
+  "created_at": "2026-11-16",
   "index_compat_id": "e5base-bm25st-ch1",
   "embedder": {
     "id": "multilingual-e5-base-zs",
@@ -24,11 +24,16 @@
     }
   },
   "reranker": {
-    "id": "mmarco-mMiniLMv2-L12-H384-zs",
-    "hf_repo": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
-    "revision": "1427fd652930e4ba29e8149678df786c240d8825",
+    "id": "mmarco-mMiniLMv2-L12-H384-ft-adilet",
+    "hf_repo": "qb2k/adilet-reranker-mminilm-ru-kk",
+    "revision": "d5ea1420d89b8f3217646b59aa27de65f15d7da3",
+    "runtime": "cross-encoder",
     "max_seq_len": 256,
-    "runtime": "cross-encoder"
+    "base_model": {
+      "hf_repo": "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1",
+      "revision": "1427fd652930e4ba29e8149678df786c240d8825"
+    },
+    "training": "fine-tuned on 4,264 (question, article) pairs from the written training questions; ml/notebooks/A4_embeddings_to_finetuning.ipynb, configuration E3b"
   },
   "generator": {
     "id": "openai-compatible-llm",

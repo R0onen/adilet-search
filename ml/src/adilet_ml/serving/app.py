@@ -46,20 +46,19 @@ async def lifespan(application: FastAPI) -> AsyncIterator[None]:
     )
     try:
         _engine = MlEngine(load_manifest())
-        if os.getenv("ADILET_ML_DEVICE", "cpu") == "cuda":
-            # CUDA kernels can take tens of seconds to initialise on a new GPU architecture.
-            # Finish that work before health checks admit traffic with two-second budgets.
-            _engine.embed(
-                ["Нормальная продолжительность рабочего времени"],
-                "query",
-                return_dense=True,
-                return_sparse=False,
-            )
-            _engine.rerank(
-                "Продолжительность рабочего времени",
-                [("warmup", "Тестовый текст для подготовки модели к инференсу.")],
-                None,
-            )
+        # The first call of each model is slow (lazy initialisation on CPU, kernel setup on CUDA).
+        # Do it here, before health checks admit traffic with two-second budgets.
+        _engine.embed(
+            ["Нормальная продолжительность рабочего времени"],
+            "query",
+            return_dense=True,
+            return_sparse=True,
+        )
+        _engine.rerank(
+            "Продолжительность рабочего времени",
+            [("warmup", "Тестовый текст для подготовки модели к инференсу.")],
+            None,
+        )
         _load_error = None
     except Exception as exc:
         _engine = None

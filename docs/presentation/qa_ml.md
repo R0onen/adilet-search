@@ -28,12 +28,14 @@ Numbers are from `docs/report/A3_report.md`, `A4_report.md`, `final_eval.md` and
 
 13. **How is the answer kept honest?** The LLM sees only the retrieved articles and must cite them. The backend removes citations that do not point to a provided source and marks answers without valid citations. It cannot check that the cited article supports the claim.
 
-14. **How good are the answers?** On 30 human-approved questions: 29 answers were generated, every answer cited the labelled article when it was among the sources (26 of 26), 25 were direct answers and 4 said the sources do not answer directly. No citation pointed to a source that was not provided. Nobody has judged the wording of each answer against the article.
+14. **How good are the answers?** On 30 human-approved questions and 10 Kazakh ones: 38 answers were generated, and every answer cited a labelled article when it was among the sources (33 of 33). No citation pointed to a source that was not provided. The weak point: 11 answers opened with "the articles do not answer directly" although most of them then answered; the prompt was changed after that run. Nobody has judged the wording of each answer against the article.
 
 15. **Why is Kazakh weaker?** No stemmer for keyword search, and the pretrained models saw little Kazakh: the reranker scores 0.83 nDCG@10 in Kazakh and 0.91 in Russian.
 
-16. **Is the model version fixed?** Yes: `ml/models/model_manifest.ft.json` records the model revisions, the checkpoint hash and `pipeline_version` 1.0.0; the service refuses to start if the checkpoint does not match.
+16. **Is the model version fixed?** Yes: `ml/models/model_manifest.json` records `pipeline_version` 1.0.0 and a pinned revision of every model. Our reranker is published as `qb2k/adilet-reranker-mminilm-ru-kk` on the Hugging Face Hub, so a fresh checkout downloads exactly the weights we evaluated.
 
 17. **What happens when the law changes?** Download the new snapshot, rebuild the corpus, index into a new collection and switch the alias. The models do not need retraining for new text.
 
-18. **What would you do next?** Kazakh training questions; a gold set written by lawyers; a faster reranker (ONNX or a GPU) so that more candidates can be reranked.
+18. **Does it work on the acts added later?** Less well. On 55 everyday questions about them the right article is first for 58% and in the top 10 for 87%, against 26% and 64% for keyword search. The reranker was trained on the 8 codes only, and these questions are more colloquial.
+
+19. **What would you do next?** Kazakh training questions; a gold set written by lawyers; a faster reranker (ONNX or a GPU) so that more candidates can be reranked.

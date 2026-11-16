@@ -75,6 +75,11 @@ services:
       context: ./frontend
     image: adilet-frontend:${APP_TAG:-prod}
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8080/ || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
     logging: *logging
 
   postgres:
@@ -169,7 +174,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY:-}
     volumes:
       - ml-model-cache:/models
-      # fine-tuned checkpoints (not in git, not in the image): see ml/models/model_manifest.ft.json
+      # optional local checkpoints for a manifest with `local_path` (not in git, not in the image)
       - ./ml/models/checkpoints:/app/models/checkpoints:ro
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]

@@ -132,3 +132,9 @@ Open items to settle by G0:
 - Why: with five long articles a request exceeded the provider's tokens-per-minute limit and 4 of 30 test answers failed every time; the model also opened 9 of 13 answers with "no direct answer" although the cited article answered the question.
 - Breaking: no.
 - Who must react: nobody.
+
+## 2026-11-16 — Pipeline 1.0.0 is the default manifest
+- `ml/models/model_manifest.json` is now pipeline `1.0.0`: the reranker is our fine-tuned cross-encoder, published as `qb2k/adilet-reranker-mminilm-ru-kk` on the Hugging Face Hub and pinned by revision. `model_manifest.pretrained.json` is the former default (`0.2.0`); `model_manifest.ft.json` (local checkpoint) is removed.
+- The ML service runs one embed and one rerank call at startup, so the first user request is not slow.
+- Breaking: no. `index_compat_id` is unchanged, so no reindex is needed. The first start downloads 470 MB more.
+- Who must react: deployments that set `ML_MODEL_MANIFEST_PATH=/app/models/model_manifest.ft.json` must remove the variable.

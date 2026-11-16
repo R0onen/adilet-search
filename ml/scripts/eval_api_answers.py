@@ -19,14 +19,27 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 REVIEW = ROOT / "data/eval/labeling/synthetic_review.csv"
+EVERYDAY = ROOT / "data/eval/everyday/queries.jsonl"
 PAUSE_S = 7.0
 
 
-def approved_questions(limit: int) -> list[dict[str, str]]:
+def approved_questions(limit: int) -> list[dict]:
     with REVIEW.open(encoding="utf-8-sig", newline="") as handle:
         rows = list(csv.DictReader(handle))
     verdict = next(name for name in rows[0] if name.startswith("verdict"))
-    return [row for row in rows if row[verdict].strip().lower() == "ok"][:limit]
+    approved = [row for row in rows if row[verdict].strip().lower() == "ok"][:limit]
+    return [{**row, "relevant": [row["article_id"]]} for row in approved]
+
+
+def everyday_questions(lang: str, limit: int) -> list[dict]:
+    """The hand-written everyday questions of one language (`data/eval/everyday/`)."""
+    lines = EVERYDAY.read_text(encoding="utf-8").splitlines()
+    rows = [json.loads(line) for line in lines]
+    return [
+        {**row, "question": row["text"], "article_id": row["relevant"][0]}
+        for row in rows
+        if row["lang"] == lang
+    ][:limit]
 
 
 def ask(base_url: str, question: str) -> dict:
@@ -51,12 +64,20 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("out", type=Path)
     parser.add_argument("--limit", type=int, default=30)
+    parser.add_argument(
+        "--everyday", choices=["ru", "kk"], help="use the everyday questions of this language"
+    )
     parser.add_argument("--pause", type=float, default=PAUSE_S, help="seconds per question")
     parser.add_argument("--base-url", default="http://localhost:8080")
     args = parser.parse_args()
 
     rows = []
-    for item in approved_questions(args.limit):
+    items = (
+        everyday_questions(args.everyday, args.limit)
+        if args.everyday
+        else approved_questions(args.limit)
+    )
+    for item in items:
         started = time.perf_counter()
         try:
             events = ask(args.base_url, item["question"])
@@ -65,7 +86,7 @@ def main() -> None:
         sources = events.get("sources", {}).get("sources", [])
         done = events.get("done", {})
         ref = next(
-            (s["ref"] for s in sources if s["article"]["article_id"] == item["article_id"]), None
+            (s["ref"] for s in sources if s["article"]["article_id"] in item["relevant"]), None
         )
         rows.append(
             {

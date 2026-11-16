@@ -17,10 +17,13 @@
 		X-Frame-Options "DENY"
 		Referrer-Policy "strict-origin-when-cross-origin"
 		Permissions-Policy "geolocation=(), microphone=(), camera=()"
-		# The UI loads only its own scripts and styles, and calls only its own origin.
-		Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 		-Server
 	}
+
+	# The UI loads only its own scripts and styles, and calls only its own origin.
+	# Grafana ships inline scripts, so the policy is not applied to its sub-path.
+	@not_grafana not path /grafana*
+	header @not_grafana Content-Security-Policy "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 
 	# The API. /metrics is not under /api, so it is never exposed.
 	handle /api/* {

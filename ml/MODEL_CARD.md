@@ -1,8 +1,8 @@
 # Model card: Adilet Search pipeline 1.0.0
 
-Manifest: `ml/models/model_manifest.ft.json` · `index_compat_id`: `e5base-bm25st-ch1` · 15 November 2026
+Manifest: `ml/models/model_manifest.json` · `index_compat_id`: `e5base-bm25st-ch1` · 16 November 2026
 
-The previous pipeline, `0.2.0` (`ml/models/model_manifest.json`), differs only in the reranker weights: it serves the pretrained reranker and needs no local checkpoint. Both use the same index.
+The previous pipeline, `0.2.0` (`ml/models/model_manifest.pretrained.json`), differs only in the reranker weights: it serves the pretrained reranker. Both use the same index.
 
 ## What it does
 
@@ -16,10 +16,10 @@ Retrieves articles of Kazakhstan legislation for a question in Russian or Kazakh
 | Dense embedder | `intfloat/multilingual-e5-base` @ `d1287505` | pretrained, not fine-tuned |
 | Sparse encoder | BM25 term weights; Russian Snowball stemming; Kazakh unstemmed | no training |
 | Fusion | weighted reciprocal-rank fusion, `k = 60`, weights 1:1 (in the backend) | no training |
-| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` @ `1427fd65`, **fine-tuned by us** (`checkpoints/reranker-ft-written`, SHA-256 in the manifest); reranks the first 5 fused articles at 256 tokens | 4,264 (question, article) pairs from LLM-written questions, learning rate 1e-5, 2 epochs; Assignment 4, configuration E3b |
+| Reranker | `cross-encoder/mmarco-mMiniLMv2-L12-H384-v1` @ `1427fd65`, **fine-tuned by us** and published as [`qb2k/adilet-reranker-mminilm-ru-kk`](https://huggingface.co/qb2k/adilet-reranker-mminilm-ru-kk) @ `d5ea1420`; reranks the first 5 fused articles at 256 tokens | 4,264 (question, article) pairs from LLM-written questions, learning rate 1e-5, 2 epochs; Assignment 4, configuration E3b |
 | Generator | an OpenAI-compatible LLM chosen at deployment (`LLM_MODEL`) with `prompts/answer_v1.md` | not trained by us |
 
-The fine-tuned weights (470 MB) are not in the repository. `ml/notebooks/A4_embeddings_to_finetuning.ipynb` reproduces them in about 2 minutes on a GPU; the service refuses to start with the 1.0.0 manifest if the checkpoint is missing or its hash differs.
+The fine-tuned weights (470 MB) are on the Hugging Face Hub and download on the first start. `ml/notebooks/A4_embeddings_to_finetuning.ipynb` reproduces them in about 2 minutes on a GPU.
 
 ## Data
 
@@ -54,12 +54,15 @@ The fine-tuned model is better than the pretrained one by +0.013 nDCG@10 (95% in
 
 Adding 32 acts costs 2.5 points of "right article first" on questions written for the 8 codes, because other acts regulate the same subjects. On the human-approved questions the result is unchanged.
 
+On 55 everyday questions about the added acts (`data/eval/everyday/`, written inside the project) the right article is first for 58% and in the top 10 for 87%, against 26% and 64% for keyword search alone.
+
 Earlier comparisons of embedding models and of the hybrid pipeline on title-derived queries are in `docs/report/RESEARCH_FINDINGS.md`.
 
 ## Known limits
 
 - The test questions are LLM-written with one labelled article each; a second correct article counts as an error. Differences below about 0.02 are within noise.
 - Kazakh is weaker than Russian at every stage: no stemmer for keyword matching, and neither the embedder nor the reranker base was trained on much Kazakh. The reranker's offline nDCG@10 is 0.83 in Kazakh against 0.91 in Russian.
+- Everyday questions about acts outside the 8 codes are answered less well than the synthetic test suggests: the reranker was trained on the 8 codes only.
 - The query dictionary is small and mostly Russian. A question in words that are neither in the article nor in the dictionary still depends on the dense embedder alone.
 - The reranker reads only the first 5 fused articles. Reranking 10 puts the right article first for 0.856 of the questions on the deployed index, at about half the throughput (`SEARCH_RERANK_TOP_N`).
 - Articles longer than the encoders' context are split into chunks; a chunk can miss context.
