@@ -13,7 +13,7 @@ export const ru = {
   titleAccent: 'понятным языком.',
   subtitle:
     'Задайте вопрос своими словами. Найдите нужную норму и проверьте ответ по первоисточнику.',
-  placeholder: 'Например: работодатель задерживает зарплату — что делать?',
+  placeholder: 'Например: можно ли вернуть товар в магазин без чека?',
   inputLabel: 'Ваш вопрос',
   submit: 'Найти ответ',
   searching: 'Ищем источники…',
@@ -106,7 +106,7 @@ const en: typeof ru = {
   titleAccent: 'plain language.',
   subtitle:
     'Ask in your own words. Find the relevant provision and check the answer against its source.',
-  placeholder: 'For example: my employer is withholding my salary — what can I do?',
+  placeholder: 'For example: can I return goods to a shop without a receipt?',
   inputLabel: 'Your question',
   submit: 'Find an answer',
   searching: 'Finding sources…',
@@ -197,7 +197,7 @@ const kk: typeof ru = {
   title: 'Құқық,',
   titleAccent: 'түсінікті тілде.',
   subtitle: 'Сұрақты өз сөзіңізбен қойыңыз. Қажетті норманы тауып, жауабын түпнұсқадан тексеріңіз.',
-  placeholder: 'Мысалы: жұмыс беруші жалақымды кешіктірді — не істеу керек?',
+  placeholder: 'Мысалы: тауарды дүкенге чексіз қайтаруға бола ма?',
   inputLabel: 'Сұрағыңыз',
   submit: 'Жауап іздеу',
   searching: 'Дереккөздерді іздеу…',
