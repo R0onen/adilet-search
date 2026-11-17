@@ -62,6 +62,7 @@ The Kazakh row overlaps the others. The largest group is outside any reranker's 
 
 - LLM-written questions with one labelled article; 53 of 60 sampled test questions confirmed by a person.
 - One seed; bootstrap intervals stand in for repeated runs.
+- A data bug found after these runs: 22 question ids of the training split were used twice in `data/eval/synthetic/` (the generator counted lines instead of continuing after the highest id when it resumed). When questions and labels were joined on the id, 44 training questions were also paired with the other question's article. Validation and test were not affected, so the test numbers stand; the training data had about 5% noisy questions. The ids are fixed in the repository and the generator no longer reuses ids; the notebooks were not re-run.
 - Inference times are on a GPU; the product's reranker runs on a CPU.
 
 ## Reproduce
