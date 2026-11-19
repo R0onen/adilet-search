@@ -137,7 +137,7 @@ SLIDES = [
         "09 / PERFORMANCE",
         "Fast enough for 10 users at once",
         "Load test: 10 users at once, cache off, 40-act index, CPU only\n"
-        "981 searches · 0 failed · 1 answered without reranking\n"
+        "981 searches · no errors · 1 answered without reranking (0.1%)\n"
         "p50 0.65 s · p95 1.2 s · target p95 ≤ 2 s\n"
         "One search alone: about 0.35 s\n"
         "Answers: 40 of 40 generated, each cites the right article when retrieved; first words after 0.7 s",

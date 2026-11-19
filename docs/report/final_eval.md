@@ -84,7 +84,7 @@ Limits: nobody has judged whether each statement follows from the cited article.
 | | |
 |---|---|
 | One search, deployed index | p50 357 ms, p95 530 ms |
-| 10 concurrent users, cache off | p50 650 ms, p95 1.2 s, 0 failed, 1 of 981 without reranking (`load_test.md`) |
+| 10 concurrent users, cache off | p50 650 ms, p95 1.2 s, no errors; 1 of 981 without reranking, which the test's rule counts as a failure (`load_test.md`) |
 
 ## Limits
 

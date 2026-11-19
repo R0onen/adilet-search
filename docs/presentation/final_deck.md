@@ -128,7 +128,7 @@ Open a cited article · switch Russian ↔ Kazakh · admin panel
 
 Load test: 10 users at once, cache off, 40-act index, CPU only
 
-981 searches · 0 failed · 1 answered without reranking
+981 searches · no errors · 1 answered without reranking (0.1%)
 
 p50 0.65 s · p95 1.2 s · target p95 ≤ 2 s
 
