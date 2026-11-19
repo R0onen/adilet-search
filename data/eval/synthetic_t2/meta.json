@@ -1,0 +1,18 @@
+{
+ "prompt_version": "synthetic_queries_v2",
+ "models": [
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "openai/gpt-oss-safeguard-20b"
+ ],
+ "seed": 42,
+ "articles_sampled": 320,
+ "queries": 632,
+ "by_split_lang": {
+  "train/ru": 314,
+  "train/kk": 213,
+  "val/ru": 63,
+  "val/kk": 42
+ },
+ "notes": "LLM-written queries for acts outside the 8 codes; the source article is the only labelled relevant document. Articles of data/eval/everyday are excluded."
+}

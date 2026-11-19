@@ -1,0 +1,119 @@
+{
+ "data": {
+  "train_pairs": 8128,
+  "train_questions": 1016,
+  "train_questions_added_acts": 527,
+  "val_questions": 224,
+  "test8_questions": 195,
+  "everyday_questions": 55,
+  "everyday_ceiling": 0.6545,
+  "test8_ceiling": 0.9231
+ },
+ "models": {
+  "E3b (8 codes)": {
+   "test8": {
+    "hit@1": 0.8256,
+    "mrr@10": 0.866,
+    "ndcg@10": 0.8804,
+    "recall@10": 0.9231
+   },
+   "everyday": {
+    "hit@1": 0.4364,
+    "mrr@10": 0.5067,
+    "ndcg@10": 0.5346,
+    "recall@10": 0.6182
+   },
+   "everyday_ru": {
+    "hit@1": 0.4444,
+    "mrr@10": 0.5063,
+    "ndcg@10": 0.5298,
+    "recall@10": 0.6
+   },
+   "everyday_kk": {
+    "hit@1": 0.4,
+    "mrr@10": 0.5083,
+    "ndcg@10": 0.5562,
+    "recall@10": 0.7
+   }
+  },
+  "new (40 acts)": {
+   "test8": {
+    "hit@1": 0.8359,
+    "mrr@10": 0.8715,
+    "ndcg@10": 0.8846,
+    "recall@10": 0.9231
+   },
+   "everyday": {
+    "hit@1": 0.4,
+    "mrr@10": 0.4869,
+    "ndcg@10": 0.5237,
+    "recall@10": 0.6364
+   },
+   "everyday_ru": {
+    "hit@1": 0.4,
+    "mrr@10": 0.4821,
+    "ndcg@10": 0.5165,
+    "recall@10": 0.6222
+   },
+   "everyday_kk": {
+    "hit@1": 0.4,
+    "mrr@10": 0.5083,
+    "ndcg@10": 0.5562,
+    "recall@10": 0.7
+   }
+  }
+ },
+ "history": [
+  {
+   "epoch": 1,
+   "val_hit@1": 0.7723,
+   "val_mrr@10": 0.8016,
+   "val_ndcg@10": 0.8121,
+   "val_recall@10": 0.8438
+  },
+  {
+   "epoch": 2,
+   "val_hit@1": 0.7634,
+   "val_mrr@10": 0.7955,
+   "val_ndcg@10": 0.8075,
+   "val_recall@10": 0.8438
+  },
+  {
+   "epoch": 3,
+   "val_hit@1": 0.7589,
+   "val_mrr@10": 0.793,
+   "val_ndcg@10": 0.8056,
+   "val_recall@10": 0.8438
+  },
+  {
+   "epoch": 4,
+   "val_hit@1": 0.7545,
+   "val_mrr@10": 0.7873,
+   "val_ndcg@10": 0.7992,
+   "val_recall@10": 0.8348
+  }
+ ],
+ "minutes": 4.4,
+ "paired": {
+  "test8": {
+   "mean_ndcg10_difference": 0.0041,
+   "ci95": [
+    -0.0047,
+    0.0138
+   ],
+   "p_value": 0.3959,
+   "better": 8,
+   "worse": 5
+  },
+  "everyday": {
+   "mean_ndcg10_difference": -0.0109,
+   "ci95": [
+    -0.0456,
+    0.0196
+   ],
+   "p_value": 0.5628,
+   "better": 3,
+   "worse": 4
+  }
+ }
+}
