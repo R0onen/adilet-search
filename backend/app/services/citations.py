@@ -61,6 +61,24 @@ def _normalise_for_match(text: str) -> str:
     return " ".join(text.lower().replace("ё", "е").split())
 
 
+NO_DIRECT_ANSWER = {
+    "ru": "В найденных статьях нет прямого ответа на этот вопрос.",
+    "kk": "Табылған баптарда бұл сұраққа тікелей жауап жоқ.",
+}
+
+
+def localise_no_direct_answer(text: str, lang: str) -> str:
+    """The model sometimes writes the fixed "no direct answer" sentence of the other language
+    (seen in Kazakh answers). Replace it with the one in the answer's language."""
+    target = NO_DIRECT_ANSWER.get(lang)
+    if target is None:
+        return text
+    for other_lang, sentence in NO_DIRECT_ANSWER.items():
+        if other_lang != lang and sentence in text:
+            text = text.replace(sentence, target)
+    return text
+
+
 def is_refusal(text: str) -> bool:
     normalised = _normalise_for_match(text)
     return any(phrase in normalised for phrase in REFUSAL_PHRASES)

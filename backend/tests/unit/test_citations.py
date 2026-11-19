@@ -68,3 +68,14 @@ def test_no_direct_answer_with_related_sources_is_a_refusal_that_keeps_its_citat
     assert result.refused
     assert result.citations == [2]
     assert not result.grounded
+
+
+def test_no_direct_answer_sentence_follows_the_answer_language() -> None:
+    from app.services.citations import NO_DIRECT_ANSWER, localise_no_direct_answer
+
+    kk_text = NO_DIRECT_ANSWER["ru"] + "\n\nБерілген дереккөздерде мерзім жоқ [1]."
+    fixed = localise_no_direct_answer(kk_text, "kk")
+    assert fixed.startswith(NO_DIRECT_ANSWER["kk"])
+    assert NO_DIRECT_ANSWER["ru"] not in fixed
+    assert localise_no_direct_answer(kk_text, "ru") == kk_text
+    assert localise_no_direct_answer("Ответ [1].", "kk") == "Ответ [1]."
