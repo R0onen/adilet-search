@@ -50,6 +50,8 @@ Rows: `ml/experiments/final-selection/everyday_eval.jsonl`. Script: `ml/scripts/
 - 7 questions do not have the right article in the top 10 at all, 5 of them about enforcement proceedings and mortgage: retrieval, not reranking, is the limit there.
 - Kazakh: 7 of 10 first. Ten questions are too few to compare the languages.
 
+**Is the reranker's training the cause?** No. Retraining it with 527 more LLM-written questions about the added acts left both test sets unchanged (offline nDCG@10: 0.880 → 0.885 on the 195 synthetic questions, p = 0.40; 0.535 → 0.524 on the 55 everyday questions, p = 0.56). The served reranker stays as it is; details in `ml/experiments/reranker-40acts/`. The gap comes from retrieval (BM25 has the article among its 20 candidates for only 65% of the everyday questions) and from the questions' colloquial wording.
+
 ## Generated answers
 
 Questions were sent to `POST /api/v1/answer` with the hosted LLM (`qwen/qwen3.8-27b`, 5 sources) on 16 November 2026. Script: `ml/scripts/eval_api_answers.py`; every answer is saved in `ml/experiments/final-selection/answers.jsonl` (Russian) and `answers_kk.jsonl` (Kazakh) for reading.

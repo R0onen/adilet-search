@@ -36,6 +36,6 @@ Numbers are from `docs/report/A3_report.md`, `A4_report.md`, `final_eval.md` and
 
 17. **What happens when the law changes?** Download the new snapshot, rebuild the corpus, index into a new collection and switch the alias. The models do not need retraining for new text.
 
-18. **Does it work on the acts added later?** Less well. On 55 everyday questions about them the right article is first for 58% and in the top 10 for 87%, against 26% and 64% for keyword search. The reranker was trained on the 8 codes only, and these questions are more colloquial.
+18. **Does it work on the acts added later?** Less well. On 55 everyday questions about them the right article is first for 58% and in the top 10 for 87%, against 26% and 64% for keyword search. The reranker was trained on the 8 codes only, and these questions are more colloquial. We tested whether training the reranker on those acts helps: with 527 more questions about them, nothing changed (−0.011 nDCG@10, p = 0.56). The limit is retrieval: BM25 alone has the right article among its 20 candidates for only 65% of these questions.
 
 19. **What would you do next?** Kazakh training questions; a gold set written by lawyers; a faster reranker (ONNX or a GPU) so that more candidates can be reranked.
