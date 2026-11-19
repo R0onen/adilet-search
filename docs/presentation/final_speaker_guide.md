@@ -26,7 +26,7 @@ The deck has 10 slides: `final_deck.pptx` (speaker notes name the source of ever
 
 **Slide 8.** Run the demo.
 
-**Slide 9, performance (30 s).** "Ten users at once without any cache: 95% of searches finish within 1.2 seconds on a CPU; none failed."
+**Slide 9, performance (30 s).** "Ten users at once without any cache: 95% of searches finish within 1.2 seconds on a CPU; there were no errors, and one search in 981 came back without reranking."
 
 **Slide 10, limits (40 s).** Read the slide. Do not soften it.
 

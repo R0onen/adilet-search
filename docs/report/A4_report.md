@@ -58,10 +58,15 @@ E3 does not put the correct article first for 35 of the 195 test questions (17.9
 
 The Kazakh row overlaps the others. The largest group is outside any reranker's reach.
 
+## Follow-up: training on all 40 acts
+
+After the corpus was extended to 40 acts, E3b was repeated with 527 more training questions about the 32 added acts (`ml/scripts/train_reranker.py`, `ml/experiments/reranker-40acts/`). On the 195 test questions nDCG@10 went from 0.880 to 0.885 (p = 0.40); on 55 everyday questions about the added acts from 0.535 to 0.524 (p = 0.56). Neither change is significant, and through the live hybrid search the everyday result is identical (58% first), so E3b stays the product's reranker. The weak results on the added acts come from retrieval (the article is among the 20 BM25 candidates for 65% of those questions) and from wording, not from what the reranker was trained on.
+
 ## Limits
 
 - LLM-written questions with one labelled article; 53 of 60 sampled test questions confirmed by a person.
 - One seed; bootstrap intervals stand in for repeated runs.
+- A data bug found after these runs: 22 question ids of the training split were used twice in `data/eval/synthetic/` (the generator counted lines instead of continuing after the highest id when it resumed). When questions and labels were joined on the id, 44 training questions were also paired with the other question's article. Validation and test were not affected, so the test numbers stand; the training data had about 5% noisy questions. The ids are fixed in the repository and the generator no longer reuses ids; the notebooks were not re-run.
 - Inference times are on a GPU; the product's reranker runs on a CPU.
 
 ## Reproduce

@@ -179,7 +179,8 @@ def main(argv: list[str] | None = None) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     queries_path, qrels_path = out_dir / "queries.jsonl", out_dir / "qrels.jsonl"
     done = {r["article_id"] for r in read_jsonl(qrels_path)}
-    counter = len(read_jsonl(queries_path))
+    # Continue after the highest id: counting lines would reuse ids if a line was ever removed.
+    counter = max((int(q["query_id"][1:]) for q in read_jsonl(queries_path)), default=0)
 
     articles = sample_articles(args.data_dir, args.eval_dir, args.articles, args.seed)
     todo = [a for a in articles if a["article_id"] not in done]

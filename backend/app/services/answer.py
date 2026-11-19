@@ -38,7 +38,7 @@ from app.schemas.answer import (
 from app.schemas.ml import GenerateRequest, GenerateSource, Manifest
 from app.schemas.search import SearchRequest
 from app.services.background import BackgroundRunner
-from app.services.citations import NOT_FOUND_TEXT, process_citations
+from app.services.citations import NOT_FOUND_TEXT, localise_no_direct_answer, process_citations
 from app.services.ml_client import GenerateEvent, MlUnavailable
 from app.services.search import AssembledResult, SearchContext, SearchOutcome, SearchService
 
@@ -251,7 +251,7 @@ class AnswerService:
             if final_text is None:
                 raise MlUnavailable("/generate", "incomplete", "stream ended without done")
 
-            cited = process_citations(final_text, refs)
+            cited = process_citations(localise_no_direct_answer(final_text, response.lang), refs)
             total_ms = _ms(time.perf_counter() - prepared.started)
             answer.update(
                 status="completed",

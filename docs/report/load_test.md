@@ -1,6 +1,6 @@
 # Load test of `/search`
 
-**Result on the deployed configuration (15 November 2026).** Pipeline 1.0.0 on the 40-act index, 10 concurrent users, cache off: p95 **1.2 s**, 981 hybrid searches, none failed, 1 answered without reranking. Details in the last section.
+**Result on the deployed configuration (15 November 2026).** Pipeline 1.0.0 on the 40-act index, 10 concurrent users, cache off: p95 **1.2 s**, 981 hybrid searches, no errors; 1 search exceeded the reranker budget and came back in fused order, which the test's rule counts as a failure (0.1%). Details in the last section.
 
 **Result on the 8-code index (12 November 2026).** With the reranker limited to the first 5 fused articles at 256 tokens, `/search` meets the target of p95 ≤ 2 s at 10 concurrent users on the full corpus: p95 **0.88 s** with the cache switched off, no failed and no degraded responses. At 25 users without a cache the reranker is saturated and most responses fall back to the fused order. The original setting (20 articles, 384 tokens) did not hold 10 users.
 
@@ -84,7 +84,7 @@ Going from 20 to 5 candidates loses 2.5 points of "right article first" and keep
 | Search | with query expansion (everyday words → legal terms) |
 | Load | 10 users, 1–3 s between requests, 5 minutes, cache off (`CACHE_TTL_S=0`), same questions and failure rule as above |
 
-| Requests | Failed | Degraded | p50 | p95 | p99 | Requests/s |
+| Requests | HTTP errors | Degraded (counted as failed) | p50 | p95 | p99 | Requests/s |
 |---|---|---|---|---|---|---|
 | 981 hybrid | 0 | 1 (reranker timeout, answered in fused order) | 650 ms | **1,200 ms** | 1,800 ms | 3.3 |
 | 137 keyword | 0 | 0 | 110 ms | 460 ms | 540 ms | 0.5 |

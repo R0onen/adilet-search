@@ -58,6 +58,7 @@ Fine-tuning settings: binary cross-entropy on one logit, AdamW (weight decay 0.0
 
 - LLM-written questions, one labelled article each, 195 test questions: differences below about 0.02 nDCG@10 are within noise.
 - One seed.
+- A data bug found after these runs: 22 question ids of the training split were used twice in `data/eval/synthetic/` (the generator counted lines instead of continuing after the highest id when it resumed). When questions and labels were joined on the id, 44 training questions were also paired with the other question's article. Validation and test were not affected, so the test numbers stand; the training data had about 5% noisy questions. The ids are fixed in the repository and the generator no longer reuses ids; the notebooks were not re-run.
 - An earlier version of this experiment kept the 7 highest-ranked wrong candidates as negatives. That made "low BM25 rank" a sure sign of a positive in training and broke the feature-based models; the negatives are now drawn at random from the candidates. Numbers from that earlier version are not used anywhere.
 
 ## Reproduce

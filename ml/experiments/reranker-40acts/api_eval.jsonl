@@ -1,0 +1,2 @@
+{"config": "live_served_top5", "queries": 195, "degraded": 0, "hit@1": 0.826, "mrr@10": 0.855, "ndcg@10": 0.874, "recall@10": 0.933, "human_ok_n": 53, "human_ok_hit@1": 0.83, "human_ok_ndcg@10": 0.908, "p50_ms": 309, "p95_ms": 454}
+{"config": "live_40acts_top5", "queries": 195, "degraded": 0, "hit@1": 0.815, "mrr@10": 0.851, "ndcg@10": 0.87, "recall@10": 0.933, "human_ok_n": 53, "human_ok_hit@1": 0.83, "human_ok_ndcg@10": 0.908, "p50_ms": 291, "p95_ms": 352}

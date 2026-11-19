@@ -50,26 +50,32 @@ Rows: `ml/experiments/final-selection/everyday_eval.jsonl`. Script: `ml/scripts/
 - 7 questions do not have the right article in the top 10 at all, 5 of them about enforcement proceedings and mortgage: retrieval, not reranking, is the limit there.
 - Kazakh: 7 of 10 first. Ten questions are too few to compare the languages.
 
+**Is the reranker's training the cause?** No. Retraining it with 527 more LLM-written questions about the added acts left both test sets unchanged: offline nDCG@10 0.880 → 0.885 on the 195 synthetic questions (p = 0.40) and 0.535 → 0.524 on the 55 everyday questions (p = 0.56); through the live hybrid search the everyday result is identical (58% first, 87% in the top 10) and the synthetic one slightly lower (82.6% → 81.5% first). The served reranker stays as it is; details in `ml/experiments/reranker-40acts/`. The gap comes from retrieval (BM25 has the article among its 20 candidates for only 65% of the everyday questions) and from the questions' colloquial wording.
+
 ## Generated answers
 
-Questions were sent to `POST /api/v1/answer` with the hosted LLM (`qwen/qwen3.8-27b`, 5 sources) on 16 November 2026. Script: `ml/scripts/eval_api_answers.py`; every answer is saved in `ml/experiments/final-selection/answers.jsonl` (Russian) and `answers_kk.jsonl` (Kazakh) for reading.
+Questions were sent to `POST /api/v1/answer` with the hosted LLM (`qwen/qwen3.8-27b`, 5 sources) on 20 November 2026, with the final prompt. Script: `ml/scripts/eval_api_answers.py`; every answer is saved in `ml/experiments/final-selection/answers.jsonl` (Russian) and `answers_kk.jsonl` (Kazakh) for reading.
 
 | | 30 human-approved test questions (Russian) | 10 everyday questions (Kazakh) |
 |---|---|---|
-| Answer generated | 28 (2 failed at the LLM provider) | 10 |
-| A labelled article among the 5 sources | 25 of 28 | 8 of 10 |
-| Answer cites it, when it was among the sources | 25 of 25 | 8 of 8 |
-| Direct answer with valid citations (`grounded: true`) | 19 | 8 |
-| Opens with "no direct answer", then reports what the sources say | 9 | 2 |
+| Answer generated | 30 | 10 |
+| A labelled article among the 5 sources | 27 of 30 | 8 of 10 |
+| Answer cites it, when it was among the sources | 27 of 27 | 8 of 8 |
+| Direct answer with valid citations (`grounded: true`) | 30 | 8 |
+| "No direct answer" (then what the sources say) | 0 | 2, both where the sources really give no direct answer |
 | Citations to a source that was not provided | 0 | 0 |
-| Time to the first word (includes search), p50 | 1.0 s | 1.9 s |
-| Whole answer, p50 | 1.6 s | 2.8 s |
+| Time to the first word (includes search), p50 | 0.7 s | 1.4 s |
+| Whole answer, p50 | 1.2 s | 2.7 s |
 
-What holds: when the right article is retrieved, the answer cites it, every time; no answer cited a source it was not given; Kazakh questions get Kazakh answers.
+What holds: every answer was generated; when the right article is retrieved, the answer cites it every time; no answer cited a source it was not given; Kazakh questions get Kazakh answers.
 
-What does not hold yet: the "no direct answer" opening is overused. In 6 of the 9 Russian cases the labelled article was among the sources and the text after the opening does answer the question, so the answer is right but is marked as not grounded and the UI shows a notice. One Kazakh answer used the Russian version of the sentence. The prompt was restructured after this run (the model first decides whether any source answers, and the opening is allowed only if none does). The first two of the affected questions then got direct answers; the rest could not be re-asked because the provider's daily token limit was reached. The table is therefore from the prompt before that last change.
+Two small faults remain in the Kazakh answers. One opened with the Russian version of the fixed "no direct answer" sentence: the backend now replaces it with the sentence in the answer's language (`localise_no_direct_answer`, checked on the same question). The other wrote the sentence after its first paragraph instead of first; the content is right and the answer is still marked as not grounded.
 
-Earlier defects, found by the first run of this check and fixed before the run above: 17 of 30 answers failed because five long articles in one request exceeded the provider's 8,000 tokens a minute (the backend now caps the source text of an answer at 10,000 characters and sends the matched passage of a long article; the ML service waits and retries once when rate-limited); and 9 of 13 answers carried the opening.
+How this was reached. Earlier runs of this check found three defects, fixed in turn:
+
+- 17 of 30 answers failed: five long articles in one request exceeded the provider's 8,000 tokens a minute. The backend now caps the source text of an answer at 10,000 characters and sends the matched passage of a long article; the ML service waits and retries once when rate-limited.
+- The "no direct answer" opening was overused (9 of 13 answers in the first run, 11 of 38 in the second) although the cited article answered. The prompt now makes the model decide first whether any source answers, and allows the opening only if none does: 0 of 30 Russian answers in the final run.
+- The opening in the wrong language, fixed in the backend as above.
 
 Limits: nobody has judged whether each statement follows from the cited article. The provider's free tier allows 8,000 tokens a minute and 200,000 a day: about two answers a minute and 50 a day. Search is not affected.
 
@@ -78,7 +84,7 @@ Limits: nobody has judged whether each statement follows from the cited article.
 | | |
 |---|---|
 | One search, deployed index | p50 357 ms, p95 530 ms |
-| 10 concurrent users, cache off | p50 650 ms, p95 1.2 s, 0 failed, 1 of 981 without reranking (`load_test.md`) |
+| 10 concurrent users, cache off | p50 650 ms, p95 1.2 s, no errors; 1 of 981 without reranking, which the test's rule counts as a failure (`load_test.md`) |
 
 ## Limits
 

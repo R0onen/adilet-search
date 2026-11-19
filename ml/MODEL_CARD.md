@@ -62,7 +62,7 @@ Earlier comparisons of embedding models and of the hybrid pipeline on title-deri
 
 - The test questions are LLM-written with one labelled article each; a second correct article counts as an error. Differences below about 0.02 are within noise.
 - Kazakh is weaker than Russian at every stage: no stemmer for keyword matching, and neither the embedder nor the reranker base was trained on much Kazakh. The reranker's offline nDCG@10 is 0.83 in Kazakh against 0.91 in Russian.
-- Everyday questions about acts outside the 8 codes are answered less well than the synthetic test suggests: the reranker was trained on the 8 codes only.
+- Everyday questions about acts outside the 8 codes are answered less well than the synthetic test suggests. Retraining the reranker with questions about those acts did not change that (`ml/experiments/reranker-40acts/`): the limit is retrieval and colloquial wording, not the reranker's training data.
 - The query dictionary is small and mostly Russian. A question in words that are neither in the article nor in the dictionary still depends on the dense embedder alone.
 - The reranker reads only the first 5 fused articles. Reranking 10 puts the right article first for 0.856 of the questions on the deployed index, at about half the throughput (`SEARCH_RERANK_TOP_N`).
 - Articles longer than the encoders' context are split into chunks; a chunk can miss context.
