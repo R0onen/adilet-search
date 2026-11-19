@@ -25,7 +25,7 @@ State on **15 November 2026**. Submission: **23 November 2026**. The sections fr
 | Reranker offline, nDCG@10 (195 test questions) | TF-IDF + LogReg 0.727 → pretrained cross-encoder 0.867 → fine-tuned 0.880 (p = 0.016 against pretrained) | `A4_report.md` |
 | Live API, deployed index (40 acts) | right article first for 82.6%, nDCG@10 0.871; on the 53 human-approved questions 83.0% and 0.908 | `final_eval.md` |
 | Live API, 55 everyday questions about the added acts | right article first for 58%, in the top 10 for 87% (keyword search: 26% and 64%) | `final_eval.md` |
-| Generated answers, 30 human-approved questions and 10 Kazakh ones | 38 of 40 generated; a labelled article cited in 33 of 33 cases where it was retrieved; 27 direct answers, 11 opened with "no direct answer" (overused: see the report) | `final_eval.md` |
+| Generated answers, 30 human-approved questions and 10 Kazakh ones | 40 of 40 generated; a labelled article cited in 35 of 35 cases where it was retrieved; 38 direct answers, 2 "no direct answer" where the sources indeed lack one | `final_eval.md` |
 | Load, 10 users, cache off | p95 1.2 s, 0 failed, 1 of 981 without reranking | `load_test.md` |
 
 All quality numbers are on LLM-written questions with automatic labels; a person checked 60 of them.

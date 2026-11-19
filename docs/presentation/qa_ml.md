@@ -28,7 +28,7 @@ Numbers are from `docs/report/A3_report.md`, `A4_report.md`, `final_eval.md` and
 
 13. **How is the answer kept honest?** The LLM sees only the retrieved articles and must cite them. The backend removes citations that do not point to a provided source and marks answers without valid citations. It cannot check that the cited article supports the claim.
 
-14. **How good are the answers?** On 30 human-approved questions and 10 Kazakh ones: 38 answers were generated, and every answer cited a labelled article when it was among the sources (33 of 33). No citation pointed to a source that was not provided. The weak point: 11 answers opened with "the articles do not answer directly" although most of them then answered; the prompt was changed after that run. Nobody has judged the wording of each answer against the article.
+14. **How good are the answers?** On 30 human-approved questions and 10 Kazakh ones: all 40 answers were generated, and every answer cited a labelled article when it was among the sources (35 of 35). No citation pointed to a source that was not provided. 38 answers are direct; 2 say the articles do not answer directly, and in both the sources indeed lack the rule. Nobody has judged the wording of each answer against the article.
 
 15. **Why is Kazakh weaker?** No stemmer for keyword search, and the pretrained models saw little Kazakh: the reranker scores 0.83 nDCG@10 in Kazakh and 0.91 in Russian.
 

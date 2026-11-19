@@ -134,7 +134,7 @@ p50 0.65 s · p95 1.2 s · target p95 ≤ 2 s
 
 One search alone: about 0.35 s
 
-Answers: 38 of 40 generated, each cites the right article when retrieved; first words after 1 s
+Answers: 40 of 40 generated, each cites the right article when retrieved; first words after 0.7 s
 
 <!-- Source: docs/report/load_test.md (10 simulated users, cache off, every request through embedding, retrieval and reranking, 5 minutes). Tests: backend unit, contract and integration tests, ML tests, frontend tests; counts in docs/status/. Answers: docs/report/final_eval.md (30 human-approved questions and 10 Kazakh ones, hosted LLM). -->
 
