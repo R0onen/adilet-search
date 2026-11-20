@@ -2,13 +2,7 @@
 
 Append-only, newest first. Each entry: **date · contract · version · breaking? · who must react**, then what changed and why.
 
-Process (from `CLAUDE.md`):
-1. The owner edits the contract.
-2. The owner appends an entry here.
-3. The owner notes it in their status file.
-4. A human relays it to the affected agents.
-
-Breaking changes need the affected owner's OK before merging.
+Breaking changes need the affected component owner's OK before merging.
 
 ---
 
@@ -96,7 +90,7 @@ Backend phase BE-01. `contracts/openapi.json` is generated for the first time an
 
 ## 2026-10-05 · api.md, ml_service.md, data_schema.md · v1 · — · everyone
 
-Initial contracts, written during planning. Expect small additive adjustments in week 1, while the agents scaffold. After gate G0, every change follows the process above.
+Initial contracts, written during planning. Expect small additive adjustments in week 1, while the components are scaffolded.
 
 Open items to settle by G0:
 - **Backend:** confirm that the `/answer` SSE event shapes are implementable as written with sse-starlette.

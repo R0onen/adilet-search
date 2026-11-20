@@ -1,7 +1,7 @@
 """services/fusion.py against contracts/ml_service.md §2.
 
 The hand-written cases cover every rule. When ML publishes contracts/fixtures/fusion_cases.json,
-`test_contract_fixture` runs it too (format proposed in docs/status/backend.md).
+`test_contract_fixture` runs it too.
 """
 
 import json

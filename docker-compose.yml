@@ -145,7 +145,7 @@ services:
       retries: 5
 
   # --- ML-owned services ---------------------------------------------------------------
-  # From the ML snippet in docs/status/ml.md (2026-10-08). Contract: contracts/ml_service.md.
+  # Contract: contracts/ml_service.md.
   # Run the stack against the real ml-service instead of the fake one:
   #   ML_SERVICE_URL=http://ml-service:8001 docker compose --profile ml up -d --build
   # (profiles `dev` and `ml` both publish host port 8001: use one or the other)

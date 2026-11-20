@@ -13,7 +13,7 @@ State on **15 November 2026**. Submission: **23 November 2026**. The sections fr
 | Describe inputs and outputs | `contracts/api.md`, `contracts/ml_service.md`, `contracts/openapi.json`, `ml/MODEL_CARD.md` | – |
 | API and user interface | FastAPI (`/api/v1`), React UI with search, streamed answers, article viewer, comparison page, admin panel | – |
 | Testing | 301 backend unit and contract tests, 64 ML tests, 20 frontend tests; integration tests on PostgreSQL and Qdrant, a real-model job and a full-stack smoke test in CI | – |
-| Monitoring | Prometheus metrics per pipeline stage, alerts, provisioned Grafana dashboards, query log in the admin panel | A dashboard screenshot under load for the slides |
+| Monitoring | Prometheus metrics per pipeline stage, alerts, provisioned Grafana dashboards (screenshot in `docs/presentation/img/final-monitoring.png`), query log in the admin panel | – |
 | Accessible deployment | `docker-compose.prod.yml` with HTTPS proxy, verified locally end to end; guide in `docs/tech/deployment.md` | Public server: waiting for the server address |
 | Technical documentation | `docs/tech/` (architecture, deployment, runbook, security, sizing), contracts, component READMEs, model card | – |
 | Final presentation | `docs/presentation/final_deck.pptx` / `.pdf` (10 slides), speaker guide, demo script | Public URL on slide 7; backup video |

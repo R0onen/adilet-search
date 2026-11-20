@@ -143,7 +143,7 @@ SLIDES = [
         "Answers: 40 of 40 generated, each cites the right article when retrieved; first words after 0.7 s",
         "Source: docs/report/load_test.md (10 simulated users, cache off, every request through "
         "embedding, retrieval and reranking, 5 minutes). Tests: backend unit, contract and "
-        "integration tests, ML tests, frontend tests; counts in docs/status/. Answers: "
+        "integration tests, ML tests, frontend tests; counts in docs/report/final_readiness.md. Answers: "
         "docs/report/final_eval.md (30 human-approved questions and 10 Kazakh ones, hosted LLM).",
     ),
     (

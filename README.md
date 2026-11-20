@@ -12,16 +12,24 @@ Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 - **Admin panel.** Usage statistics, the query log, system health, reindexing.
 - **Keeps working when parts fail.** If the models or the vector index are down, search falls back to keyword search in the database.
 
-## Final project (submission 23 November 2026)
+## Results
 
-- [Run guide for the final prototype](docs/tech/final_project.md) (`infra/start-final.ps1`: real models, production UI, Prometheus and Grafana on local ports) and the [readiness report](docs/report/final_readiness.md).
-- [10-slide presentation](docs/presentation/final_deck.md) and [speaker guide](docs/presentation/final_speaker_guide.md).
-- Final model and evaluation: [model card](ml/MODEL_CARD.md) (pipeline 1.0.0), [final evaluation](docs/report/final_eval.md), [load test](docs/report/load_test.md).
+| What | Result |
+|---|---|
+| Right article first, 195 test questions (live API, 40 acts) | 82.6% (nDCG@10 0.871) |
+| Everyday questions about the added acts, right article in the top 10 | 87% (keyword search alone: 64%) |
+| Generated answers citing the right article when it was retrieved | 35 of 35 |
+| 10 concurrent users, cache off | p95 1.2 s |
+
+Details: [model card](ml/MODEL_CARD.md), [final evaluation](docs/report/final_eval.md), [load test](docs/report/load_test.md).
+
+## Documentation
+
+- [Architecture](docs/tech/architecture.md), [deployment](docs/tech/deployment.md), [runbook](docs/tech/runbook.md), [security](docs/tech/security.md).
+- [Run guide for the full system on one machine](docs/tech/final_project.md) and the [requirement coverage](docs/report/final_readiness.md).
 - Model training: [Assignment 3](docs/report/A3_report.md) and [Assignment 4](docs/report/A4_report.md) reports, with executed notebooks in `ml/notebooks/`.
-- Public deployment: [deployment guide](docs/tech/deployment.md).
-- Research comparison of the pipeline with recent pretrained embedding models: [findings](docs/report/RESEARCH_FINDINGS.md), [executed notebook](ml/notebooks/Final_Research_Comparison.ipynb), [how to reproduce](docs/tech/research_benchmark.md).
-
-Older bootstrap reports are superseded and must not supply final numbers.
+- Comparison with recent pretrained embedding models: [findings](docs/report/RESEARCH_FINDINGS.md), [how to reproduce](docs/tech/research_benchmark.md).
+- [Presentation](docs/presentation/final_deck.pdf) and [speaker guide](docs/presentation/final_speaker_guide.md).
 
 ## Quick start (fake models, no downloads)
 
@@ -59,8 +67,8 @@ See [backend/README.md](backend/README.md) → "Run the whole project". In short
 | [contracts/](contracts/) | the interfaces between the parts: public API, ML service, data schema, changelog |
 | [infra/](infra/) | reverse proxy, Prometheus, Grafana |
 | [docs/tech/](docs/tech/) | architecture, deployment, runbook, security, integration guide |
-| [docs/status/](docs/status/) | the current state of each part |
-| [docs/PROJECT_PLAN.md](docs/PROJECT_PLAN.md) | the original plan: scope, architecture, phases |
+| [docs/report/](docs/report/) | evaluation, load test, assignment reports |
+| [docs/presentation/](docs/presentation/) | slides, speaker guide, demo script |
 | `docker-compose.yml`, `docker-compose.final.yml`, `docker-compose.prod.yml` | the development stack, the final-prototype overlay (local ports) and the public stack behind a reverse proxy |
 
 ## Checks
@@ -85,5 +93,3 @@ CI runs these on every pull request, plus integration tests on real PostgreSQL a
 - Kazakh questions are answered less well than Russian ones.
 - The corpus is a snapshot of 17 September 2026 and covers 40 acts; later amendments and other acts are not in it.
 - The system is a search aid, not legal advice.
-
-How this repository was developed (three role briefs, shared rules, phase prompts) is described in [agents/README.md](agents/README.md) and [CLAUDE.md](CLAUDE.md).

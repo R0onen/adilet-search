@@ -197,4 +197,4 @@ The backend records the `index_compat_id` of each Qdrant collection it builds. I
 | `/rerank`, 30 candidates | ≤ 900 ms |
 | `/generate` | TTFT and tokens/s measured and reported; no hard target on CPU |
 
-The ML agent reports measured values in `docs/status/ml.md` every time the manifest changes.
+Measured values are in `docs/report/final_eval.md` and `docs/report/load_test.md`.

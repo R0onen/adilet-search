@@ -1,6 +1,6 @@
 """Internal ML service contract (contracts/ml_service.md). Not part of the public OpenAPI.
 
-Models accept extra fields, so the ML agent can add manifest keys without breaking the backend.
+Models accept extra fields, so the ML service can add manifest keys without breaking the backend.
 """
 
 from typing import Literal
