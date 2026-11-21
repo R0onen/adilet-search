@@ -26,7 +26,7 @@ Details: [model card](ml/MODEL_CARD.md), [final evaluation](docs/report/final_ev
 ## Documentation
 
 - [Architecture](docs/tech/architecture.md), [deployment](docs/tech/deployment.md), [runbook](docs/tech/runbook.md), [security](docs/tech/security.md).
-- [Run guide for the full system on one machine](docs/tech/final_project.md) and the [requirement coverage](docs/report/final_readiness.md).
+- [Run the full system](docs/tech/deployment.md) on a server or locally ("Local check"), and the [requirement coverage](docs/report/final_readiness.md).
 - Model training: [Assignment 3](docs/report/A3_report.md) and [Assignment 4](docs/report/A4_report.md) reports, with executed notebooks in `ml/notebooks/`.
 - Comparison with recent pretrained embedding models: [findings](docs/report/RESEARCH_FINDINGS.md), [how to reproduce](docs/tech/research_benchmark.md).
 - [Presentation](docs/presentation/final_deck.pdf) and [speaker guide](docs/presentation/final_speaker_guide.md).
