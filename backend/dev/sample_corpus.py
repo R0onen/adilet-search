@@ -3,7 +3,7 @@
     python -m dev.sample_corpus OUT_DIR
 
 The texts are invented for tests and local development. They are NOT legislation, and every
-title says so. Real data comes from the ML agent (`data/sample/`, `data/processed/`). It covers what
+title says so. Real data comes from the ML corpus importer (`data/sample/`, `data/processed/`). It covers what
 the indexer and the search must handle: RU + KK with parallel ids, a long article split into two
 chunks, an excluded article, amendment notes, a repealed act, and several document types and dates.
 """

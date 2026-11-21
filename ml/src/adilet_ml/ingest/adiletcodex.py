@@ -9,7 +9,7 @@ adilet.zan.kz, in Kazakh, Russian and English. It is the project's corpus source
 the official ones, and using the published dataset avoids scraping adilet.zan.kz ourselves.
 
 - Only `ru` and `kk` are kept (ISO 639-1; the English rows are not part of the product).
-- By default only the Tier-1 acts of `ml/configs/corpus.yaml` are converted (PROJECT_PLAN §6);
+- By default only the Tier-1 acts of `ml/configs/corpus.yaml` are converted;
   `--all-acts` converts every document.
 - Statute text is kept verbatim: NFC normalisation and trimming only. The «Сноска.» / «Ескерту.»
   amendment lines move from the text to `amendment_notes`, as data_schema.md §4 requires.

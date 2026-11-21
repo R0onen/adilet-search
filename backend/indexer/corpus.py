@@ -1,7 +1,7 @@
 """Load and validate the corpus Parquet files against contracts/data_schema.md §3–5.
 
-Validation fails loudly: every problem found (up to a limit) is listed in one error, so the ML
-agent can fix a dataset in one round.
+Validation fails loudly: every problem found (up to a limit) is listed in one error, so a dataset
+can be fixed in one round.
 """
 
 import re
