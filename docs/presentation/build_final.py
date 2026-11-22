@@ -16,7 +16,7 @@ from pptx.util import Inches, Pt
 HERE = Path(__file__).resolve().parent
 NAVY, WHITE, MUTED, TEAL, PANEL = "102B46", "FFFFFF", "A9BED0", "78E1C6", "1D405D"
 
-PUBLIC_URL = "URL: see README"
+PUBLIC_URL = "Live demo: https://bacterium-margarita-coveted.ngrok-free.dev"
 
 EXPERIMENTS = [
     ("Model", "Kind", "nDCG@10", "ROC-AUC"),
@@ -116,9 +116,10 @@ SLIDES = [
         "07 / DEPLOYMENT",
         "One command on a small server",
         "docker compose -f docker-compose.prod.yml up -d\n"
-        "Caddy issues the HTTPS certificate; only ports 80 and 443 are open\n"
+        "Only the proxy's port is open; HTTPS from Caddy on a server or from an ngrok tunnel\n"
         "The index is built once on a GPU and copied to the server\n" + PUBLIC_URL,
-        "Guide: docs/tech/deployment.md; sizing: docs/tech/infrastructure_sizing.md. CI runs unit, "
+        "The live demo runs this stack on a team machine behind an ngrok tunnel; the first visit shows "
+        "ngrok's warning page (click Visit Site). Guide: docs/tech/deployment.md; sizing: docs/tech/infrastructure_sizing.md. CI runs unit, "
         "contract and integration tests, a dependency audit and a full-stack smoke test on every pull "
         "request.",
     ),

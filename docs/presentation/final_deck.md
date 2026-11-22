@@ -100,13 +100,13 @@ Caddy (HTTPS) in front · Prometheus → Grafana behind
 
 docker compose -f docker-compose.prod.yml up -d
 
-Caddy issues the HTTPS certificate; only ports 80 and 443 are open
+Only the proxy's port is open; HTTPS from Caddy on a server or from an ngrok tunnel
 
 The index is built once on a GPU and copied to the server
 
-URL: see README
+Live demo: https://bacterium-margarita-coveted.ngrok-free.dev
 
-<!-- Guide: docs/tech/deployment.md; sizing: docs/tech/infrastructure_sizing.md. CI runs unit, contract and integration tests, a dependency audit and a full-stack smoke test on every pull request. -->
+<!-- The live demo runs this stack on a team machine behind an ngrok tunnel; the first visit shows ngrok's warning page (click Visit Site). Guide: docs/tech/deployment.md; sizing: docs/tech/infrastructure_sizing.md. CI runs unit, contract and integration tests, a dependency audit and a full-stack smoke test on every pull request. -->
 
 ---
 

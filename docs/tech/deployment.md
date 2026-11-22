@@ -2,7 +2,7 @@
 
 The production stack is `docker-compose.prod.yml`: a Caddy reverse proxy in front of the UI, the backend, the ML service, Postgres, Qdrant, Prometheus and Grafana. Only ports 80 and 443 are published.
 
-**Status:** the stack has been verified locally over plain HTTP (see "Local check"). It has not been deployed to a public server: the team has no VPS or domain yet. The steps below are what to do when there is one.
+**Status:** the public demo at https://bacterium-margarita-coveted.ngrok-free.dev runs this stack on a team machine behind an ngrok tunnel (see "Public demo through ngrok"). The server steps below are what to do when there is a VPS.
 
 ## What you need
 
@@ -107,6 +107,16 @@ scripts/smoke.sh http://localhost:8080
 ```
 
 `POSTGRES_PASSWORD`, `SESSION_SALT`, `JWT_SECRET` and the admin login must be in `.env`. The UI is then at `http://localhost:8080`, the admin panel at `/admin`, Grafana at `/grafana/`.
+
+## Public demo through ngrok
+
+Without a server, the same stack runs on a team machine and ngrok gives it a public HTTPS address. ngrok terminates HTTPS, so Caddy serves plain HTTP on port 8080.
+
+1. In `.env`: `SITE_ADDRESS=:80`, `HTTP_PORT=8080`, `HTTPS_PORT=8443` and a strong `GRAFANA_ADMIN_PASSWORD` (Grafana is reachable from the internet at `/grafana/`).
+2. Start the stack: `docker compose -f docker-compose.prod.yml up -d`.
+3. Install ngrok, run `ngrok config add-authtoken <token>` once, then `ngrok http 8080 --url https://bacterium-margarita-coveted.ngrok-free.dev` (the free account's fixed address).
+
+The site is up only while the machine, Docker and ngrok run, so the machine must not sleep. The free ngrok plan shows a warning page on the first visit and allows about 1 GB of traffic and 20,000 requests a month.
 
 ## Known limits
 

@@ -2,6 +2,8 @@
 
 Semantic search and source-cited answers over the legislation of the Republic of Kazakhstan, in Russian and Kazakh. Built as the AI module of **Legal Service** (Tehsnab Group, https://test.tehprof.kz/legal).
 
+**Live demo:** https://bacterium-margarita-coveted.ngrok-free.dev (on the first visit ngrok shows a warning page: click *Visit Site*).
+
 Course final project. Team: Daniil Talyzin, Yernur Kazhyakpar, Kuanysh Murat.
 
 ## What it does
